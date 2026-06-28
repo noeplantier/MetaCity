@@ -1,10 +1,12 @@
 import SwiftUI
 import UIKit
 
-/// MetaCity's color tokens. Every token is a *dynamic* color: it resolves differently in light and
-/// dark mode, the way every system color (`.label`, `.systemBackground`, ...) does. This is what
-/// "native Dark Mode" means in practice — we never force `.preferredColorScheme(.dark)`, the app
-/// follows the user's system setting, and both appearances are designed on purpose.
+/// MetaCity's color tokens. Each token is a *dynamic* color with both a light and dark appearance,
+/// the way every system color (`.label`, `.systemBackground`, ...) does — but `MetaCityApp` forces
+/// `.preferredColorScheme(.dark)` at the root, so in practice only the dark side ever ships: a
+/// permanent anthracite-on-white brand look rather than a mode that follows the system setting.
+/// The light values are kept (rather than deleted) so SwiftUI previews and any future toggle back
+/// to system-following behavior don't need the palette rebuilt from scratch.
 ///
 /// The dark appearance is a soft anthracite (never pure black) for a premium, non-OLED-harsh feel.
 /// Accent/success/danger/warning intentionally reuse Apple's own dynamic system color values

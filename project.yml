@@ -3,6 +3,9 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
     from: 11.6.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 7.1.0
 
 options:
   bundleIdPrefix: com.metacity
@@ -34,17 +37,26 @@ targets:
         NSLocationAlwaysAndWhenInUseUsageDescription: "MetaCity can keep showing your position to nearby friends while the app is in the background."
         NSCameraUsageDescription: "MetaCity needs camera access for video calls and to power the AR landmark experience."
         NSMicrophoneUsageDescription: "MetaCity needs microphone access so other participants can hear you on a call."
+        NSFaceIDUsageDescription: "MetaCity can use Face ID to lock your profile when you enable it in Profile > Security."
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - com.googleusercontent.apps.277769234407-ijrlufpcg92mkij4a8huc1td921simpu
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.metacity.app
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "Apple Development"
+        DEVELOPMENT_TEAM: CX3S4W8M46
     dependencies:
       - package: Firebase
         product: FirebaseAuth
       - package: Firebase
         product: FirebaseCore
+      - package: GoogleSignIn
+        product: GoogleSignIn
 
   MetaCityTests:
     type: bundle.unit-test

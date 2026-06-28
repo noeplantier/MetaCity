@@ -7,16 +7,30 @@ import SwiftUI
 struct Avatar: View {
     let name: String
     var size: CGFloat = 44
+    /// Lets Profile's avatar customization override the neutral default with a chosen color —
+    /// every other call site (call participants, previews) keeps the original look unchanged.
+    var backgroundColor: Color = .metacitySurfaceElevated
+    /// An SF Symbol name shown instead of initials, e.g. Profile's avatar icon picker. SF Symbols
+    /// rather than emoji on purpose — emoji glyphs were unavailable on this Simulator runtime
+    /// (rendered as "?" tofu boxes even after a reboot), while SF Symbols are vector system
+    /// glyphs already used everywhere else in the app and always render correctly.
+    var systemImage: String? = nil
 
     var body: some View {
         Circle()
-            .fill(Color.metacitySurfaceElevated)
+            .fill(backgroundColor)
             .overlay(Circle().strokeBorder(Color.metacityBorder, lineWidth: 1))
-            .overlay(
-                Text(initials)
-                    .font(.system(size: size * 0.38, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color.metacityTextPrimary)
-            )
+            .overlay {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: size * 0.4, weight: .semibold))
+                        .foregroundStyle(Color.metacityTextPrimary)
+                } else {
+                    Text(initials)
+                        .font(.system(size: size * 0.38, weight: .semibold, design: .rounded))
+                        .foregroundStyle(Color.metacityTextPrimary)
+                }
+            }
             .frame(width: size, height: size)
             .accessibilityHidden(true)
     }

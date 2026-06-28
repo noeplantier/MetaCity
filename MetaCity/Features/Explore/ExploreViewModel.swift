@@ -15,7 +15,7 @@ final class ExploreViewModel: ObservableObject {
     let greetingName: String
 
     private let mapRepository: MapRepository
-    private let exploreCenter = Coordinate(latitude: 37.7749, longitude: -122.4194)
+    private let exploreCenter = IndonesianCity.jakarta.centerCoordinate
 
     init(mapRepository: MapRepository, currentUserName: String?) {
         self.mapRepository = mapRepository

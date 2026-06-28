@@ -1,29 +1,58 @@
 import Foundation
 
-/// Generates plausible-looking nearby places and a route polyline around any coordinate, so the
-/// Map screen has real-looking data to render without a backend. Swap for a real places/directions
-/// API later behind the same `MapRepository` protocol — see the architecture notes for swap points.
+/// Serves exactly the 5 Jakarta districts MetaCity actually has real, OpenStreetMap-derived 3D
+/// coverage for (see `MetaCity/Resources/Districts/*.json`) — real coordinates, real history,
+/// each one routable straight into its `DistrictScene3DView`/AR experience via `districtName`.
+/// `coordinate`/`radiusMeters` are accepted (required by `MapRepository`) but intentionally
+/// unused: the app is Jakarta-only for now, so there's nothing to filter by proximity yet. Swap
+/// for a real places API later behind the same protocol — see the architecture notes for swap points.
 final class MockMapRepository: MapRepository {
+    private static let landmarks: [PlaceAnnotationItem] = [
+        PlaceAnnotationItem(
+            id: "jakarta-bundaran-hi",
+            title: "Bundaran HI",
+            subtitle: "Jakarta's landmark roundabout, gateway to the Sudirman-Thamrin tower corridor",
+            coordinate: Coordinate(latitude: -6.1954, longitude: 106.8230),
+            category: .monument,
+            city: .jakarta
+        ),
+        PlaceAnnotationItem(
+            id: "jakarta-kota-tua",
+            title: "Kota Tua",
+            subtitle: "Dutch colonial-era old town square, museums lining the historic harbor",
+            coordinate: Coordinate(latitude: -6.1352, longitude: 106.8133),
+            category: .museum,
+            city: .jakarta
+        ),
+        PlaceAnnotationItem(
+            id: "jakarta-kemang",
+            title: "Jalan Kemang Raya",
+            subtitle: "South Jakarta's expat-popular dining and nightlife strip",
+            coordinate: Coordinate(latitude: -6.2605, longitude: 106.8134),
+            category: .monument,
+            city: .jakarta
+        ),
+        PlaceAnnotationItem(
+            id: "jakarta-menteng",
+            title: "Taman Suropati",
+            subtitle: "Menteng's leafy diplomatic quarter — embassies and tree-lined Dutch garden-city streets",
+            coordinate: Coordinate(latitude: -6.1975, longitude: 106.8326),
+            category: .nature,
+            city: .jakarta
+        ),
+        PlaceAnnotationItem(
+            id: "jakarta-ancol",
+            title: "Taman Impian Jaya Ancol",
+            subtitle: "Jakarta Bay's beachfront recreation park, home to Dunia Fantasi",
+            coordinate: Coordinate(latitude: -6.1225, longitude: 106.8340),
+            category: .nature,
+            city: .jakarta
+        )
+    ]
+
     func fetchNearbyPlaces(around coordinate: Coordinate, radiusMeters: Double) async throws -> [PlaceAnnotationItem] {
         try await Task.sleep(nanoseconds: 300_000_000)
-        let offsets: [(latOffset: Double, lonOffset: Double, title: String, subtitle: String, category: PlaceCategory)] = [
-            (0.004, 0.003, "MetaCity HQ", "Where the team works", .office),
-            (-0.003, 0.005, "Partner Studio", "Design partner", .partner),
-            (0.002, -0.004, "Coffee Lab", "Great espresso", .pointOfInterest),
-            (-0.005, -0.002, "Launch Park", "Demo day venue", .pointOfInterest)
-        ]
-        return offsets.map { offset in
-            PlaceAnnotationItem(
-                id: UUID().uuidString,
-                title: offset.title,
-                subtitle: offset.subtitle,
-                coordinate: Coordinate(
-                    latitude: coordinate.latitude + offset.latOffset,
-                    longitude: coordinate.longitude + offset.lonOffset
-                ),
-                category: offset.category
-            )
-        }
+        return Self.landmarks
     }
 
     func fetchRoute(from start: Coordinate, to end: Coordinate) async throws -> [Coordinate] {

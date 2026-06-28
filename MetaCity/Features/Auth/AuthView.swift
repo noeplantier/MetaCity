@@ -104,8 +104,8 @@ struct AuthView: View {
         VStack(spacing: 2) {
             if viewModel.isUsingMockAuth {
                 Text("Demo account: demo@metacity.app / password123")
+                Text("\"Continue with Google\" signs in as a mocked identity — no real OAuth wired up yet")
             }
-            Text("\"Continue with Google\" signs in as a mocked identity — no real OAuth wired up yet")
         }
         .font(.metacityCaption)
         .foregroundStyle(Color.metacityTextTertiary)

@@ -11,8 +11,12 @@ struct MapScreenView: View {
 
                 ForEach(viewModel.places) { place in
                     Annotation(place.title, coordinate: place.coordinate.clLocationCoordinate) {
-                        PlaceMarkerView(category: place.category)
+                        PlaceMarkerView(category: place.category, isSelected: viewModel.selectedPlace?.id == place.id)
                             .accessibilityLabel(place.title)
+                            .accessibilityAddTraits(.isButton)
+                            .onTapGesture {
+                                viewModel.select(place)
+                            }
                     }
                 }
 
@@ -44,6 +48,14 @@ struct MapScreenView: View {
                 }
                 .padding(Spacing.xl)
             }
+            .safeAreaInset(edge: .bottom) {
+                if let place = viewModel.selectedPlace {
+                    PlaceCalloutCard(place: place, onViewInAR: viewModel.viewSelectedPlaceInAR, onDismiss: viewModel.clearSelection)
+                        .padding(Spacing.lg)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .animation(Motion.standard, value: viewModel.selectedPlace)
             .navigationTitle("Map")
             .task { viewModel.onAppear() }
             .errorAlert($viewModel.presentedError)
@@ -53,6 +65,7 @@ struct MapScreenView: View {
 
 private struct PlaceMarkerView: View {
     let category: PlaceCategory
+    let isSelected: Bool
 
     var body: some View {
         Image(systemName: category.systemImage)
@@ -60,10 +73,67 @@ private struct PlaceMarkerView: View {
             .foregroundStyle(.white)
             .padding(Spacing.sm)
             .background(category.tintColor, in: Circle())
+            .overlay(
+                Circle().strokeBorder(Color.white, lineWidth: isSelected ? 3 : 0)
+            )
+            .scaleEffect(isSelected ? 1.25 : 1.0)
             .elevation(.soft)
+            .animation(Motion.standard, value: isSelected)
+    }
+}
+
+private struct PlaceCalloutCard: View {
+    let place: PlaceAnnotationItem
+    let onViewInAR: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: place.category.systemImage)
+                .foregroundStyle(.white)
+                .frame(width: 36, height: 36)
+                .background(place.category.tintColor, in: Circle())
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(place.title)
+                    .font(.metacityHeadline)
+                    .foregroundStyle(Color.metacityTextPrimary)
+                Text(place.subtitle)
+                    .font(.metacityCaption)
+                    .foregroundStyle(Color.metacityTextSecondary)
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: Spacing.sm)
+
+            VStack(spacing: Spacing.xs) {
+                Button(action: onViewInAR) {
+                    Label("AR", systemImage: "arkit")
+                        .font(.metacityCaption)
+                        .frame(minWidth: 44, minHeight: 36)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.metacityPrimary)
+                .accessibilityLabel("View \(place.title) in AR")
+
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(Color.metacityTextTertiary)
+                }
+                .accessibilityLabel("Dismiss")
+            }
+        }
+        .padding(Spacing.md)
+        .background(Color.metacitySurface, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
+                .strokeBorder(Color.metacityBorder, lineWidth: 1)
+        )
+        .elevation(.raised)
     }
 }
 
 #Preview {
-    MapScreenView(viewModel: MapViewModel(mapRepository: MockMapRepository(), locationProvider: CoreLocationProvider()))
+    let environment = AppEnvironment()
+    MapScreenView(viewModel: environment.makeMapViewModel())
 }

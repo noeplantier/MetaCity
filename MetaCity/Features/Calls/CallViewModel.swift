@@ -3,13 +3,24 @@ import Foundation
 @MainActor
 final class CallViewModel: ObservableObject {
     @Published var rooms: [CallRoom] = []
+    @Published var contacts: [CallContact] = []
     @Published var callState: CallState = .idle
     @Published var newRoomName: String = ""
     @Published var presentedSnackbar: SnackbarMessage?
     @Published var isLoadingRooms = false
+    /// Local-only UI state — there's no real audio session or camera capture behind this mock, so
+    /// these don't round-trip through `CallService` the way mic/camera do (those have a plausible
+    /// real-SDK equivalent to forward to; "speaker" and "front/back" don't until real AVFoundation
+    /// capture exists).
+    @Published var isSpeakerOn = false
+    @Published var isFrontCamera = true
+    /// Seconds since `.connected` was first reached for the current call — drives the timer label
+    /// in `InCallView`. Reset to 0 whenever the call leaves `.connected`.
+    @Published var elapsedSeconds = 0
 
     private let callService: CallService
     private let joinCallUseCase: JoinCallUseCase
+    private var timerTask: Task<Void, Never>?
 
     init(callService: CallService, joinCallUseCase: JoinCallUseCase) {
         self.callService = callService
@@ -23,12 +34,36 @@ final class CallViewModel: ObservableObject {
         Task { [weak self] in
             guard let self else { return }
             for await state in self.callService.callStateStream {
+                let wasConnected = self.callState.isConnected
                 self.callState = state
                 if case .failed(let error) = state {
                     self.presentedSnackbar = SnackbarMessage(text: error.localizedDescription, style: .error)
                 }
+                if state.isConnected && !wasConnected {
+                    self.startTimer()
+                } else if !state.isConnected && wasConnected {
+                    self.stopTimer()
+                }
             }
         }
+    }
+
+    private func startTimer() {
+        elapsedSeconds = 0
+        timerTask?.cancel()
+        timerTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                guard !Task.isCancelled else { return }
+                self?.elapsedSeconds += 1
+            }
+        }
+    }
+
+    private func stopTimer() {
+        timerTask?.cancel()
+        timerTask = nil
+        elapsedSeconds = 0
     }
 
     func loadRooms() async {
@@ -38,6 +73,14 @@ final class CallViewModel: ObservableObject {
             rooms = try await callService.fetchAvailableRooms()
         } catch {
             presentedSnackbar = SnackbarMessage(text: "Couldn't load rooms.", style: .error)
+        }
+    }
+
+    func loadContacts() async {
+        do {
+            contacts = try await callService.fetchContacts()
+        } catch {
+            presentedSnackbar = SnackbarMessage(text: "Couldn't load contacts.", style: .error)
         }
     }
 
@@ -63,6 +106,44 @@ final class CallViewModel: ObservableObject {
         }
     }
 
+    /// Calls `contact` directly — the bot assistant answers itself after a short ring.
+    func call(_ contact: CallContact, mode: CallMode) async {
+        guard callState.isIdleOrEnded else {
+            presentedSnackbar = SnackbarMessage(text: "You're already in a call. Leave it before starting another.", style: .error)
+            return
+        }
+        isFrontCamera = true
+        isSpeakerOn = mode == .video // video calls default to speaker, like every real calling app
+        do {
+            try await callService.call(contact, mode: mode)
+        } catch {
+            presentedSnackbar = SnackbarMessage(text: "Couldn't start the call.", style: .error)
+        }
+    }
+
+    /// Test-only entry point (see `CallLobbyView`'s "Simulate incoming call" action) — exercises
+    /// the `.incoming` accept/decline UI without needing a second device or person.
+    func simulateIncomingCall(mode: CallMode) async {
+        guard callState.isIdleOrEnded else { return }
+        await callService.simulateIncomingCall(from: MockCallService.assistantContact, mode: mode)
+    }
+
+    func acceptIncomingCall() async {
+        do {
+            try await callService.acceptIncomingCall()
+        } catch {
+            presentedSnackbar = SnackbarMessage(text: "Couldn't connect the call.", style: .error)
+        }
+    }
+
+    func declineIncomingCall() async {
+        await callService.endRingingCall()
+    }
+
+    func cancelOutgoingCall() async {
+        await callService.endRingingCall()
+    }
+
     func leaveCall() async {
         await callService.leaveCurrentRoom()
     }
@@ -83,5 +164,29 @@ final class CallViewModel: ObservableObject {
         participants[localIndex].isCameraEnabled.toggle()
         callState = .connected(room: room, participants: participants)
         await callService.setCameraEnabled(participants[localIndex].isCameraEnabled)
+    }
+
+    func toggleSpeaker() {
+        isSpeakerOn.toggle()
+    }
+
+    /// No real capture session to flip yet (see the property's doc comment) — toggles the local
+    /// flag the preview reads to mirror itself, so the control is visibly live rather than dead.
+    func flipCamera() {
+        isFrontCamera.toggle()
+    }
+}
+
+private extension CallState {
+    var isConnected: Bool {
+        if case .connected = self { return true }
+        return false
+    }
+
+    var isIdleOrEnded: Bool {
+        switch self {
+        case .idle, .ended, .failed: return true
+        case .outgoing, .incoming, .connecting, .connected: return false
+        }
     }
 }

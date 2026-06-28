@@ -8,14 +8,17 @@ import SwiftUI
 /// camera, the in-call state, etc. from resetting whenever this view's body re-evaluates).
 struct HomeTabView: View {
     @ObservedObject private var session: SessionStore
+    @ObservedObject private var selectionStore: AppSelectionStore
     @StateObject private var exploreViewModel: ExploreViewModel
     @StateObject private var mapViewModel: MapViewModel
     @StateObject private var arViewModel: ARViewModel
     @StateObject private var callViewModel: CallViewModel
     @StateObject private var profileViewModel: ProfileViewModel
+    @State private var selectedTab: AppTab = .explore
 
     init(environment: AppEnvironment, session: SessionStore) {
         self.session = session
+        self.selectionStore = environment.selectionStore
         _exploreViewModel = StateObject(wrappedValue: environment.makeExploreViewModel(session: session))
         _mapViewModel = StateObject(wrappedValue: environment.makeMapViewModel())
         _arViewModel = StateObject(wrappedValue: environment.makeARViewModel())
@@ -24,23 +27,37 @@ struct HomeTabView: View {
     }
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             ExploreScreenView(viewModel: exploreViewModel)
                 .tabItem { Label("Explore", systemImage: "safari.fill") }
+                .tag(AppTab.explore)
 
             MapScreenView(viewModel: mapViewModel)
                 .tabItem { Label("Map", systemImage: "map.fill") }
+                .tag(AppTab.map)
 
             ARScreenView(viewModel: arViewModel)
                 .tabItem { Label("AR", systemImage: "arkit") }
+                .tag(AppTab.ar)
 
             CallLobbyView(viewModel: callViewModel)
                 .tabItem { Label("Calls", systemImage: "phone.fill") }
+                .tag(AppTab.calls)
 
             ProfileView(viewModel: profileViewModel)
                 .tabItem { Label("Profile", systemImage: "person.fill") }
+                .tag(AppTab.profile)
         }
         .tint(Color.metacityPrimary)
+        // One-shot signal: Map's "View in AR" (or any future entry point) sets `requestedTab` on
+        // the shared store; consuming it here and resetting to nil stops it from re-firing on an
+        // unrelated re-render, and keeps Map/AR from needing to know about each other or about
+        // this tab view directly.
+        .onChange(of: selectionStore.requestedTab) { _, requestedTab in
+            guard let requestedTab else { return }
+            selectedTab = requestedTab
+            selectionStore.requestedTab = nil
+        }
     }
 }
 

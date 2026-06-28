@@ -1,5 +1,7 @@
 import FirebaseAuth
 import Foundation
+import GoogleSignIn
+import UIKit
 
 /// Real Firebase Authentication backend — active automatically once `GoogleService-Info.plist` is
 /// present and `FirebaseApp.configure()` has run (see `MetaCityApp.init` and
@@ -25,12 +27,40 @@ final class FirebaseAuthRepository: AuthRepository {
     }
 
     func signInWithGoogle() async throws -> User {
-        // Needs the GoogleSignIn-iOS SDK plus an OAuth client, neither of which are configured on
-        // this Firebase project yet (no CLIENT_ID in GoogleService-Info.plist). Enable Google under
-        // Firebase Console > Authentication > Sign-in method, re-download the plist, add the
-        // GoogleSignIn-iOS package, then call `GIDSignIn.sharedInstance.signIn(...)` here and feed
-        // the resulting idToken into `Auth.auth().signIn(with: GoogleAuthProvider.credential(...))`.
-        throw AuthError.unknown("Sign in with Google isn't configured on this Firebase project yet.")
+        guard let presenter = await Self.topViewController() else {
+            throw AuthError.unknown("No screen to present Google Sign-In from.")
+        }
+
+        let signInResult: GIDSignInResult
+        do {
+            signInResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: presenter)
+        } catch {
+            throw AuthError.unknown(error.localizedDescription)
+        }
+
+        guard let idToken = signInResult.user.idToken?.tokenString else {
+            throw AuthError.unknown("Google didn't return an ID token.")
+        }
+        let credential = GoogleAuthProvider.credential(
+            withIDToken: idToken,
+            accessToken: signInResult.user.accessToken.tokenString
+        )
+
+        do {
+            let authResult = try await Auth.auth().signIn(with: credential)
+            return User(firebaseUser: authResult.user)
+        } catch {
+            throw AuthError.from(error)
+        }
+    }
+
+    @MainActor
+    private static func topViewController() -> UIViewController? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)?
+            .rootViewController
     }
 
     func logout() async {

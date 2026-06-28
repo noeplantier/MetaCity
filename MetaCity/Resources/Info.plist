@@ -16,10 +16,21 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.277769234407-ijrlufpcg92mkij4a8huc1td921simpu</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSCameraUsageDescription</key>
 	<string>MetaCity needs camera access for video calls and to power the AR landmark experience.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>MetaCity can use Face ID to lock your profile when you enable it in Profile &gt; Security.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>MetaCity can keep showing your position to nearby friends while the app is in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

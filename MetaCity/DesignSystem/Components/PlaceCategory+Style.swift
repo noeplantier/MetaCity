@@ -6,17 +6,21 @@ import SwiftUI
 extension PlaceCategory {
     var systemImage: String {
         switch self {
-        case .office: return "building.2.fill"
-        case .partner: return "person.2.fill"
-        case .pointOfInterest: return "star.fill"
+        case .monument: return "building.columns.fill"
+        case .religious: return "building.2.crop.circle.fill"
+        case .museum: return "building.fill"
+        case .bridge: return "road.lanes"
+        case .nature: return "mountain.2.fill"
         }
     }
 
     var tintColor: Color {
         switch self {
-        case .office: return .metacityPrimary
-        case .partner: return .metacitySecondary
-        case .pointOfInterest: return .metacityWarning
+        case .monument: return .metacityPrimary
+        case .religious: return .metacitySecondary
+        case .museum: return .metacityWarning
+        case .bridge: return .metacityDanger
+        case .nature: return .metacitySuccess
         }
     }
 }

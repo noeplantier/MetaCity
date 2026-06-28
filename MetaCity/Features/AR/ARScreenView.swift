@@ -5,40 +5,79 @@ struct ARScreenView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            ZStack(alignment: .bottom) {
                 if viewModel.isARSupported {
-                    ZStack(alignment: .bottom) {
-                        ARSceneView(placedMarkerCount: $viewModel.placedMarkerCount)
-                            .ignoresSafeArea()
-
-                        statusBanner
-                    }
+                    ARSceneView(location: viewModel.selectedLocation, placedCount: $viewModel.placedMarkerCount)
+                        .ignoresSafeArea()
                 } else {
-                    EmptyStateView(
-                        systemImage: "arkit",
-                        title: "AR needs a real device",
-                        message: "The Simulator has no camera, so world tracking can't run here. Build to a physical iPhone to place markers in AR."
-                    )
-                    .background(Color.metacityBackground)
+                    SimulatedARSceneView(location: viewModel.selectedLocation, placedMarkerCount: $viewModel.placedMarkerCount)
+                        .ignoresSafeArea()
                 }
+
+                VStack(spacing: Spacing.sm) {
+                    locationPicker
+                    statusBanner
+                }
+                .padding(.bottom, Spacing.xxl)
             }
             .navigationTitle("AR")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
 
-    private var statusBanner: some View {
-        Text(viewModel.placedMarkerCount == 0 ? "Tap a surface to place a marker" : "\(viewModel.placedMarkerCount) marker(s) placed")
-            .font(.metacitySubheadline)
-            .foregroundStyle(.white)
+    /// All 5 districts in one row — the entire app's AR/3D content now, so there's no second tier
+    /// of picker to fit alongside this one.
+    private var locationPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Spacing.sm) {
+                ForEach(ARLocation.allCases) { location in
+                    locationChip(location)
+                }
+            }
             .padding(.horizontal, Spacing.lg)
-            .padding(.vertical, Spacing.sm)
-            .background(.black.opacity(0.5), in: Capsule())
-            .padding(.bottom, Spacing.xxl)
-            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private func locationChip(_ location: ARLocation) -> some View {
+        let isSelected = viewModel.selectedLocation == location
+        return Button {
+            viewModel.selectedLocation = location
+        } label: {
+            Text(location.displayName)
+                .font(.metacityCaption)
+                .foregroundStyle(isSelected ? Color.black : Color.white)
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.xs)
+                .background(isSelected ? Color.white : Color.white.opacity(0.18), in: Capsule())
+        }
+    }
+
+    private var statusBanner: some View {
+        VStack(spacing: 2) {
+            Text(bannerTitle)
+                .font(.metacitySubheadline)
+                .foregroundStyle(.white)
+            Text("Focus building: \(viewModel.selectedLocation.focusBuildingName)")
+                .font(.metacityCaption)
+                .foregroundStyle(.white.opacity(0.75))
+        }
+        .padding(.horizontal, Spacing.lg)
+        .padding(.vertical, Spacing.sm)
+        .background(.black.opacity(0.55), in: Capsule())
+        .accessibilityElement(children: .combine)
+    }
+
+    private var bannerTitle: String {
+        if viewModel.isARSupported {
+            viewModel.placedMarkerCount == 0
+                ? "Tap a detected surface to place \(viewModel.selectedLocation.displayName)"
+                : "Visiting \(viewModel.selectedLocation.displayName)"
+        } else {
+            "Visiting \(viewModel.selectedLocation.displayName) — Simulator has no camera"
+        }
     }
 }
 
 #Preview {
-    ARScreenView(viewModel: ARViewModel())
+    ARScreenView(viewModel: AppEnvironment().makeARViewModel())
 }

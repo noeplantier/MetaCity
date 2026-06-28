@@ -12,7 +12,7 @@ struct JoinCallUseCase {
 
     func execute(roomID: String, currentState: CallState) async throws {
         switch currentState {
-        case .connected, .connecting:
+        case .connected, .connecting, .outgoing, .incoming:
             throw CallError.alreadyInCall
         case .idle, .ended, .failed:
             try await callService.join(roomID: roomID)

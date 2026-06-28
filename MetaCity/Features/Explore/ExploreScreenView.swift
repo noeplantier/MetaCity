@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ExploreScreenView: View {
     @ObservedObject var viewModel: ExploreViewModel
+    @StateObject private var inspectorViewModel = LandmarkInspectorViewModel()
 
     var body: some View {
         NavigationStack {
@@ -18,7 +19,13 @@ struct ExploreScreenView: View {
             .task { await viewModel.loadLandmarks() }
             .errorAlert($viewModel.presentedError)
             .sheet(item: $viewModel.selectedLandmark) { landmark in
-                LandmarkInspectorView(viewModel: LandmarkInspectorViewModel(), landmarkTitle: landmark.title)
+                if let districtName = landmark.districtName {
+                    LandmarkInspectorView(
+                        viewModel: inspectorViewModel,
+                        landmarkTitle: landmark.title,
+                        districtName: districtName
+                    )
+                }
             }
         }
     }

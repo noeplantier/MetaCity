@@ -10,20 +10,30 @@ final class AppEnvironment {
     let mapRepository: MapRepository
     let callService: CallService
     let locationProvider: UserLocationProvider
+    let preferencesStore: UserPreferencesStore
+    let biometricAuthenticator: BiometricAuthenticator
     /// Lets the UI show/hide things that only make sense on the mock (the demo-account hint) —
     /// without leaking *which* backend is active any deeper than that one boolean.
     let isUsingMockAuth: Bool
+    /// Cross-tab "what place is focused right now" — see `AppSelectionStore`. Lives here (rather
+    /// than being threaded through `MetaCityApp`/`RootView` like `SessionStore`) since it has no
+    /// external dependency of its own; every screen that needs it just reads `environment.selectionStore`.
+    let selectionStore = AppSelectionStore()
 
     init(
         authRepository: AuthRepository = AppEnvironment.defaultAuthRepository(),
         mapRepository: MapRepository = MockMapRepository(),
         callService: CallService = MockCallService(),
-        locationProvider: UserLocationProvider = CoreLocationProvider()
+        locationProvider: UserLocationProvider = CoreLocationProvider(),
+        preferencesStore: UserPreferencesStore = UserDefaultsPreferencesStore(),
+        biometricAuthenticator: BiometricAuthenticator = LocalAuthenticationBiometricAuthenticator()
     ) {
         self.authRepository = authRepository
         self.mapRepository = mapRepository
         self.callService = callService
         self.locationProvider = locationProvider
+        self.preferencesStore = preferencesStore
+        self.biometricAuthenticator = biometricAuthenticator
         self.isUsingMockAuth = FirebaseApp.app() == nil
     }
 
@@ -53,11 +63,11 @@ final class AppEnvironment {
     }
 
     func makeMapViewModel() -> MapViewModel {
-        MapViewModel(mapRepository: mapRepository, locationProvider: locationProvider)
+        MapViewModel(mapRepository: mapRepository, locationProvider: locationProvider, selectionStore: selectionStore)
     }
 
     func makeARViewModel() -> ARViewModel {
-        ARViewModel()
+        ARViewModel(selectionStore: selectionStore)
     }
 
     func makeCallViewModel() -> CallViewModel {
@@ -72,6 +82,11 @@ final class AppEnvironment {
     }
 
     func makeProfileViewModel(session: SessionStore) -> ProfileViewModel {
-        ProfileViewModel(authRepository: authRepository, session: session)
+        ProfileViewModel(
+            authRepository: authRepository,
+            session: session,
+            preferencesStore: preferencesStore,
+            biometricAuthenticator: biometricAuthenticator
+        )
     }
 }

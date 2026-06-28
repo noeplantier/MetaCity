@@ -1,6 +1,6 @@
 # MetaCity
 
-A digital-twin city app: SwiftUI + Clean Architecture (Core / Models / Repositories / Services / Features / DesignSystem), with working Auth (email/password + a mocked "Continue with Google"), a 3D map, a real ARKit module, audio/video calling, and an Explore tab — running on in-memory mocks where there's no backend yet. No API keys required to build and run today.
+A digital-twin app for 5 real Jakarta districts: SwiftUI + Clean Architecture (Core / Models / Repositories / Services / Features / DesignSystem), with working Auth (email/password + a mocked "Continue with Google"), real OpenStreetMap-derived 3D districts, a real ARKit module, audio/video calling, and an Explore tab — running on in-memory mocks where there's no backend yet. No API keys required to build and run today.
 
 ## Run it
 
@@ -17,17 +17,17 @@ In Xcode: pick an iOS 17+ simulator → `Cmd R`.
 
 - Xcode 15+ (full app, not just Command Line Tools — see Troubleshooting)
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen), only if you change `project.yml` or add/remove files: `brew install xcodegen`
-- A physical iPhone to actually see the AR tab work (ARKit needs a camera — see below)
+- A physical iPhone for *real-world tracking* AR (ARKit needs a camera) — the Simulator still gives you a full, real-content 3D experience of all 5 districts, just not real-world tracked (see below)
 
 ## What you get
 
 | Tab | What it shows |
 |---|---|
-| **Explore** | Greeting, search-filtered nearby landmarks, tap one to open a 3D preview |
-| **Map** | User location, custom place pins, a route polyline, a 2D/3D camera toggle |
-| **AR** | Real ARKit (`ARSCNView` + world tracking): tap a detected surface to place a 3D marker. Falls back to a clear "needs a real device" message in the Simulator, which has no camera |
-| **Calls** | A lobby to start/join mock rooms, then an in-call screen with mute/camera toggles |
-| **Profile** | Signed-in user, logout, and a list of "coming soon" extension points |
+| **Explore** | Greeting, search-filtered list of the 5 Jakarta districts, tap one to open a real 3D preview |
+| **Map** | The 5 district landmarks on a real Jakarta map, a route polyline, a 2D/3D camera toggle, tap a pin to recenter + jump to AR |
+| **AR** | Pick any of the 5 districts; the camera starts focused on that district's real, named landmark building. On a physical device, tap a detected surface to place a true-to-scale miniature of the district (real ARKit world tracking). On the Simulator (no camera), explore the same district full-scale from a pedestrian's eye level instead |
+| **Calls** | A lobby with a bot contact (audio/video, auto-answers) plus mock rooms; in-call screen has mute, speaker, camera, flip-camera, a live call timer, and full incoming/outgoing ringing states |
+| **Profile** | Signed-in user, logout, real content stats (district/building/road counts), and a list of "coming soon" extension points |
 
 Everything backend-shaped runs against mocks — [MockAuthRepository](MetaCity/Services/Auth/MockAuthRepository.swift), [MockMapRepository](MetaCity/Services/Map/MockMapRepository.swift), [MockCallService](MetaCity/Services/Call/MockCallService.swift) — behind protocols in [Repositories/](MetaCity/Repositories), so swapping in a real backend never touches a View or ViewModel. The UI follows a dynamic anthracite-dark / neutral-light design system that adapts to the system appearance.
 
@@ -65,12 +65,12 @@ This is being built in phases rather than all at once, since some of it genuinel
 4. **Calls upgrade** — network quality indicator, messaging.
 5. **Real backend** — your existing Firebase project (needs your `GoogleService-Info.plist` and exact bundle ID dropped in) plus a managed calling provider (Agora/Twilio/Stream — needs an API key).
 
-Two things are worth knowing going in: **GLB models aren't natively supported on iOS** (RealityKit/SceneKit only load USDZ natively — GLB needs a third-party parser, not recommended for a flagship app), and **ARKit cannot be verified in the Simulator** (no camera) — the AR tab's code is real and will run on a physical device, but I can only confirm it compiles, not that tracking looks right, without one.
+One thing is worth knowing going in: **real-world ARKit tracking cannot be verified in the Simulator** (no camera) — the tabletop placement code is real (same district data/geometry as the rest of the app, anchored via `ARSCNView` raycasting) and will run on a physical device, but tracking quality itself needs hands-on testing there.
 
 ## Troubleshooting
 
 - **Build fails immediately / "No such module 'MapKit'"** — you're on Command Line Tools, not full Xcode: `sudo xcode-select -s /Applications/Xcode.app`.
 - **Xcode shows red/missing files** — the file tree and `.xcodeproj` are out of sync; run `xcodegen generate` again.
 - **Map centers on the ocean / no pins nearby** — the simulator has no real GPS. Simulator menu → Features → Location → Custom Location (or pick a city).
-- **AR tab shows "needs a real device"** — expected in the Simulator; build to a physical iPhone to actually place markers.
+- **AR tab places nothing when tapped on the Simulator** — expected; tap-to-place a district miniature only works on a physical device (no camera/world tracking in the Simulator). The Simulator shows the same district full-scale instead, no tap needed.
 - **No camera/mic permission prompt in calls** — expected; the simulator has no real camera/mic, so video/audio in [InCallView](MetaCity/Features/Calls/InCallView.swift) are placeholders by design, not a bug.
