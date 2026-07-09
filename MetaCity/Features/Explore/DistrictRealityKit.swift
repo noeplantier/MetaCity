@@ -48,7 +48,8 @@ enum DistrictRealityKit {
     /// builds the geometry synchronously on the main actor and caches before returning a clone.
     @MainActor
     static func loadDistrictEntity(named name: String, isNight: Bool, mood: DistrictRealityScene.Mood = .parkDaylight) async throws -> Entity {
-        let cacheKey = "\(name)_\(isNight)"
+        // isNight is always false — night mode removed. Key is district name only.
+        let cacheKey = name
         if let cached = entityCache[cacheKey] {
             return cached.clone(recursive: true)
         }
@@ -138,15 +139,12 @@ enum DistrictRealityKit {
         // POI label panels — only for districts with curated POI data (Bali districts).
         if let distEntry = CityManifest.shared.district(id: name),
            let distData = District.load(named: name) {
-            let centroid = distData.buildingCentroid
-            if let poiLayer = makePOILabelEntities(
+            if let beaconLayer = makePOIBeaconEntities(
                 districtName: name,
                 districtAnchor: distEntry.anchor,
-                districtCentroid: SIMD2(centroid.x, centroid.z),
-                districtExtent: distData.extent,
-                isNight: isNight
+                districtExtent: distData.extent
             ) {
-                root.addChild(poiLayer)
+                root.addChild(beaconLayer)
             }
         }
 
@@ -431,6 +429,90 @@ enum DistrictRealityKit {
             default:
                 mat.baseColor = .init(tint: UIColor(red: 0.26, green: 0.22, blue: 0.18, alpha: 1))
             }
+        case .parisianCore:
+            // Paris limestone macadam — warm grey-beige Haussmann pavement.
+            // Pedestrian zones: pale limestone paving slabs. Grands boulevards: dark compressed gravel.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.72, green: 0.68, blue: 0.60, alpha: 1))
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.28, green: 0.25, blue: 0.22, alpha: 1))
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.34, green: 0.31, blue: 0.27, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified":
+                mat.baseColor = .init(tint: UIColor(red: 0.40, green: 0.37, blue: 0.32, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.44, green: 0.41, blue: 0.36, alpha: 1))
+            }
+        case .bordeauxWaterfront:
+            // Bordeaux warm golden asphalt and sandstone quay paving.
+            // Pedestrian: pale Gironde sandstone slabs (Cours de l'Intendance, esplanade).
+            // Primary: compressed warm asphalt (quais, Cours Victor Hugo).
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.68, green: 0.60, blue: 0.44, alpha: 1))
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.26, green: 0.22, blue: 0.16, alpha: 1))
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.32, green: 0.27, blue: 0.20, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.38, green: 0.32, blue: 0.24, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.42, green: 0.36, blue: 0.27, alpha: 1))
+            }
+        case .rennesMedieval:
+            // Rennes dark Breton granite cobblestone paving.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.48, green: 0.46, blue: 0.44, alpha: 1))
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.20, green: 0.19, blue: 0.18, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.28, green: 0.27, blue: 0.26, alpha: 1))
+            }
+        case .londonSilver:
+            // City of London — wet dark tarmac (perpetually damp) + cream Portland stone pedestrian zones.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.68, green: 0.66, blue: 0.62, alpha: 1))  // Portland stone
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.18, green: 0.18, blue: 0.20, alpha: 1))  // dark wet tarmac
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.22, green: 0.22, blue: 0.24, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.26, green: 0.26, blue: 0.28, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.30, green: 0.30, blue: 0.32, alpha: 1))
+            }
+        case .madridAfternoon:
+            // Madrid — warm grey granite (granito de la Sierra) paving, sun-bleached asphalt.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.72, green: 0.68, blue: 0.58, alpha: 1))  // warm granite
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.28, green: 0.24, blue: 0.20, alpha: 1))  // compressed warm asphalt
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.34, green: 0.30, blue: 0.25, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified":
+                mat.baseColor = .init(tint: UIColor(red: 0.40, green: 0.36, blue: 0.30, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.44, green: 0.40, blue: 0.34, alpha: 1))
+            }
+        case .romanGoldenHour:
+            // Rome — sanpietrini basalt cobblestones, warm dark grey with ochre-lit joints.
+            // Distinct from any other city: the cube-stone paving creates a unique texture at close range.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.54, green: 0.48, blue: 0.38, alpha: 1))  // travertine pedestrian zones
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.22, green: 0.20, blue: 0.18, alpha: 1))  // dark basalt primary road
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.28, green: 0.25, blue: 0.22, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.34, green: 0.30, blue: 0.26, alpha: 1))  // warm basalt secondary
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.38, green: 0.34, blue: 0.29, alpha: 1))
+            }
         default:
             // Jakarta / Bandung / Yogya: dark asphalt, graded by road class.
             switch kind {
@@ -557,6 +639,12 @@ enum DistrictRealityKit {
             case .beachResort:        fallback = UIColor(red: 0.88, green: 0.76, blue: 0.50, alpha: 1)
             case .sacredSite:         fallback = UIColor(red: 0.22, green: 0.20, blue: 0.18, alpha: 1)
             case .highlandMorning:    fallback = UIColor(red: 0.46, green: 0.48, blue: 0.51, alpha: 1)
+            case .parisianCore:       fallback = UIColor(red: 0.58, green: 0.55, blue: 0.50, alpha: 1)  // worn limestone pavement
+            case .bordeauxWaterfront: fallback = UIColor(red: 0.55, green: 0.46, blue: 0.33, alpha: 1)  // sandy Garonne riverside
+            case .rennesMedieval:     fallback = UIColor(red: 0.30, green: 0.28, blue: 0.26, alpha: 1)  // dark Breton granite cobblestones
+            case .londonSilver:       fallback = UIColor(red: 0.22, green: 0.22, blue: 0.25, alpha: 1)  // dark wet London tarmac
+            case .madridAfternoon:    fallback = UIColor(red: 0.62, green: 0.56, blue: 0.44, alpha: 1)  // warm Madrid granite
+            case .romanGoldenHour:    fallback = UIColor(red: 0.32, green: 0.26, blue: 0.20, alpha: 1)  // dark Roman sanpietrini basalt
             }
             umat.color = .init(tint: fallback)
         }
@@ -798,6 +886,90 @@ enum DistrictRealityKit {
                         g = UInt8(clamping: base + noise / 3)
                         b = UInt8(clamping: base + 14 + noise / 2)
                     }
+
+                case .parisianCore:
+                    // Paris — Lutetian limestone cobblestones, worn grey-beige joints.
+                    // Warm off-white blocks with pale yellow-grey mortar: the classic Parisian
+                    // pavement read from a Haussmann building window or orbit camera.
+                    if isJoint {
+                        r = 132; g = 124; b = 112
+                    } else {
+                        let br = blockParity ? 185 : 170
+                        let bg = blockParity ? 178 : 163
+                        let bb = blockParity ? 158 : 144
+                        r = UInt8(clamping: br + noise / 2)
+                        g = UInt8(clamping: bg + noise / 2)
+                        b = UInt8(clamping: bb + noise / 3)
+                    }
+
+                case .bordeauxWaterfront:
+                    // Bordeaux — sandy Garonne quayside limestone, warm golden cast.
+                    // Slightly warmer and sandier than Paris — Atlantic port limestone has
+                    // a golden hue that reads beautifully in the golden-hour mood.
+                    if isJoint {
+                        r = 118; g = 98; b = 72
+                    } else {
+                        let br = blockParity ? 178 : 162
+                        let bg = blockParity ? 148 : 132
+                        let bb = blockParity ? 100 : 88
+                        r = UInt8(clamping: br + noise / 2)
+                        g = UInt8(clamping: bg + noise / 3)
+                        b = UInt8(clamping: bb + noise / 4)
+                    }
+
+                case .rennesMedieval:
+                    // Rennes — dark Breton granite cobblestones, very tight block pattern.
+                    // Vieux-Rennes medieval streets use dark schist and granite — much darker
+                    // than Paris limestone, with a cool blue-grey cast from Atlantic humidity.
+                    if isJoint {
+                        r = 48; g = 46; b = 52
+                    } else {
+                        let base = blockParity ? 88 : 74
+                        r = UInt8(clamping: base + noise / 3)
+                        g = UInt8(clamping: base - 2 + noise / 4)
+                        b = UInt8(clamping: base + 8 + noise / 3)
+                    }
+
+                case .londonSilver:
+                    // City of London — perpetually wet dark tarmac, almost featureless.
+                    // No cobblestone grid — British tarmac roads have minimal surface texture.
+                    // Cool near-black with slight blue-grey from ambient light in overcast sky.
+                    let base = blockParity ? 62 : 52
+                    r = UInt8(clamping: base + noise / 4)
+                    g = UInt8(clamping: base + noise / 5)
+                    b = UInt8(clamping: base + 6 + noise / 3)  // faint blue-grey from London sky reflection
+
+                case .madridAfternoon:
+                    // Madrid — warm sun-bleached granite slab (granito de la Sierra).
+                    // Lighter and warmer than Paris limestone — sun-baked Iberian granite reads
+                    // as a warm creamy-beige, almost golden in the late-afternoon light.
+                    if isJoint {
+                        r = 122; g = 110; b = 88
+                    } else {
+                        let br = blockParity ? 190 : 174
+                        let bg = blockParity ? 172 : 158
+                        let bb = blockParity ? 136 : 124
+                        r = UInt8(clamping: br + noise / 2)
+                        g = UInt8(clamping: bg + noise / 3)
+                        b = UInt8(clamping: bb + noise / 4)
+                    }
+
+                case .romanGoldenHour:
+                    // Rome — sanpietrini basalt cobblestones. Tighter joint grid (every 4px vs
+                    // every 8px) creates the characteristic fine-grained cube-stone texture visible
+                    // from orbit. Dark basalt with warm amber-golden mortar joints lit by late sun.
+                    // The amber joints (high R, moderate G, low B) are the key distinguisher from
+                    // grey European cobblestone streets — fired clay mortar warmed by centuries of sun.
+                    let sanJoint = (x % 4 == 0) || (y % 4 == 0)
+                    let sanParity = ((x / 4) + (y / 4)) % 2 == 0
+                    if sanJoint {
+                        r = 108; g = 82; b = 54   // warm amber-terracotta mortar
+                    } else {
+                        let base = sanParity ? 68 : 58
+                        r = UInt8(clamping: base + noise / 3)
+                        g = UInt8(clamping: base - 2 + noise / 4)
+                        b = UInt8(clamping: base - 6 + noise / 5)  // dark warm-grey basalt
+                    }
                 }
 
                 let i = (y * size + x) * 4
@@ -907,6 +1079,9 @@ enum DistrictRealityKit {
     private static func greenZoneColor(kind: String, isNight: Bool) -> UIColor {
         if isNight {
             switch kind {
+            case "natural=water":
+                // Garonne at night: dark pewter-blue, faint ambient reflection of city lights.
+                return UIColor(red: 0.08, green: 0.12, blue: 0.18, alpha: 1)
             case "natural=beach":
                 return UIColor(red: 0.22, green: 0.20, blue: 0.16, alpha: 1)
             case "landuse=farmland", "landuse=orchard", "landuse=meadow":
@@ -920,6 +1095,12 @@ enum DistrictRealityKit {
             }
         } else {
             switch kind {
+            case "natural=water":
+                // Garonne river: tidal muddy brown-blue. The Gironde carries heavy silt from
+                // the Dordogne/Garonne confluence — not the azure of the Mediterranean but a
+                // characteristic warm blue-grey. Chosen to contrast with the golden limestone
+                // quays without reading as sky-blue (which would compete with the sky dome).
+                return UIColor(red: 0.32, green: 0.44, blue: 0.52, alpha: 1)
             case "natural=beach":
                 // Warm sun-bleached volcanic sand — slightly brighter than the beachResort
                 // ground so the demarcated beach strip reads as a distinct zone from the orbit camera.
@@ -956,7 +1137,7 @@ enum DistrictRealityKit {
     /// distinct from Dutch colonial blocks when viewed from the orbit camera above.
     @MainActor
     private static func makeRoofCapEntities(buildings: [BuildingFootprint], isNight: Bool, quadrantIndex: Int = -1) -> [ModelEntity] {
-        let capStyles: Set<BuildingStyle> = [.balinese, .colonial, .javanese, .religious]
+        let capStyles: Set<BuildingStyle> = [.balinese, .colonial, .javanese, .religious, .haussmannien, .medieval, .bordelaisClassical, .londonBrick, .romanOchre]
         var styleGroups: [BuildingStyle: [BuildingFootprint]] = [:]
         for b in buildings {
             guard capStyles.contains(b.style), b.polygon.count >= 3 else { continue }
@@ -964,7 +1145,8 @@ enum DistrictRealityKit {
             styleGroups[b.style, default: []].append(b)
         }
         var entities: [ModelEntity] = []
-        for style in [BuildingStyle.balinese, .colonial, .javanese, .religious] {
+        for style in [BuildingStyle.balinese, .colonial, .javanese, .religious,
+                      .haussmannien, .medieval, .bordelaisClassical, .londonBrick, .romanOchre] {
             guard let buildings = styleGroups[style], !buildings.isEmpty else { continue }
             var pos: [SIMD3<Float>] = []
             var nrm: [SIMD3<Float>] = []
@@ -984,13 +1166,32 @@ enum DistrictRealityKit {
             desc.primitives = .triangles(idx)
             guard let mesh = try? MeshResource.generate(from: [desc]) else { continue }
             var mat = PhysicallyBasedMaterial()
-            mat.baseColor         = .init(tint: roofCapColor(for: style, isNight: isNight))
-            mat.roughness         = .init(floatLiteral: style == .balinese ? 0.92 : 0.88)
-            mat.metallic          = .init(floatLiteral: 0.0)
+            mat.baseColor = .init(tint: roofCapColor(for: style, isNight: isNight))
+            // Roughness per material: zinc (haussmannien) is smoother than terracotta; balinese volcanic tile is roughest.
+            let roughness: Float = switch style {
+            case .balinese:         0.92  // rough volcanic tuff tile
+            case .haussmannien:     0.86  // patinated zinc — matte but slightly smoother than terracotta
+            case .londonBrick:      0.90  // London Welsh slate — matte, aged by rain
+            case .romanOchre:       0.91  // Roman terracotta coppo — rough fired clay, centuries of weathering
+            default:                0.88  // fired clay tile (colonial, javanese, medieval, bordelaisClassical, religious)
+            }
+            mat.roughness = .init(floatLiteral: roughness)
+            mat.metallic  = .init(floatLiteral: (style == .haussmannien || style == .londonBrick) ? 0.04 : 0.0)
             if style != .religious {
-                // Faint clearcoat — fired-clay tile develops a micro-glaze from rain cycling.
-                mat.clearcoat          = .init(floatLiteral: 0.07)
-                mat.clearcoatRoughness = .init(floatLiteral: 0.62)
+                // Faint clearcoat — fired-clay tile / zinc / slate all develop a micro-glaze from rain cycling.
+                let cc: Float = switch style {
+                case .bordelaisClassical: 0.04
+                case .haussmannien:       0.08
+                case .londonBrick:        0.06  // wet Welsh slate sheen in London rain
+                default:                  0.07
+                }
+                let ccr: Float = switch style {
+                case .haussmannien: 0.70
+                case .londonBrick:  0.72  // similar to zinc but slightly rougher
+                default:            0.62
+                }
+                mat.clearcoat          = .init(floatLiteral: cc)
+                mat.clearcoatRoughness = .init(floatLiteral: ccr)
             }
             let entity = ModelEntity(mesh: mesh, materials: [mat])
             entity.name = "roofCap_\(style.rawValue)"
@@ -1001,21 +1202,31 @@ enum DistrictRealityKit {
 
     private static func roofCapOverhang(for style: BuildingStyle) -> Float {
         switch style {
-        case .balinese:  return 0.80   // wide overhang — Balinese hip roofs cantilever far out
-        case .colonial:  return 0.30   // Dutch colonial shophouse — moderate
-        case .javanese:  return 0.60   // Joglo — wider than colonial
-        case .religious: return 0.25
-        default:         return 0.0
+        case .balinese:      return 0.80   // wide overhang — Balinese hip roofs cantilever far out
+        case .colonial:      return 0.30   // Dutch colonial shophouse — moderate
+        case .javanese:      return 0.60   // Joglo — wider than colonial
+        case .religious:     return 0.25
+        case .haussmannien:        return 0.15   // Haussmann mansard — minimal eave, nearly vertical face
+        case .medieval:            return 0.35   // Breton medieval — moderate gabled overhang
+        case .bordelaisClassical:  return 0.25   // Bordeaux classical cornice — narrow eave
+        case .londonBrick:         return 0.20   // Victorian brick terrace — narrow eave, stack of flats
+        case .romanOchre:          return 0.30   // Roman canal-tile cornice — moderate eave, Mediterranean
+        default:                   return 0.0
         }
     }
 
     private static func roofCapPitchTan(for style: BuildingStyle) -> Float {
         switch style {
-        case .balinese:  return 0.839  // ~40° — steep Bali hip
-        case .colonial:  return 0.625  // ~32° — moderate Dutch hip
-        case .javanese:  return 1.000  // 45° — steep Joglo
-        case .religious: return 0.700  // ~35°
-        default:         return 0.577
+        case .balinese:      return 0.839  // ~40° — steep Bali hip
+        case .colonial:      return 0.625  // ~32° — moderate Dutch hip
+        case .javanese:      return 1.000  // 45° — steep Joglo
+        case .religious:     return 0.700  // ~35°
+        case .haussmannien:        return 2.747  // ~70° — mansard nearly vertical face (Second Empire profile)
+        case .medieval:            return 1.192  // ~50° — steep Breton/French medieval pitched roof
+        case .bordelaisClassical:  return 0.577  // ~30° — Provençal/Bordelais low-pitch canal-tile
+        case .londonBrick:         return 0.466  // ~25° — shallow London slate roof, long ridgeline
+        case .romanOchre:          return 0.700  // ~35° — Roman canal-tile, steeper than Bordeaux
+        default:                   return 0.577
         }
     }
 
@@ -1027,22 +1238,32 @@ enum DistrictRealityKit {
     /// OR (with the old ridgeH cap) ridgeInset = 10m → ridgeH = 2.5m → a 14° near-flat slab.
     private static func roofCapMaxRidgeInset(for style: BuildingStyle) -> Float {
         switch style {
-        case .balinese:  return 3.5   // single-storey compounds — rarely wider than 7m short side
-        case .colonial:  return 4.0   // shophouses fine at natural; warehouses get long ridge
-        case .javanese:  return 4.0
-        case .religious: return 3.5
-        default:         return 4.0
+        case .balinese:      return 3.5  // single-storey compounds — rarely wider than 7m short side
+        case .colonial:      return 4.0  // shophouses fine at natural; warehouses get long ridge
+        case .javanese:      return 4.0
+        case .religious:     return 3.5
+        case .haussmannien:        return 1.8  // tight mansard — very short ridge, near-pyramidal at eaves
+        case .medieval:            return 2.5  // moderate gabled ridge
+        case .bordelaisClassical:  return 3.0  // moderate Bordelais ridge — readable hip at 30° pitch
+        case .londonBrick:         return 5.0  // long shallow London ridge — terraces often 15–20m span
+        case .romanOchre:          return 3.5  // moderate Roman ridge — similar to religious, varied building widths
+        default:                   return 4.0
         }
     }
 
     private static func roofCapColor(for style: BuildingStyle, isNight: Bool) -> UIColor {
         if isNight {
             switch style {
-            case .balinese:  return UIColor(red: 0.22, green: 0.08, blue: 0.03, alpha: 1)
-            case .colonial:  return UIColor(red: 0.28, green: 0.11, blue: 0.04, alpha: 1)
-            case .javanese:  return UIColor(red: 0.18, green: 0.07, blue: 0.02, alpha: 1)
-            case .religious: return UIColor(red: 0.18, green: 0.28, blue: 0.24, alpha: 1)
-            default:         return UIColor(red: 0.20, green: 0.08, blue: 0.03, alpha: 1)
+            case .balinese:     return UIColor(red: 0.22, green: 0.08, blue: 0.03, alpha: 1)
+            case .colonial:     return UIColor(red: 0.28, green: 0.11, blue: 0.04, alpha: 1)
+            case .javanese:     return UIColor(red: 0.18, green: 0.07, blue: 0.02, alpha: 1)
+            case .religious:    return UIColor(red: 0.18, green: 0.28, blue: 0.24, alpha: 1)
+            case .haussmannien:        return UIColor(red: 0.14, green: 0.16, blue: 0.20, alpha: 1)  // dark zinc at night
+            case .medieval:            return UIColor(red: 0.18, green: 0.06, blue: 0.02, alpha: 1)  // dark Breton tile
+            case .bordelaisClassical:  return UIColor(red: 0.22, green: 0.10, blue: 0.05, alpha: 1)  // dark Bordelais canal tile
+            case .londonBrick:         return UIColor(red: 0.14, green: 0.14, blue: 0.18, alpha: 1)  // dark London slate at night
+            case .romanOchre:          return UIColor(red: 0.24, green: 0.10, blue: 0.04, alpha: 1)  // dark Roman canal tile
+            default:                   return UIColor(red: 0.20, green: 0.08, blue: 0.03, alpha: 1)
             }
         } else {
             switch style {
@@ -1058,6 +1279,25 @@ enum DistrictRealityKit {
             case .religious:
                 // Teal/copper patina — matches existing roofMaterialPreset(.religious).
                 return UIColor(red: 0.42, green: 0.64, blue: 0.56, alpha: 1)
+            case .haussmannien:
+                // Paris zinc grey-blue — the classic aerial signature of the Haussmann city.
+                return UIColor(red: 0.42, green: 0.46, blue: 0.52, alpha: 1)
+            case .medieval:
+                // Dark Breton clay tile — darker and more matte than colonial Dutch terracotta.
+                return UIColor(red: 0.48, green: 0.18, blue: 0.08, alpha: 1)
+            case .bordelaisClassical:
+                // Provençal/Bordelais canal tile — warmer and more orange than Dutch colonial terracotta.
+                // Flat S-shaped tile, slightly brighter than medieval due to lower pitch and sun exposure.
+                return UIColor(red: 0.64, green: 0.28, blue: 0.12, alpha: 1)
+            case .londonBrick:
+                // London Welsh slate — cool blue-grey, the defining aerial rooftop colour of Victorian London.
+                // Distinguishes the City's terrace rows from warm-tile continental European cities.
+                return UIColor(red: 0.44, green: 0.46, blue: 0.50, alpha: 1)
+            case .romanOchre:
+                // Roman canal tile (coppo/tegola): dark warm terracotta, older and more weathered than
+                // Dutch colonial, richer orange than Bordeaux canal tile — the rooftop colour of the
+                // historic centre from the Gianicolo overlook.
+                return UIColor(red: 0.62, green: 0.24, blue: 0.10, alpha: 1)
             default:
                 return UIColor(red: 0.60, green: 0.24, blue: 0.10, alpha: 1)
             }
@@ -1294,163 +1534,41 @@ enum DistrictRealityKit {
         }
     }
 
-    // MARK: - Floating POI labels (minimal text style)
+    // MARK: - POI Beacons
 
-    private static var poiLabelTextureCache: [String: TextureResource] = [:]
-
-    /// Builds minimal floating text labels for curated POIs.
-    ///
-    /// Assembly (2 draw calls total):
-    ///   • Thin white hairline stem for each POI (all merged — 1 draw call)
-    ///   • Horizontal name-pill card per POI (1 entity each, unique texture)
-    ///
-    /// Cards are HORIZONTAL (Rx −π/2 rotation): orbit camera looks down at ~29°,
-    /// vertical cards appear nearly edge-on and are invisible.
+    /// Small glowing spheres over each POI location — no stems, no text.
+    /// Featured POIs: amber sphere (radius 0.6% of district extent).
+    /// Standard POIs: grey sphere (radius 0.3%). Named "poi:<id>" for hit-testing.
     @MainActor
-    private static func makePOILabelEntities(districtName: String,
-                                              districtAnchor: GeoCoord,
-                                              districtCentroid: SIMD2<Float>,
-                                              districtExtent: Float,
-                                              isNight: Bool) -> Entity? {
+    private static func makePOIBeaconEntities(
+        districtName: String,
+        districtAnchor: GeoCoord,
+        districtExtent: Float
+    ) -> Entity? {
         guard let collection = CangguPOICollection.load(for: districtName),
               !collection.pois.isEmpty else { return nil }
 
         let root = Entity()
-        root.name = "poiLabels"
-
-        let stakeH: Float = districtExtent * 0.010
-        let stakeW: Float = districtExtent * 0.0003
-
-        var stakePos:  [SIMD3<Float>] = []
-        var stakeNorm: [SIMD3<Float>] = []
-        var stakeIdx:  [UInt32]       = []
-
-        let stemColor = UIColor(white: 1.0, alpha: isNight ? 0.55 : 0.38)
+        root.name = "poiBeacons"
+        let beaconY: Float = districtExtent * 0.008
 
         for poi in collection.pois {
             let offset = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
                 .sceneOffset(from: districtAnchor)
-            let px = offset.x, pz = offset.z
-
-            // Hairline stem (merged — 1 entity for all stems)
-            appendPillarQuad(to: &stakePos, normals: &stakeNorm, indices: &stakeIdx,
-                             cx: px, cz: pz, w: stakeW, h: stakeH)
-
-            // Horizontal name-pill card
-            let cardW: Float = poi.isFeatured ? districtExtent * 0.013 : districtExtent * 0.008
-            let cardH: Float = districtExtent * 0.0028
-            let cardMesh = MeshResource.generatePlane(width: cardW, height: cardH,
-                                                      cornerRadius: cardH * 0.40)
-
-            let night = isNight ? "n" : "d"
-            let texKey = "\(poi.id)_\(night)"
-            let texture: TextureResource?
-            if let cached = poiLabelTextureCache[texKey] {
-                texture = cached
-            } else {
-                texture = makeMinimalLabelTexture(poi: poi, isNight: isNight)
-                if let t = texture { poiLabelTextureCache[texKey] = t }
-            }
-
-            var cardMat = UnlitMaterial()
-            if let tex = texture {
-                cardMat.color = .init(tint: .white, texture: .init(tex))
-            } else {
-                cardMat.color = .init(tint: UIColor(white: 0.08, alpha: 0.70))
-            }
-
-            let card = ModelEntity(mesh: cardMesh, materials: [cardMat])
-            card.name = "poi:\(poi.id)"
-
-            // `generatePlane` creates XY plane (face +Z). Rx(−π/2) rotates to XZ (face +Y)
-            // so orbit camera looking down always sees the card face-on.
-            card.orientation = simd_quatf(angle: -.pi / 2, axis: SIMD3(1, 0, 0))
-            card.position = SIMD3(px, stakeH + districtExtent * 0.0025, pz)
-
-            root.addChild(card)
-        }
-
-        // Merged stem entity (1 draw call)
-        if !stakePos.isEmpty {
-            var desc = MeshDescriptor(name: "poiStems")
-            desc.positions  = MeshBuffer(stakePos)
-            desc.normals    = MeshBuffer(stakeNorm)
-            desc.primitives = .triangles(stakeIdx)
-            if let mesh = try? MeshResource.generate(from: [desc]) {
-                var mat = UnlitMaterial()
-                mat.color = .init(tint: stemColor)
-                let stems = ModelEntity(mesh: mesh, materials: [mat])
-                stems.name = "poiStems"
-                root.addChild(stems)
-            }
+            let radius: Float = poi.isFeatured ? districtExtent * 0.006 : districtExtent * 0.003
+            let color: UIColor = poi.isFeatured
+                ? UIColor(red: 1.0, green: 0.78, blue: 0.20, alpha: 0.92)
+                : UIColor(white: 0.80, alpha: 0.60)
+            let sphere = ModelEntity(
+                mesh: MeshResource.generateSphere(radius: radius),
+                materials: [UnlitMaterial(color: color)]
+            )
+            sphere.name = "poi:\(poi.id)"
+            sphere.position = SIMD3(offset.x, beaconY, offset.z)
+            root.addChild(sphere)
         }
 
         return root
-    }
-
-    /// Appends a single front-face quad (stem) to the merged geometry accumulators.
-    private static func appendPillarQuad(
-        to positions: inout [SIMD3<Float>], normals: inout [SIMD3<Float>], indices: inout [UInt32],
-        cx: Float, cz: Float, w: Float, h: Float
-    ) {
-        let base = UInt32(positions.count)
-        let n = SIMD3<Float>(0, 0, 1)
-        positions += [SIMD3(cx - w/2, 0, cz), SIMD3(cx + w/2, 0, cz),
-                      SIMD3(cx + w/2, h, cz), SIMD3(cx - w/2, h, cz)]
-        normals   += [n, n, n, n]
-        indices   += [base, base+1, base+2, base, base+2, base+3]
-    }
-
-    /// Generates a minimal floating label texture: dark pill background + white name + category dot.
-    @MainActor
-    private static func makeMinimalLabelTexture(poi: CangguPOI, isNight: Bool) -> TextureResource? {
-        let isFeatured = poi.isFeatured
-        let imgW: CGFloat = isFeatured ? 360 : 260
-        let imgH: CGFloat = 56
-
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: imgW, height: imgH))
-        let uiImage = renderer.image { _ in
-            UIColor(red: 0.04, green: 0.04, blue: 0.08,
-                    alpha: isNight ? 0.78 : 0.65).setFill()
-            UIBezierPath(roundedRect: CGRect(x: 0, y: 0, width: imgW, height: imgH),
-                         cornerRadius: imgH * 0.45).fill()
-
-            if isFeatured {
-                UIColor(red: 0.20, green: 0.82, blue: 0.65, alpha: 0.55).setStroke()
-                let border = UIBezierPath(roundedRect: CGRect(x: 1, y: 1,
-                                                               width: imgW - 2, height: imgH - 2),
-                                          cornerRadius: imgH * 0.44)
-                border.lineWidth = 1.0
-                border.stroke()
-            }
-
-            let dotColor: UIColor = isFeatured
-                ? UIColor(red: 0.20, green: 0.82, blue: 0.65, alpha: 0.90)
-                : UIColor(white: 0.55, alpha: 0.70)
-            dotColor.setFill()
-            let dotSize: CGFloat = 7
-            UIBezierPath(ovalIn: CGRect(x: 14, y: (imgH - dotSize) / 2,
-                                         width: dotSize, height: dotSize)).fill()
-
-            let fontSize: CGFloat = isFeatured ? 26 : 22
-            let nameAttrs: [NSAttributedString.Key: Any] = [
-                .font: UIFont.systemFont(ofSize: fontSize,
-                                         weight: isFeatured ? .semibold : .regular),
-                .foregroundColor: UIColor.white.withAlphaComponent(isNight ? 1.0 : 0.92)
-            ]
-            let maxChars = isFeatured ? 18 : 14
-            let name = poi.name.count > maxChars
-                ? String(poi.name.prefix(maxChars - 1)) + "…" : poi.name
-            name.draw(at: CGPoint(x: 26, y: (imgH - fontSize * 1.15) / 2),
-                      withAttributes: nameAttrs)
-        }
-
-        guard let cgImage = uiImage.cgImage else { return nil }
-        return try? TextureResource.generate(
-            from: cgImage,
-            withName: "label_\(poi.id)_\(isNight ? "n" : "d")",
-            options: .init(semantic: .color)
-        )
     }
 
     // MARK: - Focus building beacon
@@ -1570,6 +1688,66 @@ enum DistrictRealityKit {
             mat.metallic    = .init(floatLiteral: 0.0)
             mat.clearcoat   = .init(floatLiteral: 0.03)   // faint rain-wet sheen only
             mat.clearcoatRoughness = .init(floatLiteral: 0.88)
+        case .haussmannien:
+            // Paris zinc mansard — the classic grey-blue zinc patina that defines the Parisian
+            // aerial silhouette. Matte (roughness 0.86), near-zero metallic (patinated zinc, not
+            // polished) so the IBL teal problem doesn't apply. The grey-blue tint is real:
+            // Lutetian limestone oxidises the zinc to a characteristic blue-grey patina.
+            let day = UIColor(red: 0.42, green: 0.46, blue: 0.52, alpha: 1)  // classic Paris zinc
+            let ngt = UIColor(red: 0.14, green: 0.16, blue: 0.20, alpha: 1)  // dark zinc at night
+            mat.baseColor   = .init(tint: isNight ? ngt : day)
+            mat.roughness   = .init(floatLiteral: 0.86)   // matte patinated zinc
+            mat.metallic    = .init(floatLiteral: 0.04)   // slight metallic sheen (bare zinc under patina)
+            mat.clearcoat   = .init(floatLiteral: 0.08)   // faint wet-zinc gloss in Paris rain
+            mat.clearcoatRoughness = .init(floatLiteral: 0.70)
+        case .medieval:
+            // Breton clay tile — dark red-brown, steeper pitch than Dutch colonial, weathered
+            // by centuries of Atlantic rain. Darker and more matte than colonial terracotta.
+            let day = UIColor(red: 0.48, green: 0.18, blue: 0.08, alpha: 1)  // dark Breton clay
+            let ngt = UIColor(red: 0.18, green: 0.06, blue: 0.02, alpha: 1)
+            mat.baseColor   = .init(tint: isNight ? ngt : day)
+            mat.roughness   = .init(floatLiteral: 0.93)
+            mat.metallic    = .init(floatLiteral: 0.0)
+            mat.clearcoat   = .init(floatLiteral: 0.04)   // slight rain-wet glaze
+            mat.clearcoatRoughness = .init(floatLiteral: 0.85)
+        case .bordelaisClassical:
+            // Provençal/Bordelais canal tile — flat S-shaped terracotta, low-pitch (~30°).
+            // Warmer and more orange than Dutch colonial tile, not zinc like Paris mansard.
+            // The flat top face visible from orbit reads as warm terracotta on the Port de la Lune.
+            let day = UIColor(red: 0.64, green: 0.28, blue: 0.12, alpha: 1)  // warm canal tile
+            let ngt = UIColor(red: 0.22, green: 0.10, blue: 0.05, alpha: 1)
+            mat.baseColor   = .init(tint: isNight ? ngt : day)
+            mat.roughness   = .init(floatLiteral: 0.91)
+            mat.metallic    = .init(floatLiteral: 0.0)
+            mat.clearcoat   = .init(floatLiteral: 0.04)   // faint slip-coat glaze on canal tiles
+            mat.clearcoatRoughness = .init(floatLiteral: 0.88)
+        case .londonBrick:
+            // Welsh slate — cool blue-grey, the defining aerial rooftop colour of Victorian London.
+            let day = UIColor(red: 0.44, green: 0.46, blue: 0.50, alpha: 1)  // slate grey-blue
+            let ngt = UIColor(red: 0.14, green: 0.14, blue: 0.18, alpha: 1)
+            mat.baseColor   = .init(tint: isNight ? ngt : day)
+            mat.roughness   = .init(floatLiteral: 0.90)
+            mat.metallic    = .init(floatLiteral: 0.04)   // wet slate micro-sheen
+            mat.clearcoat   = .init(floatLiteral: 0.06)
+            mat.clearcoatRoughness = .init(floatLiteral: 0.72)
+        case .madrileño:
+            // Madrid azotea — flat rooftop terrace, exposed concrete or light stone cladding.
+            // The flat face is visible from orbit above the Ensanche grid. Warm light grey.
+            let day = UIColor(red: 0.80, green: 0.76, blue: 0.68, alpha: 1)  // warm light concrete
+            let ngt = UIColor(red: 0.26, green: 0.24, blue: 0.22, alpha: 1)
+            mat.baseColor   = .init(tint: isNight ? ngt : day)
+            mat.roughness   = .init(floatLiteral: 0.86)
+            mat.metallic    = .init(floatLiteral: 0.0)
+        case .romanOchre:
+            // Roman terracotta rooftop tile — deep warm terracotta, the dominant aerial colour
+            // of the historic centre. Darker and more saturated than Dutch colonial (0.66/0.27/0.12).
+            let day = UIColor(red: 0.62, green: 0.24, blue: 0.10, alpha: 1)  // deep Roman coppo
+            let ngt = UIColor(red: 0.20, green: 0.08, blue: 0.04, alpha: 1)
+            mat.baseColor   = .init(tint: isNight ? ngt : day)
+            mat.roughness   = .init(floatLiteral: 0.93)
+            mat.metallic    = .init(floatLiteral: 0.0)
+            mat.clearcoat   = .init(floatLiteral: 0.05)
+            mat.clearcoatRoughness = .init(floatLiteral: 0.82)
         }
         return mat
     }
@@ -1610,6 +1788,12 @@ enum DistrictRealityKit {
         case .religious:      (cols, rows, winW, winH, density) = (3,  4, 5, 6, 0.15)
         case .balinese:       (cols, rows, winW, winH, density) = (3,  4, 4, 3, 0.10)
         case .javanese:       (cols, rows, winW, winH, density) = (4,  5, 3, 3, 0.18)
+        case .haussmannien:       (cols, rows, winW, winH, density) = (5,  8, 3, 4, 0.35)  // tall French windows, moderate shuttered density
+        case .medieval:           (cols, rows, winW, winH, density) = (3,  5, 4, 4, 0.20)  // small medieval casements, sparse
+        case .bordelaisClassical: (cols, rows, winW, winH, density) = (4,  6, 3, 4, 0.30)  // Bordeaux tall sash windows, moderate density
+        case .londonBrick:        (cols, rows, winW, winH, density) = (4,  7, 3, 4, 0.32)  // Victorian sash windows — tall, narrow panes, moderate density
+        case .madrileño:          (cols, rows, winW, winH, density) = (5,  8, 3, 5, 0.38)  // Madrid balcony doors — tall French-door proportions, denser grid
+        case .romanOchre:         (cols, rows, winW, winH, density) = (3,  5, 4, 5, 0.22)  // Roman palazzo windows — large tall arched openings, sparse
         }
         let cellW = size / cols, cellH = size / rows
         var seed: UInt32 = 2166136261
@@ -1742,6 +1926,95 @@ enum DistrictRealityKit {
             material.roughness = .init(floatLiteral: 0.85 + 0.06 * abs(wobble))
             material.clearcoat = .init(floatLiteral: 0.04)   // faint rain-washed plaster sheen
             material.clearcoatRoughness = .init(floatLiteral: 0.85)
+        case .haussmannien:
+            // Lutetian limestone — calcaire lutétien — the defining material of Paris and Bordeaux.
+            // Warm cream to off-white, cut and polished by centuries of weather. The characteristic
+            // "stone colour" Paris is globally known for: neither white nor yellow but that particular
+            // warm ochre-cream. Three variation buckets: cool pale stone / warm standard cream / warm amber.
+            let dayR = 0.86 + 0.04 * cgWobble   // 0.82–0.90 range
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: dayR * 0.28, green: 0.82 * 0.28, blue: 0.72 * 0.28, alpha: 1)
+                : UIColor(red: dayR, green: 0.82, blue: 0.72, alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.01)
+            material.roughness = .init(floatLiteral: 0.74 + 0.06 * abs(wobble))
+            material.clearcoat = .init(floatLiteral: 0.10)   // faint wet-stone sheen after Paris rain
+            material.clearcoatRoughness = .init(floatLiteral: 0.55)
+        case .medieval:
+            // Half-timber plaster and Breton granite — Vieux-Rennes pan-de-bois facades mix white
+            // lime-washed plaster between colombage frames with dark grey granite ground floors.
+            // Three variation buckets: cool grey granite / warm standard plaster / warm buff.
+            let dayBase = 0.76 + 0.06 * cgWobble   // 0.70–0.82 range, granite to plaster
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: dayBase * 0.32, green: 0.68 * 0.32, blue: 0.58 * 0.32, alpha: 1)
+                : UIColor(red: dayBase, green: 0.68, blue: 0.58, alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.0)
+            material.roughness = .init(floatLiteral: 0.84 + 0.08 * abs(wobble))
+            material.clearcoat = .init(floatLiteral: 0.06)   // granite micro-sheen in wet Breton weather
+            material.clearcoatRoughness = .init(floatLiteral: 0.80)
+        case .bordelaisClassical:
+            // Calcaire à astéries — Bordeaux's shelly Gironde limestone, distinctly warmer
+            // and more amber-gold than Parisian Lutetian limestone (cream-white 0.86–0.90).
+            // The characteristic Port de la Lune "gold": notably more ochre in afternoon sun.
+            // Three variation buckets: warm pale stone / standard amber-gold / deep amber.
+            let dayR = 0.82 + 0.06 * cgWobble   // 0.76–0.88 — warmer base than Paris (0.82–0.90 but cooler tones)
+            let dayG = 0.72 + 0.03 * cgWobble   // 0.69–0.75 — clearly lower G than Paris (0.82)
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: dayR * 0.28, green: dayG * 0.28, blue: 0.50 * 0.28, alpha: 1)
+                : UIColor(red: dayR, green: dayG, blue: 0.50, alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.01)
+            material.roughness = .init(floatLiteral: 0.76 + 0.06 * abs(wobble))   // rough-cut stone
+            material.clearcoat = .init(floatLiteral: 0.08)   // faint rain-wet stone sheen
+            material.clearcoatRoughness = .init(floatLiteral: 0.60)
+        case .londonBrick:
+            // London stock brick — fired yellow-buff clay brick, the defining Victorian/Georgian wall
+            // surface. Warm buff-to-ochre (not red — London stock is yellow-buff, not the red Flemish
+            // bond associated with Manchester). Three buckets: pale buff / warm standard ochre / deep amber.
+            // Key constraint: low B channel (≤0.42) keeps it warm-toned and distinct from pale haussmannien
+            // limestone (B=0.72). G channel ≤0.70 keeps it below the golden-beige of bordelaisClassical.
+            let dayR = 0.74 + 0.08 * cgWobble  // 0.66–0.82 warm buff range
+            let dayG = 0.62 + 0.06 * cgWobble  // 0.56–0.68 — clearly lower than haussmannien (0.82)
+            let dayB = 0.38 + 0.04 * cgWobble  // 0.34–0.42 — low blue, anchors warm-buff identity
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: dayR * 0.26, green: dayG * 0.26, blue: dayB * 0.26, alpha: 1)
+                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.0)
+            material.roughness = .init(floatLiteral: 0.82 + 0.07 * abs(wobble))  // rough fired brick
+            material.clearcoat = .init(floatLiteral: 0.05)   // faint London rain gloss
+            material.clearcoatRoughness = .init(floatLiteral: 0.78)
+        case .madrileño:
+            // 19th-century Madrid Ensanche — limestone/sandstone render in a warm golden-beige.
+            // Distinctly warmer than haussmannien cream (G=0.82, B=0.72) and more uniform/polished
+            // than London brick. The Salamanca grid reads as a continuous warm gold plane from above.
+            // Three buckets: pale warm stone / standard golden-beige / deep amber-sand.
+            // B channel: 0.50–0.60 — warmer than Paris (0.72), cooler than Bordeaux (0.50 baseline).
+            // Characteristic flat azotea top face visible from orbit — no cap geometry, so the base
+            // material is what the camera sees looking down.
+            let dayR = 0.84 + 0.06 * cgWobble  // 0.78–0.90 warm base
+            let dayG = 0.76 + 0.04 * cgWobble  // 0.72–0.80 — clearly golden-beige
+            let dayB = 0.54 + 0.06 * cgWobble  // 0.48–0.60 — warmer than Paris, cooler than Bordeaux
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: dayR * 0.28, green: dayG * 0.28, blue: dayB * 0.28, alpha: 1)
+                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.01)
+            material.roughness = .init(floatLiteral: 0.72 + 0.07 * abs(wobble))  // polished render over limestone
+            material.clearcoat = .init(floatLiteral: 0.12)   // Madrid sun gloss on polished stone
+            material.clearcoatRoughness = .init(floatLiteral: 0.50)
+        case .romanOchre:
+            // Roman tuff/brick with ochre render plaster — sienna-amber, the defining colour of the
+            // Historic Centre from any overlook point. Warmer and more saturated than madrileño
+            // (golden-beige) and bordelaisClassical (amber-gold). Key constraint: B channel must stay
+            // ≤0.38 — the low blue is what distinguishes Rome's terracotta-sienna from other European
+            // limestone cities. Three buckets: pale warm ochre / standard sienna-amber / deep terracotta.
+            let dayR = 0.78 + 0.08 * cgWobble  // 0.70–0.86 — deep sienna base
+            let dayG = 0.54 + 0.06 * cgWobble  // 0.48–0.60 — clearly lower G than madrileño (0.76)
+            let dayB = 0.30 + 0.06 * cgWobble  // 0.24–0.36 — low blue, sienna-amber identity
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: dayR * 0.26, green: dayG * 0.26, blue: dayB * 0.26, alpha: 1)
+                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.0)
+            material.roughness = .init(floatLiteral: 0.78 + 0.08 * abs(wobble))  // rough tuff/render plaster
+            material.clearcoat = .init(floatLiteral: 0.07)   // warm-rain sheen on ancient plaster
+            material.clearcoatRoughness = .init(floatLiteral: 0.72)
         }
 
         if isNight {
@@ -1768,7 +2041,13 @@ enum DistrictRealityKit {
                 case .religious:      0.85
                 case .balinese:       0.20  // Bali has less dense electric lighting than Java
                 case .javanese:       0.30  // Malioboro shophouses: warm amber lanterns, moderate density
-                default:              0.35
+                case .haussmannien:        0.40  // Parisian café/apartment glow — warm yellow through shuttered balconies
+                case .medieval:            0.28  // modest Breton town lighting — intimate, low-density
+                case .bordelaisClassical:  0.38  // Bordeaux café-terrace amber glow — denser than Rennes, warmer than Paris
+                case .londonBrick:         0.30  // London terrace — warm yellow-orange sodium streetlight glow
+                case .madrileño:           0.35  // Madrid terrace — warm incandescent balcony glow, moderate density
+                case .romanOchre:          0.22  // Rome historic core — intimate, lower electric density than Madrid
+                default:                   0.35
                 }
                 material.emissiveColor     = .init(color: UIColor(red: 1.0, green: 0.84, blue: 0.55, alpha: 1))
                 material.emissiveIntensity = intensity

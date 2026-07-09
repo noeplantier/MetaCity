@@ -15,6 +15,10 @@ struct TourismContact: Codable, Identifiable {
     let whatsappNumber: String?
     let description: String
     let avatarEmoji: String
+    /// Remote URL for a real contact photo. When non-nil the card shows `AsyncImage`; when nil
+    /// it falls back to the emoji + gradient circle. Decode-optional so existing JSON without
+    /// this key still loads cleanly (Swift Codable returns nil for missing optional keys).
+    let avatarURL: String?
     /// Short specialty tag, e.g. "Heritage & Culture" or "Eco-Tourism"
     let specialty: String?
     /// ISO 639-1 codes, e.g. ["id", "en", "fr"]

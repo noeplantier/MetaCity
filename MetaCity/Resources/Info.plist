@@ -37,6 +37,8 @@
 	<string>MetaCity uses your location to center the map, find nearby landmarks, and power live presence.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>MetaCity needs microphone access so other participants can hear you on a call.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>MetaCity uses voice recognition so you can search for cities and districts by speaking.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

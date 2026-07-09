@@ -9,7 +9,10 @@
           "id": "denpasar",
           "displayName": "Bali",
           "shortName": "Bali",
-          "anchor": { "latitude": -8.7000, "longitude": 115.1700 },
+          "anchor": {
+            "latitude": -8.7,
+            "longitude": 115.17
+          },
           "mapZoomRadius": 12000,
           "markerColor": "#E8D06D",
           "markerHeight": 1.0,
@@ -17,8 +20,16 @@
             {
               "id": "Canggu",
               "displayName": "Canggu",
-              "anchor": { "latitude": -8.647, "longitude": 115.133 },
-              "boundingBox": { "south": -8.665, "west": 115.118, "north": -8.638, "east": 115.147 },
+              "anchor": {
+                "latitude": -8.647,
+                "longitude": 115.133
+              },
+              "boundingBox": {
+                "south": -8.665,
+                "west": 115.118,
+                "north": -8.638,
+                "east": 115.147
+              },
               "focusBuildingName": "Castaway Hostel",
               "moodKey": "beachResort",
               "dataBundled": true,
@@ -27,8 +38,16 @@
             {
               "id": "Seminyak",
               "displayName": "Seminyak",
-              "anchor": { "latitude": -8.685, "longitude": 115.162 },
-              "boundingBox": { "south": -8.689, "west": 115.159, "north": -8.681, "east": 115.165 },
+              "anchor": {
+                "latitude": -8.685,
+                "longitude": 115.162
+              },
+              "boundingBox": {
+                "south": -8.689,
+                "west": 115.159,
+                "north": -8.681,
+                "east": 115.165
+              },
               "focusBuildingName": "Avani Seminyak Bali Resort",
               "moodKey": "beachResort",
               "dataBundled": true,
@@ -37,8 +56,16 @@
             {
               "id": "Kuta",
               "displayName": "Kuta",
-              "anchor": { "latitude": -8.720, "longitude": 115.169 },
-              "boundingBox": { "south": -8.724, "west": 115.166, "north": -8.716, "east": 115.173 },
+              "anchor": {
+                "latitude": -8.72,
+                "longitude": 115.169
+              },
+              "boundingBox": {
+                "south": -8.724,
+                "west": 115.166,
+                "north": -8.716,
+                "east": 115.173
+              },
               "focusBuildingName": "Hard Rock Hotel Bali",
               "moodKey": "beachResort",
               "dataBundled": true,
@@ -47,8 +74,16 @@
             {
               "id": "Sanur",
               "displayName": "Sanur",
-              "anchor": { "latitude": -8.720, "longitude": 115.260 },
-              "boundingBox": { "south": -8.740, "west": 115.250, "north": -8.700, "east": 115.278 },
+              "anchor": {
+                "latitude": -8.72,
+                "longitude": 115.26
+              },
+              "boundingBox": {
+                "south": -8.74,
+                "west": 115.25,
+                "north": -8.7,
+                "east": 115.278
+              },
               "focusBuildingName": "NNWW hotel 1",
               "moodKey": "beachResort",
               "dataBundled": true,
@@ -57,8 +92,16 @@
             {
               "id": "Uluwatu",
               "displayName": "Uluwatu",
-              "anchor": { "latitude": -8.830, "longitude": 115.085 },
-              "boundingBox": { "south": -8.850, "west": 115.075, "north": -8.815, "east": 115.105 },
+              "anchor": {
+                "latitude": -8.83,
+                "longitude": 115.085
+              },
+              "boundingBox": {
+                "south": -8.85,
+                "west": 115.075,
+                "north": -8.815,
+                "east": 115.105
+              },
               "focusBuildingName": "Single Fin",
               "moodKey": "beachResort",
               "dataBundled": true,
@@ -76,7 +119,10 @@
           "id": "jakarta",
           "displayName": "Jakarta",
           "shortName": "Jkt",
-          "anchor": { "latitude": -6.2088, "longitude": 106.8456 },
+          "anchor": {
+            "latitude": -6.2088,
+            "longitude": 106.8456
+          },
           "mapZoomRadius": 8000,
           "markerColor": "#E8B86D",
           "markerHeight": 1.6,
@@ -84,8 +130,16 @@
             {
               "id": "SudirmanThamrin",
               "displayName": "Bundaran HI",
-              "anchor": { "latitude": -6.2000, "longitude": 106.8229 },
-              "boundingBox": { "south": -6.215, "west": 106.812, "north": -6.185, "east": 106.833 },
+              "anchor": {
+                "latitude": -6.2,
+                "longitude": 106.8229
+              },
+              "boundingBox": {
+                "south": -6.215,
+                "west": 106.812,
+                "north": -6.185,
+                "east": 106.833
+              },
               "focusBuildingName": "Menara BCA",
               "moodKey": "skyscraperCorridor",
               "dataBundled": true,
@@ -95,8 +149,16 @@
             {
               "id": "KotaTua",
               "displayName": "Kota Tua",
-              "anchor": { "latitude": -6.1352, "longitude": 106.8133 },
-              "boundingBox": { "south": -6.142, "west": 106.808, "north": -6.130, "east": 106.820 },
+              "anchor": {
+                "latitude": -6.1352,
+                "longitude": 106.8133
+              },
+              "boundingBox": {
+                "south": -6.142,
+                "west": 106.808,
+                "north": -6.13,
+                "east": 106.82
+              },
               "focusBuildingName": "Museum Sejarah Jakarta",
               "moodKey": "colonialSquare",
               "dataBundled": true,
@@ -105,8 +167,16 @@
             {
               "id": "Kemang",
               "displayName": "Jalan Kemang Raya",
-              "anchor": { "latitude": -6.2611, "longitude": 106.8145 },
-              "boundingBox": { "south": -6.275, "west": 106.805, "north": -6.250, "east": 106.825 },
+              "anchor": {
+                "latitude": -6.2611,
+                "longitude": 106.8145
+              },
+              "boundingBox": {
+                "south": -6.275,
+                "west": 106.805,
+                "north": -6.25,
+                "east": 106.825
+              },
               "focusBuildingName": "The Tiffany",
               "moodKey": "residentialDusk",
               "dataBundled": true,
@@ -115,8 +185,16 @@
             {
               "id": "Menteng",
               "displayName": "Taman Suropati",
-              "anchor": { "latitude": -6.2058, "longitude": 106.8371 },
-              "boundingBox": { "south": -6.215, "west": 106.828, "north": -6.195, "east": 106.847 },
+              "anchor": {
+                "latitude": -6.2058,
+                "longitude": 106.8371
+              },
+              "boundingBox": {
+                "south": -6.215,
+                "west": 106.828,
+                "north": -6.195,
+                "east": 106.847
+              },
               "focusBuildingName": "Gereja Kristen Indonesia Barat",
               "moodKey": "parkDaylight",
               "dataBundled": true,
@@ -125,8 +203,16 @@
             {
               "id": "Ancol",
               "displayName": "Taman Impian Jaya Ancol",
-              "anchor": { "latitude": -6.1258, "longitude": 106.8346 },
-              "boundingBox": { "south": -6.135, "west": 106.825, "north": -6.115, "east": 106.845 },
+              "anchor": {
+                "latitude": -6.1258,
+                "longitude": 106.8346
+              },
+              "boundingBox": {
+                "south": -6.135,
+                "west": 106.825,
+                "north": -6.115,
+                "east": 106.845
+              },
               "focusBuildingName": "Istana Boneka",
               "moodKey": "coastalPark",
               "dataBundled": true,
@@ -138,7 +224,10 @@
           "id": "surabaya",
           "displayName": "Surabaya",
           "shortName": "Sby",
-          "anchor": { "latitude": -7.2575, "longitude": 112.7521 },
+          "anchor": {
+            "latitude": -7.2575,
+            "longitude": 112.7521
+          },
           "mapZoomRadius": 10000,
           "markerColor": "#E8706A",
           "markerHeight": 1.0,
@@ -148,7 +237,10 @@
           "id": "bandung",
           "displayName": "Bandung",
           "shortName": "Bdg",
-          "anchor": { "latitude": -6.9175, "longitude": 107.6191 },
+          "anchor": {
+            "latitude": -6.9175,
+            "longitude": 107.6191
+          },
           "mapZoomRadius": 9000,
           "markerColor": "#B86DE8",
           "markerHeight": 1.0,
@@ -156,8 +248,16 @@
             {
               "id": "Dago",
               "displayName": "Dago",
-              "anchor": { "latitude": -6.887, "longitude": 107.611 },
-              "boundingBox": { "south": -6.892, "west": 107.608, "north": -6.882, "east": 107.615 },
+              "anchor": {
+                "latitude": -6.887,
+                "longitude": 107.611
+              },
+              "boundingBox": {
+                "south": -6.892,
+                "west": 107.608,
+                "north": -6.882,
+                "east": 107.615
+              },
               "focusBuildingName": "Sasana Budaya Ganesha",
               "moodKey": "highlandMorning",
               "dataBundled": true,
@@ -166,8 +266,16 @@
             {
               "id": "Braga",
               "displayName": "Jalan Braga",
-              "anchor": { "latitude": -6.913, "longitude": 107.609 },
-              "boundingBox": { "south": -6.917, "west": 107.606, "north": -6.909, "east": 107.613 },
+              "anchor": {
+                "latitude": -6.913,
+                "longitude": 107.609
+              },
+              "boundingBox": {
+                "south": -6.917,
+                "west": 107.606,
+                "north": -6.909,
+                "east": 107.613
+              },
               "focusBuildingName": "Bank Indonesia",
               "moodKey": "highlandMorning",
               "dataBundled": true,
@@ -180,7 +288,10 @@
           "id": "semarang",
           "displayName": "Semarang",
           "shortName": "Smg",
-          "anchor": { "latitude": -6.9932, "longitude": 110.4203 },
+          "anchor": {
+            "latitude": -6.9932,
+            "longitude": 110.4203
+          },
           "mapZoomRadius": 9000,
           "markerColor": "#6DE8C0",
           "markerHeight": 1.0,
@@ -190,7 +301,10 @@
           "id": "yogyakarta",
           "displayName": "Yogyakarta",
           "shortName": "Yog",
-          "anchor": { "latitude": -7.7956, "longitude": 110.3695 },
+          "anchor": {
+            "latitude": -7.7956,
+            "longitude": 110.3695
+          },
           "mapZoomRadius": 8000,
           "markerColor": "#E87B6D",
           "markerHeight": 1.0,
@@ -198,8 +312,16 @@
             {
               "id": "Malioboro",
               "displayName": "Malioboro",
-              "anchor": { "latitude": -7.793, "longitude": 110.366 },
-              "boundingBox": { "south": -7.798, "west": 110.363, "north": -7.788, "east": 110.369 },
+              "anchor": {
+                "latitude": -7.793,
+                "longitude": 110.366
+              },
+              "boundingBox": {
+                "south": -7.798,
+                "west": 110.363,
+                "north": -7.788,
+                "east": 110.369
+              },
               "focusBuildingName": "Ramayana Mall",
               "moodKey": "sacredSite",
               "dataBundled": true,
@@ -208,8 +330,16 @@
             {
               "id": "Kraton",
               "displayName": "Kraton",
-              "anchor": { "latitude": -7.805, "longitude": 110.364 },
-              "boundingBox": { "south": -7.810, "west": 110.361, "north": -7.800, "east": 110.368 },
+              "anchor": {
+                "latitude": -7.805,
+                "longitude": 110.364
+              },
+              "boundingBox": {
+                "south": -7.81,
+                "west": 110.361,
+                "north": -7.8,
+                "east": 110.368
+              },
               "focusBuildingName": "Gedung Agung",
               "moodKey": "sacredSite",
               "dataBundled": true,
@@ -227,7 +357,10 @@
           "id": "medan",
           "displayName": "Medan",
           "shortName": "Mdn",
-          "anchor": { "latitude": 3.5952, "longitude": 98.6722 },
+          "anchor": {
+            "latitude": 3.5952,
+            "longitude": 98.6722
+          },
           "mapZoomRadius": 10000,
           "markerColor": "#6DB8E8",
           "markerHeight": 1.0,
@@ -237,7 +370,10 @@
           "id": "palembang",
           "displayName": "Palembang",
           "shortName": "Plm",
-          "anchor": { "latitude": -2.9761, "longitude": 104.7754 },
+          "anchor": {
+            "latitude": -2.9761,
+            "longitude": 104.7754
+          },
           "mapZoomRadius": 10000,
           "markerColor": "#E8A86D",
           "markerHeight": 1.0,
@@ -253,7 +389,10 @@
           "id": "makassar",
           "displayName": "Makassar",
           "shortName": "Mks",
-          "anchor": { "latitude": -5.1477, "longitude": 119.4327 },
+          "anchor": {
+            "latitude": -5.1477,
+            "longitude": 119.4327
+          },
           "mapZoomRadius": 10000,
           "markerColor": "#6DE87B",
           "markerHeight": 1.0,
@@ -269,11 +408,356 @@
           "id": "balikpapan",
           "displayName": "Balikpapan",
           "shortName": "Bpp",
-          "anchor": { "latitude": -1.2379, "longitude": 116.8529 },
+          "anchor": {
+            "latitude": -1.2379,
+            "longitude": 116.8529
+          },
           "mapZoomRadius": 10000,
           "markerColor": "#6D8DE8",
           "markerHeight": 1.0,
           "districts": []
+        }
+      ]
+    },
+    {
+      "id": "france",
+      "displayName": "France",
+      "cities": [
+        {
+          "id": "paris",
+          "displayName": "Paris",
+          "shortName": "Paris",
+          "anchor": {
+            "latitude": 48.8566,
+            "longitude": 2.3522
+          },
+          "mapZoomRadius": 14000,
+          "markerColor": "#4A7BF5",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "LeMarais",
+              "displayName": "Le Marais",
+              "anchor": {
+                "latitude": 48.8545,
+                "longitude": 2.3538
+              },
+              "boundingBox": {
+                "south": 48.849,
+                "west": 2.342,
+                "north": 48.861,
+                "east": 2.365
+              },
+              "focusBuildingName": "Tour Saint-Jacques",
+              "moodKey": "parisianCore",
+              "dataBundled": true,
+              "dataPath": "Districts/LeMarais.json"
+            },
+            {
+              "id": "SaintGermain",
+              "displayName": "Saint-Germain",
+              "anchor": {
+                "latitude": 48.8536,
+                "longitude": 2.334
+              },
+              "boundingBox": {
+                "south": 48.847,
+                "west": 2.326,
+                "north": 48.86,
+                "east": 2.343
+              },
+              "focusBuildingName": "Église Saint-Sulpice",
+              "moodKey": "parisianCore",
+              "dataBundled": true,
+              "dataPath": "Districts/SaintGermain.json"
+            },
+            {
+              "id": "Montmartre",
+              "displayName": "Montmartre",
+              "anchor": {
+                "latitude": 48.8867,
+                "longitude": 2.3431
+              },
+              "boundingBox": {
+                "south": 48.88,
+                "west": 2.331,
+                "north": 48.893,
+                "east": 2.356
+              },
+              "focusBuildingName": "Basilique du Sacré-Cœur",
+              "moodKey": "parisianCore",
+              "dataBundled": true,
+              "dataPath": "Districts/Montmartre.json"
+            },
+            {
+              "id": "LaDefense",
+              "displayName": "La Défense",
+              "anchor": {
+                "latitude": 48.8918,
+                "longitude": 2.2378
+              },
+              "boundingBox": {
+                "south": 48.886,
+                "west": 2.227,
+                "north": 48.898,
+                "east": 2.25
+              },
+              "focusBuildingName": "Tour First",
+              "moodKey": "skyscraperCorridor",
+              "dataBundled": true,
+              "dataPath": "Districts/LaDefense.json"
+            }
+          ]
+        },
+        {
+          "id": "bordeaux",
+          "displayName": "Bordeaux",
+          "shortName": "Bx",
+          "anchor": {
+            "latitude": 44.8412,
+            "longitude": -0.5698
+          },
+          "mapZoomRadius": 9000,
+          "markerColor": "#D4A832",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "VieuxBordeaux",
+              "displayName": "Vieux-Bordeaux",
+              "anchor": {
+                "latitude": 44.8421,
+                "longitude": -0.5714
+              },
+              "boundingBox": {
+                "south": 44.836,
+                "west": -0.58,
+                "north": 44.848,
+                "east": -0.561
+              },
+              "focusBuildingName": "Grand Théâtre de Bordeaux",
+              "moodKey": "bordeauxWaterfront",
+              "dataBundled": true,
+              "dataPath": "Districts/VieuxBordeaux.json"
+            },
+            {
+              "id": "LesChartrons",
+              "displayName": "Les Chartrons",
+              "anchor": {
+                "latitude": 44.8563,
+                "longitude": -0.5668
+              },
+              "boundingBox": {
+                "south": 44.849,
+                "west": -0.575,
+                "north": 44.864,
+                "east": -0.557
+              },
+              "focusBuildingName": "Halle des Chartrons",
+              "moodKey": "bordeauxWaterfront",
+              "dataBundled": true,
+              "dataPath": "Districts/LesChartrons.json"
+            }
+          ]
+        },
+        {
+          "id": "rennes",
+          "displayName": "Rennes",
+          "shortName": "Rns",
+          "anchor": {
+            "latitude": 48.1147,
+            "longitude": -1.6794
+          },
+          "mapZoomRadius": 7000,
+          "markerColor": "#E04A3A",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "VieuxRennes",
+              "displayName": "Vieux-Rennes",
+              "anchor": {
+                "latitude": 48.1125,
+                "longitude": -1.6764
+              },
+              "boundingBox": {
+                "south": 48.108,
+                "west": -1.684,
+                "north": 48.118,
+                "east": -1.666
+              },
+              "focusBuildingName": "Parlement de Bretagne",
+              "moodKey": "rennesMedieval",
+              "dataBundled": false,
+              "dataPath": "Districts/VieuxRennes.json"
+            },
+            {
+              "id": "Thabor",
+              "displayName": "Thabor",
+              "anchor": {
+                "latitude": 48.1168,
+                "longitude": -1.6617
+              },
+              "boundingBox": {
+                "south": 48.111,
+                "west": -1.67,
+                "north": 48.123,
+                "east": -1.651
+              },
+              "focusBuildingName": "Parc du Thabor",
+              "moodKey": "rennesMedieval",
+              "dataBundled": false,
+              "dataPath": "Districts/Thabor.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "britain",
+      "displayName": "Britain",
+      "cities": [
+        {
+          "id": "london",
+          "displayName": "London",
+          "shortName": "Lon",
+          "anchor": {
+            "latitude": 51.5134,
+            "longitude": -0.0886
+          },
+          "mapZoomRadius": 10000,
+          "markerColor": "#6E8FA8",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "CityOfLondon",
+              "displayName": "City of London",
+              "anchor": {
+                "latitude": 51.5136,
+                "longitude": -0.0886
+              },
+              "boundingBox": {
+                "south": 51.506,
+                "west": -0.104,
+                "north": 51.521,
+                "east": -0.074
+              },
+              "focusBuildingName": "30 St Mary Axe",
+              "moodKey": "londonSilver",
+              "dataBundled": true,
+              "dataPath": "Districts/CityOfLondon.json"
+            },
+            {
+              "id": "Westminster",
+              "displayName": "Westminster",
+              "anchor": {
+                "latitude": 51.498,
+                "longitude": -0.13
+              },
+              "boundingBox": {
+                "south": 51.49,
+                "west": -0.145,
+                "north": 51.507,
+                "east": -0.115
+              },
+              "focusBuildingName": "Big Ben",
+              "moodKey": "londonSilver",
+              "dataBundled": true,
+              "dataPath": "Districts/Westminster.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "iberia",
+      "displayName": "Iberia",
+      "cities": [
+        {
+          "id": "madrid",
+          "displayName": "Madrid",
+          "shortName": "Mad",
+          "anchor": {
+            "latitude": 40.4165,
+            "longitude": -3.6887
+          },
+          "mapZoomRadius": 11000,
+          "markerColor": "#C4983C",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "Salamanca",
+              "displayName": "Salamanca",
+              "anchor": {
+                "latitude": 40.4243,
+                "longitude": -3.6808
+              },
+              "boundingBox": {
+                "south": 40.416,
+                "west": -3.694,
+                "north": 40.432,
+                "east": -3.67
+              },
+              "focusBuildingName": "Puerta de Alcalá",
+              "moodKey": "madridAfternoon",
+              "dataBundled": true,
+              "dataPath": "Districts/Salamanca.json"
+            },
+            {
+              "id": "Malasana",
+              "displayName": "Malasaña",
+              "anchor": {
+                "latitude": 40.425,
+                "longitude": -3.703
+              },
+              "boundingBox": {
+                "south": 40.418,
+                "west": -3.712,
+                "north": 40.432,
+                "east": -3.696
+              },
+              "focusBuildingName": "Edificio España",
+              "moodKey": "madridAfternoon",
+              "dataBundled": true,
+              "dataPath": "Districts/Malasana.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "italia",
+      "displayName": "Italia",
+      "cities": [
+        {
+          "id": "rome",
+          "displayName": "Rome",
+          "shortName": "Rom",
+          "anchor": {
+            "latitude": 41.8968,
+            "longitude": 12.4722
+          },
+          "mapZoomRadius": 10000,
+          "markerColor": "#C4783A",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "CentroStorico",
+              "displayName": "Centro Storico",
+              "anchor": {
+                "latitude": 41.8987,
+                "longitude": 12.4727
+              },
+              "boundingBox": {
+                "south": 41.887,
+                "west": 12.46,
+                "north": 41.91,
+                "east": 12.487
+              },
+              "focusBuildingName": "Sant'Ivo alla Sapienza",
+              "moodKey": "romanGoldenHour",
+              "dataBundled": true,
+              "dataPath": "Districts/CentroStorico.json"
+            }
+          ]
         }
       ]
     }

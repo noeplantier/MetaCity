@@ -16,6 +16,12 @@ extension DistrictEntry {
         case "beachResort":       return .beachResort
         case "sacredSite":        return .sacredSite
         case "highlandMorning":   return .highlandMorning
+        case "parisianCore":      return .parisianCore
+        case "bordeauxWaterfront": return .bordeauxWaterfront
+        case "rennesMedieval":    return .rennesMedieval
+        case "londonSilver":      return .londonSilver
+        case "madridAfternoon":   return .madridAfternoon
+        case "romanGoldenHour":   return .romanGoldenHour
         default:                  return .parkDaylight
         }
     }
@@ -40,6 +46,12 @@ enum DistrictRealityScene {
         case beachResort         // Bali (Seminyak, Kuta, Canggu)
         case sacredSite          // Yogyakarta (Malioboro, Kraton)
         case highlandMorning     // Bandung (Dago, Braga) — 700m highland, cool mist, morning light
+        case parisianCore        // Paris (Le Marais, Saint-Germain, Montmartre) — overcast soft grey sky, limestone cream
+        case bordeauxWaterfront  // Bordeaux (Vieux-Bordeaux, Chartrons) — golden hour Garonne riverside light
+        case rennesMedieval      // Rennes (Vieux-Rennes, Thabor) — morning mist, slate-grey Breton sky
+        case londonSilver        // City of London / London brick districts — cool overcast silver sky
+        case madridAfternoon     // Madrid (Salamanca, Retiro) — warm golden afternoon, azotea rooftops
+        case romanGoldenHour     // Rome (Centro Storico) — warm sienna-amber golden hour, sanpietrini cobbles
 
         var sunColor: UIColor {
             switch self {
@@ -51,6 +63,12 @@ enum DistrictRealityScene {
             case .beachResort: UIColor(red: 1.0, green: 0.92, blue: 0.72, alpha: 1) // warm tropical midday
             case .sacredSite: UIColor(red: 1.0, green: 0.88, blue: 0.65, alpha: 1)  // amber afternoon over stone
             case .highlandMorning: UIColor(red: 0.88, green: 0.92, blue: 1.0, alpha: 1) // cool Bandung highland morning
+            case .parisianCore:    UIColor(red: 0.90, green: 0.90, blue: 0.94, alpha: 1) // cool pearl overcast Parisian light
+            case .bordeauxWaterfront: UIColor(red: 1.0, green: 0.88, blue: 0.65, alpha: 1) // warm golden-hour Garonne light
+            case .rennesMedieval:  UIColor(red: 0.95, green: 0.92, blue: 0.80, alpha: 1) // soft Breton morning gold
+            case .londonSilver:    UIColor(red: 0.88, green: 0.90, blue: 0.95, alpha: 1) // cool silver London overcast
+            case .madridAfternoon: UIColor(red: 1.0,  green: 0.84, blue: 0.55, alpha: 1) // warm Madrid afternoon gold
+            case .romanGoldenHour: UIColor(red: 1.0,  green: 0.82, blue: 0.52, alpha: 1) // warm amber Roman afternoon
             }
         }
 
@@ -73,6 +91,12 @@ enum DistrictRealityScene {
             case .beachResort: 35000  // bright tropical sun — reduced from 60000 which bleached balinese stone to white
             case .sacredSite: 30000   // golden late-afternoon over temple stone
             case .highlandMorning: 20000  // highland overcast — diffuse, soft, not dominant
+            case .parisianCore:    22000  // overcast Parisian sky — bright but diffuse, no harsh shadows
+            case .bordeauxWaterfront: 30000 // golden-hour Garonne riverfront — warm and strong
+            case .rennesMedieval:  25000  // morning mist softens but doesn't kill the Breton sun
+            case .londonSilver:    26000  // overcast but bright London sky — diffuse, moderate intensity
+            case .madridAfternoon: 38000  // intense Iberian afternoon sun — strong enough for crisp azotea shadows
+            case .romanGoldenHour: 32000  // warm afternoon Roman light — lower than Madrid, more diffuse
             }
         }
 
@@ -88,6 +112,12 @@ enum DistrictRealityScene {
             case .beachResort: 0.80  // near-overhead equatorial sun, short shadows
             case .sacredSite: 0.38   // low angle, long dramatic shadows across temple courts
             case .highlandMorning: 0.42   // soft morning angle — highland mist diffuses harsh shadows
+            case .parisianCore:    0.55   // high sun through overcast — diffuse, minimal shadow angle
+            case .bordeauxWaterfront: 0.40 // golden-hour angle — moderate elevation, long warm shadows
+            case .rennesMedieval:  0.38   // low morning sun — long shadows across half-timber facades
+            case .londonSilver:    0.45   // moderate overcast elevation — diffuse, no dramatic shadows
+            case .madridAfternoon: 0.38   // classic Madrid late-afternoon angle — long warm shadows
+            case .romanGoldenHour: 0.32   // low golden-hour angle — maximises cobblestone texture relief
             }
         }
 
@@ -122,6 +152,24 @@ enum DistrictRealityScene {
             case .highlandMorning:
                 // Blue-grey highland sky, pale misty horizon, cool earth ground — Bandung at 700m
                 (UIColor(red: 0.48, green: 0.58, blue: 0.78, alpha: 1), UIColor(red: 0.82, green: 0.86, blue: 0.92, alpha: 1), UIColor(red: 0.30, green: 0.28, blue: 0.26, alpha: 1))
+            case .parisianCore:
+                // Pearl-grey Parisian sky — blue-grey zenith, pale silver horizon, warm limestone ground
+                (UIColor(red: 0.52, green: 0.58, blue: 0.70, alpha: 1), UIColor(red: 0.78, green: 0.80, blue: 0.84, alpha: 1), UIColor(red: 0.32, green: 0.30, blue: 0.28, alpha: 1))
+            case .bordeauxWaterfront:
+                // Warm golden-hour sky — blue zenith, golden horizon (Garonne reflection), sandy ground
+                (UIColor(red: 0.42, green: 0.58, blue: 0.82, alpha: 1), UIColor(red: 0.98, green: 0.82, blue: 0.52, alpha: 1), UIColor(red: 0.55, green: 0.45, blue: 0.32, alpha: 1))
+            case .rennesMedieval:
+                // Morning mist — slate-grey zenith, pale misty horizon, dark Breton granite ground
+                (UIColor(red: 0.54, green: 0.60, blue: 0.72, alpha: 1), UIColor(red: 0.82, green: 0.84, blue: 0.86, alpha: 1), UIColor(red: 0.28, green: 0.26, blue: 0.24, alpha: 1))
+            case .londonSilver:
+                // Cool silver-grey London overcast — muted blue zenith, pale silver horizon, dark wet tarmac ground
+                (UIColor(red: 0.44, green: 0.52, blue: 0.68, alpha: 1), UIColor(red: 0.72, green: 0.76, blue: 0.82, alpha: 1), UIColor(red: 0.30, green: 0.28, blue: 0.26, alpha: 1))
+            case .madridAfternoon:
+                // Intense Iberian afternoon — deep blue zenith, golden-amber horizon, warm sandstone ground
+                (UIColor(red: 0.38, green: 0.55, blue: 0.85, alpha: 1), UIColor(red: 0.88, green: 0.75, blue: 0.52, alpha: 1), UIColor(red: 0.45, green: 0.38, blue: 0.28, alpha: 1))
+            case .romanGoldenHour:
+                // Roman golden hour — deep blue zenith, amber-gold horizon (sundown over the Tiber), warm ochre earth
+                (UIColor(red: 0.38, green: 0.50, blue: 0.78, alpha: 1), UIColor(red: 0.92, green: 0.76, blue: 0.52, alpha: 1), UIColor(red: 0.38, green: 0.30, blue: 0.22, alpha: 1))
             }
         }
 
@@ -139,6 +187,12 @@ enum DistrictRealityScene {
             case .beachResort: 0.20
             case .sacredSite: 0.18
             case .highlandMorning: 0.18  // similar to sacredSite — tight framing for dense Braga blocks
+            case .parisianCore:    0.16  // Haussmann blocks are dense, pull in tighter
+            case .bordeauxWaterfront: 0.18 // riverfront needs a little extra breathing room
+            case .rennesMedieval:  0.16  // compact medieval fabric — tight like colonialSquare
+            case .londonSilver:    0.18  // City of London — mix of medieval lanes and glass towers, slightly looser framing
+            case .madridAfternoon: 0.18  // Ensanche grid — regular blocks, standard pull-back
+            case .romanGoldenHour: 0.18  // Centro Storico irregular fabric — needs slight breathing room
             }
         }
 
@@ -152,6 +206,12 @@ enum DistrictRealityScene {
             case .beachResort: 0.14
             case .sacredSite: 0.09
             case .highlandMorning: 0.13  // slightly elevated for highland downward angle
+            case .parisianCore:    0.14  // elevated to show mansard rooftops — the defining aerial detail
+            case .bordeauxWaterfront: 0.12 // lower angle to read the riverfront facade from water level
+            case .rennesMedieval:  0.13  // slightly elevated — reads the steep medieval pitched roofscape
+            case .londonSilver:    0.13  // moderate elevation — reads both Victorian rooflines and glass tower tops
+            case .madridAfternoon: 0.12  // flatter azotea roofs — lower elevation to read the facade rhythm
+            case .romanGoldenHour: 0.13  // slightly elevated — reads orange canal-tile rooftops across the Forum area
             }
         }
 

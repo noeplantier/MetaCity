@@ -48,7 +48,14 @@ struct MetaCityApp: App {
                     // actor, causing multi-frame hitches during launch. Those load
                     // on-demand on first user visit. The remaining districts (Jakarta ×5,
                     // Bandung ×2, Kuta, Sanur) are small enough to prefetch without perceptible cost.
-                    let heavyDistricts: Set<String> = ["Malioboro", "Kraton", "Seminyak", "Canggu", "Uluwatu"]
+                    // Paris/Bordeaux districts qualify as heavy (2,100–5,863 buildings each).
+                    // UK/Iberia/Italy districts: CityOfLondon 2,404 / Westminster 2,362 / Salamanca 2,463 /
+                    // CentroStorico 4,917. Malasana 2,534. Montmartre (5,863) heaviest in the app.
+                    let heavyDistricts: Set<String> = ["Malioboro", "Kraton", "Seminyak", "Canggu", "Uluwatu",
+                                                        "Montmartre", "LeMarais", "SaintGermain", "LaDefense",
+                                                        "VieuxBordeaux", "LesChartrons",
+                                                        "CityOfLondon", "Westminster", "Salamanca", "CentroStorico",
+                                                        "Malasana"]
                     for district in CityManifest.shared.allDistricts
                         where district.dataBundled && !heavyDistricts.contains(district.id) {
                         _ = try? await DistrictRealityKit.loadDistrictEntity(
