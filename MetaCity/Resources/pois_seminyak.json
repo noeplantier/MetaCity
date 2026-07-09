@@ -1,0 +1,218 @@
+{
+  "districtId": "Seminyak",
+  "pois": [
+    {
+      "id": "potato_head",
+      "name": "Potato Head Beach Club",
+      "category": "beach",
+      "tier": "featured",
+      "latitude": -8.6843,
+      "longitude": 115.1607,
+      "description": "Bali's most iconic beach club: a vast open-air venue with a circular bar, multiple pools, and nightly DJ sets facing the Indian Ocean sunset.",
+      "approachBearing": 270,
+      "approachDistance": 55,
+      "partnerURL": "https://www.ptthead.com/",
+      "isFeatured": true
+    },
+    {
+      "id": "ku_de_ta",
+      "name": "KU DE TA",
+      "category": "beach",
+      "tier": "featured",
+      "latitude": -8.6838,
+      "longitude": 115.1612,
+      "description": "Seminyak's original beach club and fine dining landmark. Sunset cocktails, Asian-fusion cuisine, and weekly Saturday Soul sessions.",
+      "approachBearing": 270,
+      "approachDistance": 45,
+      "partnerURL": "https://kudeta.com/",
+      "isFeatured": true
+    },
+    {
+      "id": "pura_petitenget",
+      "name": "Pura Petitenget",
+      "category": "temple",
+      "tier": "featured",
+      "latitude": -8.6835,
+      "longitude": 115.1606,
+      "description": "Sacred sea temple on Seminyak Beach, part of Bali's spiritual sea-axis connecting Pura Tanah Lot to Pura Uluwatu. Ceremony days draw hundreds of local worshippers.",
+      "partnerURL": null,
+      "isFeatured": true
+    },
+    {
+      "id": "w_retreat",
+      "name": "W Bali – Seminyak",
+      "category": "hotel",
+      "tier": "featured",
+      "latitude": -8.6841,
+      "longitude": 115.1611,
+      "description": "Design-forward luxury resort steps from the beach. WET pool deck, FIRE restaurant, and the flagship AWAY spa.",
+      "partnerURL": "https://www.marriott.com/hotels/travel/dpswh-w-bali-seminyak/",
+      "isFeatured": true
+    },
+    {
+      "id": "metis",
+      "name": "Métis Restaurant & Gallery",
+      "category": "restaurant",
+      "tier": "featured",
+      "latitude": -8.6830,
+      "longitude": 115.1660,
+      "description": "Award-winning French-Mediterranean fine dining in a colonial villa surrounded by rice fields. Resident gallery shows rotating Indonesian contemporary art.",
+      "partnerURL": "https://www.metisbali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "sardine",
+      "name": "Sardine",
+      "category": "restaurant",
+      "tier": "featured",
+      "latitude": -8.6822,
+      "longitude": 115.1658,
+      "description": "Open-air fine dining pavilion overlooking a private rice field. Daily-changing menu built around fresh Jimbaran seafood and local produce.",
+      "partnerURL": "https://sardinebali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "mama_san",
+      "name": "Mama San",
+      "category": "restaurant",
+      "tier": "featured",
+      "latitude": -8.6858,
+      "longitude": 115.1645,
+      "description": "Colonial-warehouse restaurant and cocktail lounge serving the best pan-Asian small plates in Seminyak. Iconic crispy pork belly and Peking duck.",
+      "partnerURL": "https://mamasanbali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "merah_putih",
+      "name": "Merah Putih",
+      "category": "restaurant",
+      "tier": "featured",
+      "latitude": -8.6852,
+      "longitude": 115.1618,
+      "description": "Grand Indonesian fine dining in a soaring modern pavilion. The menu celebrates regional Indonesian cuisine from Aceh to Papua with premium local produce.",
+      "partnerURL": "https://www.merahputihbali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "revolver",
+      "name": "Revolver Espresso",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.6855,
+      "longitude": 115.1643,
+      "description": "Seminyak's cult specialty coffee shop squeezed into a tiny colonial shopfront. Filter and espresso-based drinks from rotating single-origin beans.",
+      "partnerURL": "https://www.revolverespresso.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "la_plancha",
+      "name": "La Plancha",
+      "category": "beach",
+      "tier": "standard",
+      "latitude": -8.6840,
+      "longitude": 115.1608,
+      "description": "Colourful beanbag beach bar famous for its vivid parasols, fresh sangria, and front-row sunset views on Seminyak Beach.",
+      "partnerURL": "https://laplancha-bali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "seminyak_square",
+      "name": "Seminyak Square",
+      "category": "shop",
+      "tier": "standard",
+      "latitude": -8.6857,
+      "longitude": 115.1641,
+      "description": "Boutique shopping precinct with Bali's top designer labels: Biasa, Magali Pascal, Ciel, and Bamboo Blonde.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "unit_seminyak",
+      "name": "Unit Seminyak",
+      "category": "beach",
+      "tier": "standard",
+      "latitude": -8.6845,
+      "longitude": 115.1609,
+      "description": "Intimate beach club with a single infinity pool, refined day-bed service, and a compact modern menu.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "bikini",
+      "name": "Bikini",
+      "category": "shop",
+      "tier": "standard",
+      "latitude": -8.6852,
+      "longitude": 115.1637,
+      "description": "Seminyak's go-to beach fashion boutique: locally-designed swimwear, cover-ups, sandals, and handmade jewellery.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "canggu_surf_school_smy",
+      "name": "Pro Surf Bali",
+      "category": "surf",
+      "tier": "standard",
+      "latitude": -8.6838,
+      "longitude": 115.1614,
+      "description": "Surf school operating from Seminyak Beach with beginner-to-advanced lessons and private coaching by ISA-certified instructors.",
+      "partnerURL": "https://www.prosurfbali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "mirror_seminyak",
+      "name": "Mirror",
+      "category": "nightlife",
+      "tier": "standard",
+      "latitude": -8.6860,
+      "longitude": 115.1642,
+      "description": "Seminyak's upscale nightclub with underground music, internationally renowned DJs, and a reflective mirrored interior.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "biku_seminyak",
+      "name": "Biku",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.6868,
+      "longitude": 115.1645,
+      "description": "Afternoon tea and colonial brunch in a century-old Balinese joglo house. 30+ loose-leaf teas, fresh scones, and Indonesian heritage dishes.",
+      "partnerURL": "https://bikubali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "woo_bar",
+      "name": "WOO Bar at W Bali",
+      "category": "nightlife",
+      "tier": "standard",
+      "latitude": -8.6840,
+      "longitude": 115.1611,
+      "description": "Dramatic overwater cocktail bar at W Bali resort. Sunset ritual, resident DJs, and signature cocktails until 2am.",
+      "partnerURL": "https://www.marriott.com/hotels/hotel-bar/dpswh-w-bali-seminyak/",
+      "isFeatured": false
+    },
+    {
+      "id": "jamu_wellness",
+      "name": "Jamu Traditional Spa",
+      "category": "wellness",
+      "tier": "standard",
+      "latitude": -8.6858,
+      "longitude": 115.1632,
+      "description": "Traditional Balinese spa in a garden compound. Signature jamu herbal body wraps, lulur scrubs, and 4-hand massages.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "kerobokan_market",
+      "name": "Pasar Kerobokan",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": -8.6822,
+      "longitude": 115.1680,
+      "description": "Authentic local wet market north of Seminyak. Fresh tropical produce, local warung breakfasts, and zero tourist prices.",
+      "partnerURL": null,
+      "isFeatured": false
+    }
+  ]
+}

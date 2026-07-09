@@ -1,0 +1,79 @@
+[
+  {
+    "id": "visit-yogyakarta",
+    "name": "Visit Yogyakarta",
+    "role": "Visitor Information",
+    "organization": "Dinas Pariwisata DIY",
+    "cityId": "yogyakarta",
+    "phone": "+62-274-588-000",
+    "whatsappNumber": null,
+    "description": "Yogyakarta Special Region Tourism Office — official information on Keraton tours, Prambanan and Borobudur access, batik workshops, gamelan events, and the Ramayana ballet schedule.",
+    "avatarEmoji": "🏺"
+  },
+  {
+    "id": "keraton-yogyakarta",
+    "name": "Keraton Yogyakarta",
+    "role": "Royal Palace Visitor Centre",
+    "organization": "Keraton Ngayogyakarta Hadiningrat",
+    "cityId": "yogyakarta",
+    "phone": "+62-274-373-721",
+    "whatsappNumber": null,
+    "description": "The Sultan's living palace — opened to visitors since 1973. Opening hours, gamelan and wayang performance schedule, group tour bookings, and cultural protocol information (dress code, photography rules).",
+    "avatarEmoji": "👑"
+  },
+  {
+    "id": "taman-sari-yogyakarta",
+    "name": "Taman Sari Water Castle",
+    "role": "Heritage Site",
+    "organization": "UPT Taman Sari Yogyakarta",
+    "cityId": "yogyakarta",
+    "phone": "+62-274-373-685",
+    "whatsappNumber": null,
+    "description": "The Sultan's 18th-century pleasure garden — bathing pools, underground mosque, and royal apartments. Guided tour availability, opening hours (06:00–14:00), and sarong rental information.",
+    "avatarEmoji": "⛲"
+  },
+  {
+    "id": "prambanan-heritage",
+    "name": "Candi Prambanan",
+    "role": "UNESCO Heritage Ticket",
+    "organization": "PT Taman Wisata Candi Prambanan",
+    "cityId": "yogyakarta",
+    "phone": "+62-274-496-401",
+    "whatsappNumber": null,
+    "description": "Southeast Asia's largest Hindu temple complex — ticket booking, Ramayana open-air ballet schedule (full-moon nights), group rates, and access information for the broader compound (Candi Sewu, Candi Plaosan).",
+    "avatarEmoji": "🛕"
+  },
+  {
+    "id": "borobudur-heritage",
+    "name": "Borobudur Heritage Tourism",
+    "role": "World Heritage Site",
+    "organization": "PT Taman Wisata Candi Borobudur",
+    "cityId": "yogyakarta",
+    "phone": "+62-293-788-266",
+    "whatsappNumber": null,
+    "description": "The world's largest Buddhist monument, 40km from Yogyakarta. Sunrise ticket booking (limited to 1,000/day), general admission, guided tour packages, and the Manohara Hotel on-site for dawn access.",
+    "avatarEmoji": "🪷"
+  },
+  {
+    "id": "grand-inna-malioboro",
+    "name": "Grand Inna Malioboro",
+    "role": "Hotel Concierge",
+    "organization": "Grand Inna Malioboro",
+    "cityId": "yogyakarta",
+    "phone": "+62-274-560-521",
+    "whatsappNumber": null,
+    "description": "Heritage hotel directly on Jalan Malioboro — the most central address in the city. Concierge services for Merapi treks, Keraton tours, and batik workshop bookings. Restaurant and room reservations.",
+    "avatarEmoji": "🏨"
+  },
+  {
+    "id": "malioboro-tourist-info",
+    "name": "Malioboro Tourist Information",
+    "role": "Street Tourist Centre",
+    "organization": "Tourist Information Centre Malioboro",
+    "cityId": "yogyakarta",
+    "phone": "+62-274-512-960",
+    "whatsappNumber": null,
+    "description": "Walk-in tourist centre on Jalan Malioboro with free maps, batik shopping guides, becak fare charts, and information on Kraton and Taman Sari access. Staff speak English and Mandarin.",
+    "avatarEmoji": "🗺"
+  }
+]

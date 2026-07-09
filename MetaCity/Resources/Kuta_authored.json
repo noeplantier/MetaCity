@@ -1,0 +1,21 @@
+{
+  "districtId": "Kuta",
+  "overrides": [
+    { "nameMatch": "Pura",                       "roofType": "conical"  },
+    { "nameMatch": "Temple",                     "roofType": "conical"  },
+    { "nameMatch": "Masjid",                     "roofType": "dome"     },
+    { "nameMatch": "Mosque",                     "roofType": "dome"     },
+    { "nameMatch": "Hard Rock Hotel",            "roofType": "flat"     },
+    { "nameMatch": "Beachwalk",                  "roofType": "flat"     },
+    { "nameMatch": "Discovery Mall",             "roofType": "flat"     },
+    { "nameMatch": "Waterbom",                   "roofType": "flat"     },
+    { "nameMatch": "Sky Garden",                 "roofType": "flat"     },
+    { "nameMatch": "Bounty",                     "roofType": "flat"     },
+    { "nameMatch": "Poppies",                    "roofType": "thatched" },
+    { "nameMatch": "Apache",                     "roofType": "thatched" },
+    { "nameMatch": "Mango",                      "roofType": "thatched" },
+    { "nameMatch": "Fat Yogi",                   "roofType": "thatched" },
+    { "nameMatch": "Lacalita",                   "roofType": "thatched" },
+    { "nameMatch": "Krisna",                     "roofType": "flat"     }
+  ]
+}

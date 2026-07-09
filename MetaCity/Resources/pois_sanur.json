@@ -1,0 +1,83 @@
+{
+  "districtId": "Sanur",
+  "pois": [
+    {
+      "id": "sanur_santrian_beach",
+      "name": "The Santrian Beach Club",
+      "category": "restaurant",
+      "tier": "featured",
+      "latitude": -8.7103,
+      "longitude": 115.2634,
+      "description": "Sanur's iconic beachfront resort complex — thatched pavilions stepping down to the sand, sunrise-facing pool, and the Pandara beach-club restaurant opening directly onto the promenade.",
+      "approachBearing": 90,
+      "approachDistance": 40,
+      "partnerURL": "https://www.santrian.com/",
+      "isFeatured": true
+    },
+    {
+      "id": "sanur_power_of_now",
+      "name": "Power Of Now Oasis",
+      "category": "wellness",
+      "tier": "featured",
+      "latitude": -8.7121,
+      "longitude": 115.2632,
+      "description": "Beachfront open-air yoga shala directly on Sanur's sunrise beach. Morning Hatha and Vinyasa sessions, drop-in welcome. Unobstructed view over the Lombok Strait.",
+      "approachBearing": 90,
+      "approachDistance": 35,
+      "partnerURL": "https://powerofnowoasis.com/",
+      "isFeatured": true
+    },
+    {
+      "id": "sanur_hyatt_regency",
+      "name": "Hyatt Regency Sanur",
+      "category": "hotel",
+      "tier": "featured",
+      "latitude": -8.7135,
+      "longitude": 115.2622,
+      "description": "Sanur's largest resort: 363 rooms across 15 ha of tropical gardens, beachfront pool, and the open-air Pizzeria pavilion overlooking the beach path. The NNWW tower block is the district's tallest structure.",
+      "approachBearing": 90,
+      "approachDistance": 60,
+      "partnerURL": "https://www.hyatt.com/en-US/hotel/indonesia/hyatt-regency-bali/dpsrs",
+      "isFeatured": true
+    },
+    {
+      "id": "sanur_harbour",
+      "name": "Sanur Harbour",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": -8.7195,
+      "longitude": 115.2575,
+      "description": "Main departure point for fast-boat services to Nusa Penida, Nusa Lembongan, and Lombok. Boats from 07:00–10:00 daily. Ticket kiosks on the promenade; compare prices as operators vary widely.",
+      "approachBearing": 270,
+      "approachDistance": 50,
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "sanur_villa_ksatria",
+      "name": "Villa Ksatria",
+      "category": "hotel",
+      "tier": "standard",
+      "latitude": -8.7098,
+      "longitude": 115.2628,
+      "description": "Boutique Balinese compound hotel set two rows back from the beach. Private plunge pools in each villa, stone-carved entrance gates, frangipani-lined pathways. 9 villas, no restaurant on site.",
+      "approachBearing": 180,
+      "approachDistance": 30,
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "sanur_cove_dahayu",
+      "name": "Cove Dahayu Sanctuary",
+      "category": "wellness",
+      "tier": "standard",
+      "latitude": -8.7152,
+      "longitude": 115.2618,
+      "description": "Restored Dutch colonial villa converted into a boutique spa. Four treatment rooms, traditional Balinese boreh scrub, advance booking required.",
+      "approachBearing": 0,
+      "approachDistance": 25,
+      "partnerURL": null,
+      "isFeatured": false
+    }
+  ]
+}

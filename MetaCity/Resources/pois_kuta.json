@@ -1,0 +1,209 @@
+{
+  "districtId": "Kuta",
+  "pois": [
+    {
+      "id": "waterbom_bali",
+      "name": "Waterbom Bali",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": -8.7196,
+      "longitude": 115.1688,
+      "description": "Asia's #1 water park for multiple years. 37 slides and attractions across 3.8 ha of tropical gardens, including the 360° vertical-loop Superbowl and the Climax free-fall.",
+      "approachBearing": 90,
+      "approachDistance": 50,
+      "partnerURL": "https://www.waterbom-bali.com/",
+      "isFeatured": true
+    },
+    {
+      "id": "hard_rock_hotel",
+      "name": "Hard Rock Hotel Bali",
+      "category": "hotel",
+      "tier": "featured",
+      "latitude": -8.7168,
+      "longitude": 115.1678,
+      "description": "Kuta's landmark beachfront hotel with the largest rock-music memorabilia collection in Asia, a world-class spa, and a beachside pool complex.",
+      "approachBearing": 270,
+      "approachDistance": 40,
+      "partnerURL": "https://www.hardrockhotels.com/bali",
+      "isFeatured": true
+    },
+    {
+      "id": "kuta_beach",
+      "name": "Kuta Beach",
+      "category": "beach",
+      "tier": "featured",
+      "latitude": -8.7183,
+      "longitude": 115.1659,
+      "description": "Bali's most famous beach: 4km of grey volcanic sand, reliable beginner surf, sunset vendors, and Bali's iconic lifeguard towers with their red-and-yellow flags.",
+      "partnerURL": null,
+      "isFeatured": true
+    },
+    {
+      "id": "beachwalk",
+      "name": "Beachwalk Shopping Center",
+      "category": "shop",
+      "tier": "featured",
+      "latitude": -8.7170,
+      "longitude": 115.1665,
+      "description": "Open-air lifestyle mall steps from Kuta Beach with international brands, cinemas, food court, and a rooftop pool. The main air-conditioned refuge on Kuta's strip.",
+      "approachBearing": 0,
+      "approachDistance": 35,
+      "partnerURL": "https://www.beachwalkbali.com/",
+      "isFeatured": true
+    },
+    {
+      "id": "sky_garden",
+      "name": "Sky Garden Bali",
+      "category": "nightlife",
+      "tier": "featured",
+      "latitude": -8.7187,
+      "longitude": 115.1698,
+      "description": "Six floors of clubs, bars, and rooftop terrace on Legian Street. The beating heart of Kuta's nightlife with a legendary free-entry-before-11pm policy.",
+      "partnerURL": "https://www.skygardenbali.com/",
+      "isFeatured": true
+    },
+    {
+      "id": "legian_beach",
+      "name": "Legian Beach",
+      "category": "beach",
+      "tier": "standard",
+      "latitude": -8.7128,
+      "longitude": 115.1650,
+      "description": "Quieter, wider beach north of Kuta with fewer vendors, slightly more powerful surf, and most of Kuta's upscale beachfront hotels.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "discovery_mall",
+      "name": "Discovery Shopping Mall",
+      "category": "shop",
+      "tier": "standard",
+      "latitude": -8.7210,
+      "longitude": 115.1660,
+      "description": "Kuta's original mall directly on the beach. Three floors of surf brands, souvenirs, restaurants, and a beachfront Hard Rock Cafe.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "poppies_restaurant",
+      "name": "Poppies Restaurant",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": -8.7195,
+      "longitude": 115.1690,
+      "description": "Kuta's most famous restaurant, opened 1973. Garden courtyard setting, long Indonesian and Western menu, and the original Poppies cocktail.",
+      "partnerURL": "https://www.poppiesbali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "fat_yogi",
+      "name": "Fat Yogi's",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": -8.7190,
+      "longitude": 115.1695,
+      "description": "Kuta institution since 1981. Enormous portions of Indonesian staples — nasi goreng, mie goreng, satay — at backpacker prices in an open-air setting.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "mangos_bali",
+      "name": "Mango's Bali",
+      "category": "nightlife",
+      "tier": "standard",
+      "latitude": -8.7192,
+      "longitude": 115.1700,
+      "description": "Three-floor nightclub and restaurant on Legian Street. Well-known for its 2-for-1 cocktail happy hour and live music on the upper terrace.",
+      "partnerURL": "https://www.mangosbali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "bagus_cafe",
+      "name": "Bagus Café",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.7200,
+      "longitude": 115.1692,
+      "description": "Classic Kuta breakfast spot with thick pancakes, fresh fruit, and Indonesian coffee that's been fuelling surfers since the 1980s.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "krisna_bali",
+      "name": "Krisna Bali",
+      "category": "shop",
+      "tier": "standard",
+      "latitude": -8.7062,
+      "longitude": 115.1685,
+      "description": "Three floors of Balinese handicrafts, branded souvenirs, textiles, and food products. The most popular one-stop souvenir emporium in Bali.",
+      "partnerURL": "https://www.krisnabali.co.id/",
+      "isFeatured": false
+    },
+    {
+      "id": "surf_lessons_kuta",
+      "name": "Pro Surf School Kuta",
+      "category": "surf",
+      "tier": "standard",
+      "latitude": -8.7181,
+      "longitude": 115.1660,
+      "description": "Long-running surf school operating directly from Kuta Beach. Group lessons at 08:00 and 14:00 on Kuta's gentle beach-break.",
+      "partnerURL": "https://www.prosurfbali.com/",
+      "isFeatured": false
+    },
+    {
+      "id": "apache_reggae",
+      "name": "Apache Reggae Bar",
+      "category": "nightlife",
+      "tier": "standard",
+      "latitude": -8.7185,
+      "longitude": 115.1698,
+      "description": "Kuta's most authentic live-music bar. Nightly reggae bands, no cover charge, cold Bintang, and a crowd that mixes locals with travellers.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "kuta_art_market",
+      "name": "Kuta Art Market",
+      "category": "shop",
+      "tier": "standard",
+      "latitude": -8.7198,
+      "longitude": 115.1701,
+      "description": "Open-air market along Poppies Lane II with batik sarongs, silver jewellery, woodcarvings, and essential oil vendors. Bargaining expected.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "pantai_kuta_fitness",
+      "name": "Pantai Kuta Fitness",
+      "category": "wellness",
+      "tier": "standard",
+      "latitude": -8.7173,
+      "longitude": 115.1672,
+      "description": "Beachfront gym with ocean view cardio machines, free weights, and yoga studio. Day passes available for travelers.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "bounty_nightclub",
+      "name": "Bounty Nightclub",
+      "category": "nightlife",
+      "tier": "standard",
+      "latitude": -8.7188,
+      "longitude": 115.1700,
+      "description": "Built around a replica 18th-century ship on Legian Street. Three dance floors, foam parties on Fridays, and a capacity of 2,000.",
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "sunset_point_kuta",
+      "name": "Kuta Sunset Point",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": -8.7210,
+      "longitude": 115.1648,
+      "description": "The southernmost point of Kuta Beach, where surfers and photographers gather every evening for Bali's most accessible Indian Ocean sunsets.",
+      "partnerURL": null,
+      "isFeatured": false
+    }
+  ]
+}

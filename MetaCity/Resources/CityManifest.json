@@ -1,0 +1,281 @@
+{
+  "version": "1.1",
+  "islands": [
+    {
+      "id": "bali",
+      "displayName": "Bali",
+      "cities": [
+        {
+          "id": "denpasar",
+          "displayName": "Bali",
+          "shortName": "Bali",
+          "anchor": { "latitude": -8.7000, "longitude": 115.1700 },
+          "mapZoomRadius": 12000,
+          "markerColor": "#E8D06D",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "Canggu",
+              "displayName": "Canggu",
+              "anchor": { "latitude": -8.647, "longitude": 115.133 },
+              "boundingBox": { "south": -8.665, "west": 115.118, "north": -8.638, "east": 115.147 },
+              "focusBuildingName": "Castaway Hostel",
+              "moodKey": "beachResort",
+              "dataBundled": true,
+              "dataPath": "Districts/Canggu.json"
+            },
+            {
+              "id": "Seminyak",
+              "displayName": "Seminyak",
+              "anchor": { "latitude": -8.685, "longitude": 115.162 },
+              "boundingBox": { "south": -8.689, "west": 115.159, "north": -8.681, "east": 115.165 },
+              "focusBuildingName": "Avani Seminyak Bali Resort",
+              "moodKey": "beachResort",
+              "dataBundled": true,
+              "dataPath": "Districts/Seminyak.json"
+            },
+            {
+              "id": "Kuta",
+              "displayName": "Kuta",
+              "anchor": { "latitude": -8.720, "longitude": 115.169 },
+              "boundingBox": { "south": -8.724, "west": 115.166, "north": -8.716, "east": 115.173 },
+              "focusBuildingName": "Hard Rock Hotel Bali",
+              "moodKey": "beachResort",
+              "dataBundled": true,
+              "dataPath": "Districts/Kuta.json"
+            },
+            {
+              "id": "Sanur",
+              "displayName": "Sanur",
+              "anchor": { "latitude": -8.720, "longitude": 115.260 },
+              "boundingBox": { "south": -8.740, "west": 115.250, "north": -8.700, "east": 115.278 },
+              "focusBuildingName": "NNWW hotel 1",
+              "moodKey": "beachResort",
+              "dataBundled": true,
+              "dataPath": "Districts/Sanur.json"
+            },
+            {
+              "id": "Uluwatu",
+              "displayName": "Uluwatu",
+              "anchor": { "latitude": -8.830, "longitude": 115.085 },
+              "boundingBox": { "south": -8.850, "west": 115.075, "north": -8.815, "east": 115.105 },
+              "focusBuildingName": "Single Fin",
+              "moodKey": "beachResort",
+              "dataBundled": true,
+              "dataPath": "Districts/Uluwatu.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "java",
+      "displayName": "Jawa",
+      "cities": [
+        {
+          "id": "jakarta",
+          "displayName": "Jakarta",
+          "shortName": "Jkt",
+          "anchor": { "latitude": -6.2088, "longitude": 106.8456 },
+          "mapZoomRadius": 8000,
+          "markerColor": "#E8B86D",
+          "markerHeight": 1.6,
+          "districts": [
+            {
+              "id": "SudirmanThamrin",
+              "displayName": "Bundaran HI",
+              "anchor": { "latitude": -6.2000, "longitude": 106.8229 },
+              "boundingBox": { "south": -6.215, "west": 106.812, "north": -6.185, "east": 106.833 },
+              "focusBuildingName": "Menara BCA",
+              "moodKey": "skyscraperCorridor",
+              "dataBundled": true,
+              "dataPath": "Districts/SudirmanThamrin.json",
+              "supportsAR": true
+            },
+            {
+              "id": "KotaTua",
+              "displayName": "Kota Tua",
+              "anchor": { "latitude": -6.1352, "longitude": 106.8133 },
+              "boundingBox": { "south": -6.142, "west": 106.808, "north": -6.130, "east": 106.820 },
+              "focusBuildingName": "Museum Sejarah Jakarta",
+              "moodKey": "colonialSquare",
+              "dataBundled": true,
+              "dataPath": "Districts/KotaTua.json"
+            },
+            {
+              "id": "Kemang",
+              "displayName": "Jalan Kemang Raya",
+              "anchor": { "latitude": -6.2611, "longitude": 106.8145 },
+              "boundingBox": { "south": -6.275, "west": 106.805, "north": -6.250, "east": 106.825 },
+              "focusBuildingName": "The Tiffany",
+              "moodKey": "residentialDusk",
+              "dataBundled": true,
+              "dataPath": "Districts/Kemang.json"
+            },
+            {
+              "id": "Menteng",
+              "displayName": "Taman Suropati",
+              "anchor": { "latitude": -6.2058, "longitude": 106.8371 },
+              "boundingBox": { "south": -6.215, "west": 106.828, "north": -6.195, "east": 106.847 },
+              "focusBuildingName": "Gereja Kristen Indonesia Barat",
+              "moodKey": "parkDaylight",
+              "dataBundled": true,
+              "dataPath": "Districts/Menteng.json"
+            },
+            {
+              "id": "Ancol",
+              "displayName": "Taman Impian Jaya Ancol",
+              "anchor": { "latitude": -6.1258, "longitude": 106.8346 },
+              "boundingBox": { "south": -6.135, "west": 106.825, "north": -6.115, "east": 106.845 },
+              "focusBuildingName": "Istana Boneka",
+              "moodKey": "coastalPark",
+              "dataBundled": true,
+              "dataPath": "Districts/Ancol.json"
+            }
+          ]
+        },
+        {
+          "id": "surabaya",
+          "displayName": "Surabaya",
+          "shortName": "Sby",
+          "anchor": { "latitude": -7.2575, "longitude": 112.7521 },
+          "mapZoomRadius": 10000,
+          "markerColor": "#E8706A",
+          "markerHeight": 1.0,
+          "districts": []
+        },
+        {
+          "id": "bandung",
+          "displayName": "Bandung",
+          "shortName": "Bdg",
+          "anchor": { "latitude": -6.9175, "longitude": 107.6191 },
+          "mapZoomRadius": 9000,
+          "markerColor": "#B86DE8",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "Dago",
+              "displayName": "Dago",
+              "anchor": { "latitude": -6.887, "longitude": 107.611 },
+              "boundingBox": { "south": -6.892, "west": 107.608, "north": -6.882, "east": 107.615 },
+              "focusBuildingName": "Sasana Budaya Ganesha",
+              "moodKey": "highlandMorning",
+              "dataBundled": true,
+              "dataPath": "Districts/Dago.json"
+            },
+            {
+              "id": "Braga",
+              "displayName": "Jalan Braga",
+              "anchor": { "latitude": -6.913, "longitude": 107.609 },
+              "boundingBox": { "south": -6.917, "west": 107.606, "north": -6.909, "east": 107.613 },
+              "focusBuildingName": "Bank Indonesia",
+              "moodKey": "highlandMorning",
+              "dataBundled": true,
+              "dataPath": "Districts/Braga.json",
+              "supportsAR": true
+            }
+          ]
+        },
+        {
+          "id": "semarang",
+          "displayName": "Semarang",
+          "shortName": "Smg",
+          "anchor": { "latitude": -6.9932, "longitude": 110.4203 },
+          "mapZoomRadius": 9000,
+          "markerColor": "#6DE8C0",
+          "markerHeight": 1.0,
+          "districts": []
+        },
+        {
+          "id": "yogyakarta",
+          "displayName": "Yogyakarta",
+          "shortName": "Yog",
+          "anchor": { "latitude": -7.7956, "longitude": 110.3695 },
+          "mapZoomRadius": 8000,
+          "markerColor": "#E87B6D",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "Malioboro",
+              "displayName": "Malioboro",
+              "anchor": { "latitude": -7.793, "longitude": 110.366 },
+              "boundingBox": { "south": -7.798, "west": 110.363, "north": -7.788, "east": 110.369 },
+              "focusBuildingName": "Ramayana Mall",
+              "moodKey": "sacredSite",
+              "dataBundled": true,
+              "dataPath": "Districts/Malioboro.json"
+            },
+            {
+              "id": "Kraton",
+              "displayName": "Kraton",
+              "anchor": { "latitude": -7.805, "longitude": 110.364 },
+              "boundingBox": { "south": -7.810, "west": 110.361, "north": -7.800, "east": 110.368 },
+              "focusBuildingName": "Gedung Agung",
+              "moodKey": "sacredSite",
+              "dataBundled": true,
+              "dataPath": "Districts/Kraton.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sumatra",
+      "displayName": "Sumatra",
+      "cities": [
+        {
+          "id": "medan",
+          "displayName": "Medan",
+          "shortName": "Mdn",
+          "anchor": { "latitude": 3.5952, "longitude": 98.6722 },
+          "mapZoomRadius": 10000,
+          "markerColor": "#6DB8E8",
+          "markerHeight": 1.0,
+          "districts": []
+        },
+        {
+          "id": "palembang",
+          "displayName": "Palembang",
+          "shortName": "Plm",
+          "anchor": { "latitude": -2.9761, "longitude": 104.7754 },
+          "mapZoomRadius": 10000,
+          "markerColor": "#E8A86D",
+          "markerHeight": 1.0,
+          "districts": []
+        }
+      ]
+    },
+    {
+      "id": "sulawesi",
+      "displayName": "Sulawesi",
+      "cities": [
+        {
+          "id": "makassar",
+          "displayName": "Makassar",
+          "shortName": "Mks",
+          "anchor": { "latitude": -5.1477, "longitude": 119.4327 },
+          "mapZoomRadius": 10000,
+          "markerColor": "#6DE87B",
+          "markerHeight": 1.0,
+          "districts": []
+        }
+      ]
+    },
+    {
+      "id": "kalimantan",
+      "displayName": "Kalimantan",
+      "cities": [
+        {
+          "id": "balikpapan",
+          "displayName": "Balikpapan",
+          "shortName": "Bpp",
+          "anchor": { "latitude": -1.2379, "longitude": 116.8529 },
+          "mapZoomRadius": 10000,
+          "markerColor": "#6D8DE8",
+          "markerHeight": 1.0,
+          "districts": []
+        }
+      ]
+    }
+  ]
+}

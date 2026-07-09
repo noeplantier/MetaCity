@@ -1,0 +1,90 @@
+[
+  {
+    "id": "visit-bandung",
+    "name": "Visit Bandung",
+    "role": "Visitor Information",
+    "organization": "Dinas Pariwisata Kota Bandung",
+    "cityId": "bandung",
+    "phone": "+62-22-4264-4688",
+    "whatsappNumber": null,
+    "description": "Official Bandung Tourism Office — city maps, event calendar, factory outlet guides, and recommendations for highland day trips including Tangkuban Perahu, Ciater, and the Lembang Plateau.",
+    "avatarEmoji": "🏔"
+  },
+  {
+    "id": "saung-angklung-udjo",
+    "name": "Saung Angklung Udjo",
+    "role": "Cultural Attraction",
+    "organization": "Saung Angklung Udjo",
+    "cityId": "bandung",
+    "phone": "+62-22-7271-714",
+    "whatsappNumber": "622272717140",
+    "description": "UNESCO-recognised bamboo music workshop and performance centre in Cicaheum. Daily afternoon shows, instrument workshops, and the angklung instrument shop. Ticket booking and group reservations.",
+    "avatarEmoji": "🎋"
+  },
+  {
+    "id": "bandung-zoo",
+    "name": "Bandung Zoo",
+    "role": "Family Attraction",
+    "organization": "Kebun Binatang Bandung",
+    "cityId": "bandung",
+    "phone": "+62-22-2502-183",
+    "whatsappNumber": null,
+    "description": "Bandung's century-old zoo on the edge of the Dago district — home to Sumatran tigers, Javan gibbons, and 200 other species. Opening hours and ticket prices for groups.",
+    "avatarEmoji": "🦁"
+  },
+  {
+    "id": "trans-studio-bandung",
+    "name": "Trans Studio Bandung",
+    "role": "Theme Park",
+    "organization": "Trans Studio Bandung",
+    "cityId": "bandung",
+    "phone": "+62-22-8732-5678",
+    "whatsappNumber": "6228732567800",
+    "description": "One of Indonesia's largest indoor theme parks — 20 rides and attractions including a roller coaster and 4D cinema, all under one roof in the Trans Studio Mall complex. Booking and schedule enquiries.",
+    "avatarEmoji": "🎢"
+  },
+  {
+    "id": "hotel-savoy-homann",
+    "name": "Hotel Savoy Homann",
+    "role": "Heritage Hotel Concierge",
+    "organization": "Savoy Homann Bidakara Hotel",
+    "cityId": "bandung",
+    "phone": "+62-22-4232-244",
+    "whatsappNumber": null,
+    "description": "1939 Art Deco landmark directly opposite Gedung Merdeka. Concierge services, restaurant reservations at the heritage brasserie, and room bookings. The hotel where the 1955 Bandung Conference delegates dined.",
+    "avatarEmoji": "🏛"
+  },
+  {
+    "id": "grand-hotel-preanger",
+    "name": "Grand Hotel Preanger",
+    "role": "Colonial Hotel",
+    "organization": "Grand Hotel Preanger",
+    "cityId": "bandung",
+    "phone": "+62-22-4231-631",
+    "whatsappNumber": null,
+    "description": "C.P. Wolff Schoemaker's 1929 colonial modernist hotel on Braga. Sunday rijsttafel lunch reservations, rooftop event enquiries, and heritage tour partnerships for Braga walking itineraries.",
+    "avatarEmoji": "🎩"
+  },
+  {
+    "id": "selasar-sunaryo",
+    "name": "Selasar Sunaryo Art Space",
+    "role": "Contemporary Art Gallery",
+    "organization": "Selasar Sunaryo",
+    "cityId": "bandung",
+    "phone": "+62-22-2500-962",
+    "whatsappNumber": null,
+    "description": "Bandung's leading contemporary art space — exhibitions by Indonesian and international artists across three gallery pavilions on a hillside above Dago. Workshop and residency programme enquiries.",
+    "avatarEmoji": "🖼"
+  },
+  {
+    "id": "braga-city-walk",
+    "name": "Braga City Walk",
+    "role": "Shopping Complex",
+    "organization": "Braga City Walk",
+    "cityId": "bandung",
+    "phone": "+62-22-4210-555",
+    "whatsappNumber": null,
+    "description": "Open-air shopping and dining complex on the heritage Braga strip — retail, F&B tenants, and weekend food markets. Event schedule and tenant directory.",
+    "avatarEmoji": "🛍"
+  }
+]

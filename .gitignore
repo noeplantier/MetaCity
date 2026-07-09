@@ -13,7 +13,17 @@ xcuserdata/
 # macOS
 .DS_Store
 
+# Python (tools/fetch_district_data.py)
+__pycache__/
+*.pyc
+
 # SwiftPM
 .build/
 Packages/
 Package.resolved
+
+# Firebase config — contains a real project's client API key. Not a traditional secret (it's
+# meant to ship inside the app bundle and is restricted by Firebase Security Rules / App Check,
+# not by being hidden), but this repo is public, so it stays local-only by default. Each
+# developer downloads their own from Firebase Console > Project Settings > Your apps > iOS.
+GoogleService-Info.plist

@@ -1,0 +1,221 @@
+{
+  "version": "1.1.0",
+  "generatedAt": "2026-07-08",
+  "districts": {
+    "SudirmanThamrin": {
+      "buildings": 427,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "KotaTua": {
+      "buildings": 407,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "Kemang": {
+      "buildings": 312,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "Menteng": {
+      "buildings": 289,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "Ancol": {
+      "buildings": 352,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "Dago": {
+      "buildings": 618,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "Braga": {
+      "buildings": 201,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "Malioboro": {
+      "buildings": 2746,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "Kraton": {
+      "buildings": 2922,
+      "roads": true,
+      "greenZones": true,
+      "pois": false,
+      "authored": false
+    },
+    "Seminyak": {
+      "buildings": 1939,
+      "roads": true,
+      "greenZones": true,
+      "pois": true,
+      "authored": true
+    },
+    "Kuta": {
+      "buildings": 1200,
+      "roads": true,
+      "greenZones": true,
+      "pois": true,
+      "authored": true
+    },
+    "Canggu": {
+      "buildings": 9402,
+      "roads": true,
+      "greenZones": true,
+      "pois": true,
+      "authored": true,
+      "showcase": "The Lawn"
+    },
+    "Sanur": {
+      "buildings": 1366,
+      "roads": true,
+      "greenZones": true,
+      "pois": true,
+      "authored": true
+    },
+    "Uluwatu": {
+      "buildings": 2109,
+      "roads": true,
+      "greenZones": true,
+      "pois": true,
+      "authored": true
+    }
+  },
+  "poiFiles": [
+    {
+      "file": "pois_canggu.json",
+      "district": "Canggu",
+      "count": 45,
+      "featuredCount": 10
+    },
+    {
+      "file": "pois_seminyak.json",
+      "district": "Seminyak",
+      "count": 19,
+      "featuredCount": 4
+    },
+    {
+      "file": "pois_kuta.json",
+      "district": "Kuta",
+      "count": 17,
+      "featuredCount": 5
+    },
+    "pois_sanur.json",
+    "pois_uluwatu.json"
+  ],
+  "activitiesFiles": [
+    {
+      "file": "activities_jakarta.json",
+      "cityId": "jakarta",
+      "districtOverrides": []
+    },
+    {
+      "file": "activities_bandung.json",
+      "cityId": "bandung",
+      "districtOverrides": []
+    },
+    {
+      "file": "activities_denpasar.json",
+      "cityId": "denpasar",
+      "districtOverrides": [
+        "canggu",
+        "kuta",
+        "seminyak"
+      ]
+    },
+    {
+      "file": "activities_canggu.json",
+      "cityId": "canggu",
+      "note": "district-level, loaded by denpasar city"
+    },
+    {
+      "file": "activities_kuta.json",
+      "cityId": "kuta",
+      "note": "district-level, loaded by denpasar city"
+    },
+    {
+      "file": "activities_seminyak.json",
+      "cityId": "seminyak",
+      "note": "district-level, loaded by denpasar city"
+    },
+    {
+      "file": "activities_yogyakarta.json",
+      "cityId": "yogyakarta",
+      "districtOverrides": []
+    },
+    "activities_sanur.json",
+    "activities_uluwatu.json"
+  ],
+  "authoredFiles": [
+    {
+      "file": "Canggu_authored.json",
+      "district": "Canggu",
+      "overrideCount": 10,
+      "showcase": {
+        "building": "The Lawn",
+        "roofType": "thatched",
+        "officialURL": "https://www.thelawncanggu.com/"
+      }
+    },
+    {
+      "file": "Seminyak_authored.json",
+      "district": "Seminyak",
+      "overrideCount": 20
+    },
+    {
+      "file": "Kuta_authored.json",
+      "district": "Kuta",
+      "overrideCount": 16
+    },
+    "Sanur_authored.json",
+    "Uluwatu_authored.json"
+  ],
+  "cityImages": {
+    "status": "placeholder",
+    "note": "Real HD photography not yet licensed. Placeholder: use MKMapSnapshotter with satellite imagery as interim. Target: one 1920\u00d71080 JPEG per city, bundled as city_<id>_hero.jpg",
+    "cities": [
+      "jakarta",
+      "bandung",
+      "yogyakarta",
+      "denpasar",
+      "surabaya",
+      "semarang",
+      "medan",
+      "palembang",
+      "makassar",
+      "balikpapan"
+    ]
+  },
+  "theLawnShowcase": {
+    "districtId": "Canggu",
+    "poiId": "lawn_canggu",
+    "poiName": "The Lawn",
+    "officialURL": "https://www.thelawncanggu.com/",
+    "approachBearing": 270,
+    "approachDistance": 50,
+    "roofType": "thatched",
+    "interiorStyle": "balinese",
+    "status": "active"
+  }
+}

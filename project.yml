@@ -1,6 +1,14 @@
-name: OrbitalApp
+name: MetaCity
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 11.6.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: 7.1.0
+
 options:
-  bundleIdPrefix: com.orbital
+  bundleIdPrefix: com.metacity
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
@@ -13,49 +21,67 @@ settings:
     ENABLE_PREVIEWS: "YES"
 
 targets:
-  OrbitalApp:
+  MetaCity:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - path: OrbitalApp
+      - path: MetaCity
     info:
-      path: OrbitalApp/Resources/Info.plist
+      path: MetaCity/Resources/Info.plist
       properties:
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
-        NSLocationWhenInUseUsageDescription: "Orbital uses your location to center the map and show places near you."
-        NSCameraUsageDescription: "Orbital needs camera access so other participants can see you on a video call."
-        NSMicrophoneUsageDescription: "Orbital needs microphone access so other participants can hear you on a call."
+        NSLocationWhenInUseUsageDescription: "MetaCity uses your location to center the map, find nearby landmarks, and power live presence."
+        NSLocationAlwaysAndWhenInUseUsageDescription: "MetaCity can keep showing your position to nearby friends while the app is in the background."
+        NSCameraUsageDescription: "MetaCity needs camera access for video calls."
+        NSMicrophoneUsageDescription: "MetaCity needs microphone access so other participants can hear you on a call."
+        NSFaceIDUsageDescription: "MetaCity can use Face ID to lock your profile when you enable it in Profile > Security."
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - com.googleusercontent.apps.277769234407-ijrlufpcg92mkij4a8huc1td921simpu
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.orbital.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.metacity.app
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         TARGETED_DEVICE_FAMILY: "1"
-    dependencies: []
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "Apple Development"
+        DEVELOPMENT_TEAM: CX3S4W8M46
+    dependencies:
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseCore
+      - package: GoogleSignIn
+        product: GoogleSignIn
 
-  OrbitalAppTests:
+  MetaCityTests:
     type: bundle.unit-test
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - path: OrbitalAppTests
+      - path: MetaCityTests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.metacity.app.tests
     dependencies:
-      - target: OrbitalApp
+      - target: MetaCity
 
 schemes:
-  OrbitalApp:
+  MetaCity:
     build:
       targets:
-        OrbitalApp: all
-        OrbitalAppTests: [test]
+        MetaCity: all
+        MetaCityTests: [test]
     run:
       config: Debug
     test:
       config: Debug
       targets:
-        - OrbitalAppTests
+        - MetaCityTests
     archive:
       config: Release

@@ -1,0 +1,83 @@
+{
+  "districtId": "Uluwatu",
+  "pois": [
+    {
+      "id": "single_fin_uluwatu",
+      "name": "Single Fin",
+      "category": "restaurant",
+      "tier": "featured",
+      "latitude": -8.8285,
+      "longitude": 115.0874,
+      "description": "Uluwatu's landmark cliff-edge bar and restaurant — open-air thatched terraces 50m above Impossibles surf break. Sunday sunset DJ sets are a Bali institution. Book a terrace table for golden hour.",
+      "approachBearing": 270,
+      "approachDistance": 40,
+      "partnerURL": "https://singlefinbali.com/",
+      "isFeatured": true
+    },
+    {
+      "id": "pura_uluwatu_entrance",
+      "name": "Pura Luhur Uluwatu",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": -8.8291,
+      "longitude": 115.0849,
+      "description": "One of Bali's six kayangan jagat directional temples, perched on a 70m limestone cliff above the Indian Ocean. Founded in the 11th century. Daily Kecak fire-dance performance at 18:00 on the clifftop stage.",
+      "approachBearing": 0,
+      "approachDistance": 50,
+      "partnerURL": null,
+      "isFeatured": true
+    },
+    {
+      "id": "omnia_dayclub_uluwatu",
+      "name": "Omnia Bali",
+      "category": "nightlife",
+      "tier": "featured",
+      "latitude": -8.8231,
+      "longitude": 115.0855,
+      "description": "Cliff-edge infinity-pool day club with resident international DJs. Entry includes a drink credit. The pool hangs 100m over the Indian Ocean. Dress code enforced after 18:00.",
+      "approachBearing": 90,
+      "approachDistance": 50,
+      "partnerURL": "https://omniaclubs.com/bali",
+      "isFeatured": true
+    },
+    {
+      "id": "bingin_beach",
+      "name": "Bingin Beach",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": -8.8248,
+      "longitude": 115.0876,
+      "description": "Steep concrete-step access to a short left-hand reef break. Best at 3–6 ft SW swell, intermediate level minimum. Warungs and surf shops line the clifftop car park.",
+      "approachBearing": 270,
+      "approachDistance": 60,
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "ayodhya_resort",
+      "name": "Ayodhya Uluwatu",
+      "category": "hotel",
+      "tier": "standard",
+      "latitude": -8.8238,
+      "longitude": 115.0885,
+      "description": "Modern clifftop villa resort with direct access to the Impossibles surf break. Minimalist architecture, private pools, and unobstructed Indian Ocean views from every villa.",
+      "approachBearing": 90,
+      "approachDistance": 35,
+      "partnerURL": null,
+      "isFeatured": false
+    },
+    {
+      "id": "nyang_nyang_beach",
+      "name": "Nyang Nyang Beach",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": -8.845,
+      "longitude": 115.094,
+      "description": "Uluwatu's most secluded white-sand beach — 400 steps down a cliff face, 800m of sand, no warungs. Weekday mornings are near-empty. Bring food and water.",
+      "approachBearing": 0,
+      "approachDistance": 80,
+      "partnerURL": null,
+      "isFeatured": false
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "cityId": "yogyakarta",
+  "places": [
+    {
+      "id": "malioboro_yogyakarta",
+      "name": "Jalan Malioboro",
+      "type": "heritage",
+      "cityId": "yogyakarta",
+      "districtId": "Malioboro",
+      "coordinate": { "latitude": -7.7924, "longitude": 110.3658 },
+      "description": "Java's most famous street — 1.5km of batik shops, leather goods, silver jewellery, and street food carts lined either side by Dutch colonial-era arcaded shophouses. The beating commercial heart of old Yogyakarta since the Sultanate era.",
+      "highlights": [
+        "Pasar Beringharjo traditional market at the southern end (est. 1758)",
+        "Angkringan Lik Man night cart — the original street food stop, open from 5pm",
+        "The Vrederburg Fort and National Museum at the northern entrance",
+        "Batik workshops in the alleyways (gang) branching east"
+      ],
+      "category": "explore",
+      "tags": ["shopping", "heritage", "colonial", "street-food"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "keraton_yogyakarta",
+      "name": "Keraton Yogyakarta",
+      "type": "cultural",
+      "cityId": "yogyakarta",
+      "districtId": "Kraton",
+      "coordinate": { "latitude": -7.8053, "longitude": 110.3642 },
+      "description": "The living royal palace of the Yogyakarta Sultanate, occupied continuously since 1755. The inner walled city contains the Sultan's residence, gamelan pavilions, batik and wayang museums, and ceremonial courtyards. Still the political and spiritual centre of Yogyakarta.",
+      "highlights": [
+        "Gamelan performance in the Bangsal Kencana (golden pavilion), Mon–Wed and Sat",
+        "Wayang kulit shadow puppet collection in the South Wing Museum",
+        "Batik museum displaying the Sultanate's royal cloth archive",
+        "Royal regalia: the Sultan's coronation jewels and ceremonial weapons"
+      ],
+      "category": "explore",
+      "tags": ["royal", "cultural", "javanese", "heritage"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "taman_sari_yogyakarta",
+      "name": "Taman Sari Water Castle",
+      "type": "heritage",
+      "cityId": "yogyakarta",
+      "districtId": "Kraton",
+      "coordinate": { "latitude": -7.8100, "longitude": 110.3590 },
+      "description": "The Sultan's 18th-century garden retreat hidden inside the kampung west of the Keraton. Three interconnected bathing pools (Umbul Binangun), a subterranean mosque, and the Gumul underground corridor once connected the palace complex by tunnel.",
+      "highlights": [
+        "The Umbul Binangun bathing pools — three levels of stone-walled basins",
+        "The subterranean mosque: an Ottoman-inspired chamber below the water gardens",
+        "The Gedong Gapura Panggung tower — the Sultan's private observation point",
+        "The kampung surrounding Taman Sari is a living batik workshop district"
+      ],
+      "category": "explore",
+      "tags": ["royal", "heritage", "architecture", "javanese"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "prambanan_yogyakarta",
+      "name": "Candi Prambanan",
+      "type": "religious",
+      "cityId": "yogyakarta",
+      "districtId": null,
+      "coordinate": { "latitude": -7.7520, "longitude": 110.4914 },
+      "description": "Southeast Asia's largest Hindu temple complex — three soaring 47-metre towers dedicated to Shiva, Brahma, and Vishnu, surrounded by 224 smaller temples across a UNESCO World Heritage Site. Built by the Sanjaya Dynasty in the 9th century CE.",
+      "highlights": [
+        "The Shiva Mahadeva temple (47m) — the tallest of the three main towers",
+        "The Ramayana Ballet performance at the open-air Trimurti amphitheatre on full-moon nights",
+        "Candi Sewu — the adjacent Buddhist complex with 240 surrounding shrines",
+        "The Ratu Boko hill palace ruins, 3km south, with sunset views over the whole complex"
+      ],
+      "category": "explore",
+      "tags": ["hindu", "UNESCO", "ancient", "architecture"],
+      "isFeatured": true,
+      "priceRange": "$$"
+    },
+    {
+      "id": "borobudur_yogyakarta",
+      "name": "Candi Borobudur",
+      "type": "religious",
+      "cityId": "yogyakarta",
+      "districtId": null,
+      "coordinate": { "latitude": -7.6079, "longitude": 110.2038 },
+      "description": "The world's largest Buddhist monument — a 9th-century stupa covering 15,129 sqm with 2,672 relief panels and 504 Buddha statues arranged across nine platforms. Located 40km northwest of Yogyakarta. Sunrise access (Manohara ticket) is the definitive experience.",
+      "highlights": [
+        "Sunrise access: 4:30am entry before the general crowd (limited to 1,000 tickets/day)",
+        "The 1,460 narrative relief panels — the world's longest sequential stone narrative",
+        "72 bell-shaped stupas on the upper terraces, each housing a seated Buddha",
+        "The Manohara Hotel on-site for overnight dawn access packages"
+      ],
+      "category": "explore",
+      "tags": ["buddhist", "UNESCO", "ancient", "sunrise"],
+      "isFeatured": true,
+      "priceRange": "$$"
+    },
+    {
+      "id": "malioboro_street_food",
+      "name": "Malioboro Street Food Trail",
+      "type": "culinary",
+      "cityId": "yogyakarta",
+      "districtId": "Malioboro",
+      "coordinate": { "latitude": -7.7970, "longitude": 110.3660 },
+      "description": "The best concentrated street food in Java. Gudeg (jackfruit curry), bakpia (bean-filled pastries), brongkos (black-eyed pea curry), and the kopi joss charcoal coffee are all within 500m. The food carts assemble from 5pm daily.",
+      "highlights": [
+        "Gudeg Yu Djum on Wijilan — sells out by 9am",
+        "Angkringan Lik Man opposite the railway station — kopi joss from 5pm",
+        "Brongkos Bu Hasan in the kampung — a Yogyakarta morning staple since 1950",
+        "Bakpia 25 in the Pathuk district — the original peanut-filled shortcrust"
+      ],
+      "category": "eat",
+      "tags": ["street-food", "local", "evening"],
+      "isFeatured": false,
+      "priceRange": "$"
+    },
+    {
+      "id": "merapi_volcano_yogyakarta",
+      "name": "Mount Merapi",
+      "type": "mountain",
+      "cityId": "yogyakarta",
+      "districtId": null,
+      "coordinate": { "latitude": -7.5408, "longitude": 110.4457 },
+      "description": "Indonesia's most active and dangerous volcano, 25km north of Yogyakarta. The 2,930m summit is reached by a pre-dawn guided trek. The 2010 eruption (largest in 100 years) is documented at the Sleman Merapi Museum at the base. Always check PVMBG alert status before booking.",
+      "highlights": [
+        "Pre-dawn summit trek with certified guide — views of the glowing lava dome",
+        "The Merapi Lava Tour — jeep rides through the 2010 lahar fields",
+        "Museum Sisa Hartaku — a preserved house buried to window-level in 2010 ash",
+        "Kaliurang highland resort at 900m — the base camp town for most trekkers"
+      ],
+      "category": "explore",
+      "tags": ["volcano", "trekking", "adventure", "nature"],
+      "isFeatured": false,
+      "priceRange": "$$"
+    },
+    {
+      "id": "kraton_batik_district",
+      "name": "Kraton Batik District",
+      "type": "neighborhood",
+      "cityId": "yogyakarta",
+      "districtId": "Kraton",
+      "coordinate": { "latitude": -7.808, "longitude": 110.362 },
+      "description": "The kampung west of Taman Sari — Yogyakarta's living batik-making neighbourhood. Dozens of family workshops open their doors to visitors; you can watch the wax-resist (batik tulis) process from start to finish and commission custom cloth.",
+      "highlights": [
+        "Batik Plentong — a 40-year-old family workshop producing the finest hand-drawn batik",
+        "The Batik Research Centre at the Kusumawardani building — free technical exhibits",
+        "Prasetyo Batik — specialises in batik kombinasi, mixing stamp and hand-drawn techniques",
+        "The weekly cloth market in the alley north of Taman Sari"
+      ],
+      "category": "explore",
+      "tags": ["batik", "craft", "shopping", "javanese"],
+      "isFeatured": false,
+      "priceRange": "$"
+    }
+  ]
+}

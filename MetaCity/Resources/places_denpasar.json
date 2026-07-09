@@ -1,0 +1,98 @@
+{
+  "cityId": "denpasar",
+  "places": [
+    {
+      "id": "seminyak_bali",
+      "name": "Seminyak",
+      "type": "beach",
+      "cityId": "denpasar",
+      "districtId": "Seminyak",
+      "coordinate": { "latitude": -8.6913, "longitude": 115.1586 },
+      "description": "Bali's upscale coastal village — boutique hotels, sunset beach clubs, and designer villas set behind a long black-sand surf beach facing the Indian Ocean.",
+      "highlights": [
+        "Potato Head Beach Club — Bali's most iconic sunset venue",
+        "Jalan Kayu Aya boutique fashion and homeware strip",
+        "Weekend artisan market at La Plancha on the sand",
+        "Direct beach access from the village centre"
+      ],
+      "category": "beach",
+      "tags": ["beach", "luxury", "sunset", "clubs"],
+      "isFeatured": true,
+      "priceRange": "$$$"
+    },
+    {
+      "id": "kuta_bali",
+      "name": "Kuta Beach",
+      "type": "beach",
+      "cityId": "denpasar",
+      "districtId": "Kuta",
+      "coordinate": { "latitude": -8.7183, "longitude": 115.1669 },
+      "description": "Bali's legendary surf beach and the island's beating heart — a 2km stretch of sand backed by surf schools, warungs, and a vibrant backpacker and surf scene.",
+      "highlights": [
+        "Consistent right-hand surf break — ideal for beginners",
+        "Classic Kuta sunset with the widest beach view in southern Bali",
+        "Legian night market on the coastal road after dark",
+        "10-minute drive from Ngurah Rai International Airport"
+      ],
+      "category": "explore",
+      "tags": ["surfing", "beach", "sunset", "backpacker"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "canggu_bali",
+      "name": "Canggu",
+      "type": "neighborhood",
+      "cityId": "denpasar",
+      "districtId": "Canggu",
+      "coordinate": { "latitude": -8.6482, "longitude": 115.1327 },
+      "description": "Bali's most creative village — rice field co-working spaces, a surf break watched by water buffaloes, and the island's densest collection of specialty coffee shops.",
+      "highlights": [
+        "Batu Bolong Beach — local surf break with warung front-row seats",
+        "Rice paddy walking trails from Pererenan to Seseh",
+        "Canggu Club swimming lagoon — colonial-era sports club",
+        "Highest specialty coffee shop density per kilometre on Bali"
+      ],
+      "category": "explore",
+      "tags": ["surf", "coffee", "digital nomad", "rice fields"],
+      "isFeatured": false,
+      "priceRange": "$$"
+    },
+    {
+      "id": "ubud_bali",
+      "name": "Ubud",
+      "type": "cultural",
+      "cityId": "denpasar",
+      "coordinate": { "latitude": -8.5069, "longitude": 115.2625 },
+      "description": "Bali's cultural capital — ancient royal palace, traditional Kecak dance every night, the Sacred Monkey Forest, and terraced rice fields in every direction.",
+      "highlights": [
+        "Puri Saren Agung Royal Palace — nightly Kecak dance performances",
+        "Sacred Monkey Forest Sanctuary — 1,000+ macaques in a living Hindu temple",
+        "Tegalalang rice terraces — Bali's most photographed landscape",
+        "Jalan Raya Ubud market — traditional offerings, textiles, and stone carvings"
+      ],
+      "category": "explore",
+      "tags": ["culture", "temples", "dance", "rice terraces"],
+      "isFeatured": true,
+      "priceRange": "$$"
+    },
+    {
+      "id": "tanah_lot_bali",
+      "name": "Tanah Lot",
+      "type": "religious",
+      "cityId": "denpasar",
+      "coordinate": { "latitude": -8.6214, "longitude": 115.0869 },
+      "description": "Bali's most dramatic sea temple — a 16th-century Hindu shrine perched on a tidal rock formation, surrounded by crashing waves and silhouetted against the sunset.",
+      "highlights": [
+        "16th-century Pura Tanah Lot on its own rock island",
+        "Accessible on foot at low tide — waves close the crossing at high tide",
+        "Sunset from the clifftop viewpoint — Bali's most photographed image",
+        "Surrounding clifftop with smaller shrines and flower offering stalls"
+      ],
+      "category": "explore",
+      "tags": ["temple", "sunset", "ocean", "spiritual"],
+      "isFeatured": false,
+      "priceRange": "$"
+    }
+  ]
+}

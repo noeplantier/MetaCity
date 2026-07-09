@@ -1,0 +1,79 @@
+{
+  "cityId": "bandung",
+  "places": [
+    {
+      "id": "dago_bandung",
+      "name": "Dago",
+      "type": "neighborhood",
+      "cityId": "bandung",
+      "districtId": "Dago",
+      "coordinate": { "latitude": -6.8842, "longitude": 107.6133 },
+      "description": "Bandung's coolest ridge-top boulevard — 1km of Dutch colonial villas converted into cafés, art spaces, and creative workshops under the shadow of the Bandung highlands.",
+      "highlights": [
+        "Dago Art House — rotating contemporary Indonesian exhibitions",
+        "Hutan Kota Park at the top of the ridge",
+        "Panoramic views toward Gunung Tangkuban Perahu",
+        "Highest density of independent coffee roasters in Bandung"
+      ],
+      "category": "explore",
+      "tags": ["arts", "cafés", "colonial", "mountain"],
+      "isFeatured": true,
+      "priceRange": "$$"
+    },
+    {
+      "id": "braga_bandung",
+      "name": "Braga Street",
+      "type": "heritage",
+      "cityId": "bandung",
+      "districtId": "Braga",
+      "coordinate": { "latitude": -6.9179, "longitude": 107.6069 },
+      "description": "Bandung's most photogenic colonial street — a 400m pedestrian strip of 1920s art deco storefronts, once called the 'Paris van Java' shopping boulevard by Dutch colonists.",
+      "highlights": [
+        "Braga City Walk — restored art deco facades from the 1920s",
+        "Majestic Theatre building (1925) — now a boutique hotel",
+        "Braga Night Market every Friday and Saturday evening",
+        "Highest concentration of Dutch-era heritage buildings in Bandung"
+      ],
+      "category": "explore",
+      "tags": ["art deco", "colonial", "heritage", "pedestrian"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "kawah_putih_bandung",
+      "name": "Kawah Putih",
+      "type": "nature",
+      "cityId": "bandung",
+      "coordinate": { "latitude": -7.1656, "longitude": 107.4022 },
+      "description": "A volcanic crater lake south of Bandung — the water shifts between turquoise, white, and jade-green with volcanic activity, set inside a caldera at 2,400m altitude.",
+      "highlights": [
+        "Sulphuric crater lake with colour-shifting water",
+        "Surrounded by dead volcanic forest and low mist",
+        "Cool mountain air year-round at 2,400m",
+        "Sunrise arrival gives the crater almost entirely to yourself"
+      ],
+      "category": "explore",
+      "tags": ["volcano", "crater", "lake", "hiking"],
+      "isFeatured": false,
+      "priceRange": "$"
+    },
+    {
+      "id": "cihampelas_bandung",
+      "name": "Cihampelas Walk",
+      "type": "culinary",
+      "cityId": "bandung",
+      "coordinate": { "latitude": -6.8977, "longitude": 107.5986 },
+      "description": "Bandung's open-air shopping and food destination — a sky-walk promenade linking rooftop restaurants, Sundanese food stalls, and fashion factory outlets.",
+      "highlights": [
+        "Sky bridge promenade with rooftop views over Bandung",
+        "Sundanese cuisine: nasi timbel, karedok, and fresh lalapan",
+        "Fashion factory outlets — Bandung's defining retail identity",
+        "Evening food court with 40+ stall operators"
+      ],
+      "category": "culinary",
+      "tags": ["food", "shopping", "outlets", "sundanese"],
+      "isFeatured": false,
+      "priceRange": "$"
+    }
+  ]
+}

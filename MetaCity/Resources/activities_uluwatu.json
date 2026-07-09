@@ -1,0 +1,83 @@
+{
+  "cityId": "uluwatu",
+  "activities": [
+    {
+      "id": "uluwatu_kecak_sunset",
+      "name": "Kecak Fire Dance at Pura Uluwatu",
+      "category": "explore",
+      "tier": "premium",
+      "description": "Bali's most atmospheric Kecak performance: 80 bare-chested chanters on a clifftop stage at the 11th-century Pura Luhur Uluwatu, 70m above the Indian Ocean. Performed daily at 18:00 — arrive by 17:30 for cliff-edge positioning. Combined temple + show ticket.",
+      "area": "Uluwatu",
+      "priceRange": "$$",
+      "duration": "2h",
+      "latitude": -8.8291,
+      "longitude": 115.0849,
+      "officialURL": null
+    },
+    {
+      "id": "uluwatu_single_fin",
+      "name": "Sunset at Single Fin",
+      "category": "nightlife",
+      "tier": "premium",
+      "description": "Uluwatu's landmark cliff-edge bar: 50m above Impossibles / Bingin surf break, open-air thatched terraces, live DJ from 16:00 on Sundays. The view of the left-hand barrel below is unmatched. Book a terrace table for sunset — walk-ins standing only after 17:00.",
+      "area": "Uluwatu",
+      "priceRange": "$$",
+      "duration": "3h",
+      "latitude": -8.8285,
+      "longitude": 115.0874,
+      "officialURL": "https://singlefinbali.com/"
+    },
+    {
+      "id": "uluwatu_bingin_surf",
+      "name": "Surf at Bingin Beach",
+      "category": "sport",
+      "tier": "standard",
+      "description": "A short left-hander that breaks over a shallow reef shelf, best at 3–6 ft with a solid SW swell. Steep paddle-out via 200 concrete steps from the clifftop car park. Intermediate level minimum — this is not a learner break. Closest lesson school operates from Padang Padang, 10 min by motorbike.",
+      "area": "Uluwatu",
+      "priceRange": "$",
+      "duration": "3h",
+      "latitude": -8.8248,
+      "longitude": 115.0876,
+      "officialURL": null
+    },
+    {
+      "id": "uluwatu_omnia_dayclub",
+      "name": "Omnia Bali Day Club",
+      "category": "nightlife",
+      "tier": "premium",
+      "description": "Cliff-edge infinity-pool day club with resident international DJs. Valid from 10:00; entry fee includes a drink credit. The pool hangs 100m over the Indian Ocean with unobstructed horizon views. Dress code enforced after 18:00.",
+      "area": "Uluwatu",
+      "priceRange": "$$$",
+      "duration": "Half day",
+      "latitude": -8.8231,
+      "longitude": 115.0855,
+      "officialURL": "https://omniaclubs.com/bali"
+    },
+    {
+      "id": "uluwatu_jiwa_spa",
+      "name": "Jiwa Spa at Anantara",
+      "category": "wellness",
+      "tier": "premium",
+      "description": "Ocean-view treatment rooms with floor-to-ceiling glass overlooking the limestone cliffs. Signature 'Anantara Ritual': 3-hour journey combining traditional lulur rice-bran scrub, Balinese massage, and botanical bath. Non-hotel guests welcome with advance reservation.",
+      "area": "Uluwatu",
+      "priceRange": "$$$",
+      "duration": "3h",
+      "latitude": -8.826,
+      "longitude": 115.092,
+      "officialURL": null
+    },
+    {
+      "id": "uluwatu_nyang_nyang_beach",
+      "name": "Nyang Nyang Secret Beach",
+      "category": "explore",
+      "tier": "standard",
+      "description": "One of Uluwatu's most secluded beaches: 400 steep steps down a cliff face, 800m of white sand, and reliably clear water for snorkelling. No warungs — bring food and water. Gets crowded on weekends; weekday mornings are near-empty. No signage: look for the dirt track off Jl. Pantai Nyang Nyang.",
+      "area": "Uluwatu",
+      "priceRange": "$",
+      "duration": "Half day",
+      "latitude": -8.845,
+      "longitude": 115.094,
+      "officialURL": null
+    }
+  ]
+}
