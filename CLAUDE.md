@@ -6,14 +6,30 @@ architecture: `Repositories/` protocols, `Services/` implementations (mock + rea
 automatically based on whether `GoogleService-Info.plist` is present), `@MainActor` ViewModels,
 DI via the plain `AppEnvironment` container — no DI framework.
 
-## Scope: multi-city Indonesia, 14 districts with real data
+## Scope: Indonesia (14 districts) + France (6) + London/Madrid/Rome (5) with real OSM data
 
-As of 2026-07-08, MetaCity covers **4 cities with real OSM-derived 3D district data** — Jakarta (5
-districts), Bandung (2), Yogyakarta (2), and Bali/Denpasar (5) — plus 6 placeholder cities with
-no district data yet (Surabaya, Semarang, Medan, Palembang, Makassar, Balikpapan). All 14 data
-districts live in `MetaCity/Resources/Districts/<id>.json`. `CityManifest.json` (decoded into
-`CityManifest.shared`) is the single source of truth for what's live; it drives the world map,
-district picker, and 3D inspector routing.
+As of 2026-07-09, MetaCity covers **10 cities with real OSM-derived 3D district data** — Jakarta (5
+districts), Bandung (2), Yogyakarta (2), Bali/Denpasar (5), Paris (4), Bordeaux (2), London (2),
+Madrid (2), Rome (1) — plus placeholder cities with no district data yet (Indonesian tier-2 cities,
+Rennes). All 25 data districts live in `MetaCity/Resources/Districts/<id>.json`.
+`CityManifest.json` (decoded into `CityManifest.shared`) is the single source of truth for what's
+live; it drives the world map, district picker, and 3D inspector routing.
+
+**France districts currently bundled (6 total — Paris + Bordeaux):**
+- Paris: `LeMarais`, `SaintGermain`, `Montmartre`, `LaDefense`
+- Bordeaux: `VieuxBordeaux`, `LesChartrons`
+
+**France placeholder districts (4 total — Rennes only, no data yet):**
+- Rennes: `VieuxRennes`, `Thabor`
+
+**UK/Iberia/Italy districts (5 bundled — fetched 2026-07-09):**
+- London: `CityOfLondon` (moodKey: londonSilver, londonBrick style, 2,404 buildings), `Westminster` (londonSilver, 2,362 buildings)
+- Madrid: `Salamanca` (moodKey: madridAfternoon, madrileño style, 2,463 buildings), `Malasana` (madridAfternoon, 2,534 buildings)
+- Rome: `CentroStorico` (moodKey: romanGoldenHour, romanOchre style, 4,917 buildings)
+
+The French and UK/Iberia/Italy districts were added 2026-07-09 as part of a Europe pivot that
+introduced six new `BuildingStyle` cases and six new `Mood` cases (see below). Dili/Timor-Leste
+was explicitly cancelled and must not be re-added.
 
 The old per-city *artistic* skyline system (`RealBuilding.swift`, `CityScene3DView.swift`,
 hand-placed boxes at a compressed scale) was **deleted outright** — not hidden, not deprecated —
@@ -21,11 +37,16 @@ per an explicit instruction to focus exclusively on real OSM-derived content. If
 reintroduces a pre-OSM artistic tier, that's a deliberate regression; don't resurrect those files
 from git history without a fresh reason.
 
-**Districts currently bundled (14 total):**
+**Districts currently bundled (25 total):**
 - Jakarta: `SudirmanThamrin`, `KotaTua`, `Kemang`, `Menteng`, `Ancol`
 - Bandung: `Dago`, `Braga`
 - Yogyakarta: `Malioboro`, `Kraton`
 - Bali/Denpasar: `Seminyak`, `Kuta`, `Canggu`, `Sanur`, `Uluwatu`
+- Paris: `LeMarais`, `SaintGermain`, `Montmartre`, `LaDefense`
+- Bordeaux: `VieuxBordeaux`, `LesChartrons`
+- London: `CityOfLondon`, `Westminster`
+- Madrid: `Salamanca`, `Malasana`
+- Rome: `CentroStorico`
 
 `MockMapRepository` serves the 5 Jakarta landmarks (the Map tab still shows only Jakarta pins);
 the Discover tab uses `CityManifest.allCities` which includes all 10 city pins from the world map.
@@ -1094,6 +1115,376 @@ exist, `load` returns `nil` silently (no crash, no pins shown).
 
 `ActivityEntry.officialURL: String?` was added to `ActivityEntry.swift` and `ActivitiesView`
 renders a "Official site" Link button when the URL is non-nil.
+
+## France architecture (added 2026-07-09)
+
+### New BuildingStyle cases
+
+Three cases added to `BuildingStyle` enum in `DistrictFootprint.swift`:
+
+- **`haussmannien`**: Lutetian limestone — warm cream-to-off-white facade (`dayR = 0.86 + 0.04·wobble`),
+  roughness 0.74–0.80, clearcoat 0.10/0.55. Roof: zinc mansard grey-blue `(0.42, 0.46, 0.52)`,
+  roughness 0.86, clearcoat 0.08. Mansard cap geometry: **70° pitch** (`pitchTan: 2.747`),
+  `maxRidgeInset: 1.8m`, overhang 0.15m. The near-vertical Second Empire profile, very short flat
+  ridge — distinguishes the Paris aerial view from every other city in the app. Night emissive 0.40.
+  Window texture: 5×8 grid, density 0.35.
+
+- **`medieval`**: Half-timber plaster + Breton granite — warm buff base (0.76–0.82), roughness
+  0.84–0.92, clearcoat 0.06/0.80. Roof: dark Breton clay tile `(0.48, 0.18, 0.08)`, roughness 0.93.
+  Cap geometry: 50° pitch, `maxRidgeInset: 2.5m`, overhang 0.35m. Night emissive 0.28.
+  Window texture: 3×5 grid, density 0.20.
+
+- **`bordelaisClassical`**: Calcaire à astéries (shelly Gironde limestone) — distinctly warmer
+  amber-gold than Parisian Lutetian cream. Wall: `(0.82+0.06·wobble, 0.72+0.03·wobble, 0.50)`,
+  metallic 0.01, roughness 0.76–0.82, clearcoat 0.08/0.60. Night emissive 0.38.
+  Roof: Provençal canal tile, terracotta `(0.64, 0.28, 0.12)`, roughness 0.91, clearcoat 0.04.
+  Cap geometry: **30° pitch** (`pitchTan: 0.577`), `maxRidgeInset: 3.0m`, overhang 0.25m — the
+  low-profile shallow-pitch ridge of the UNESCO Port de la Lune quay fabric, visually distinct from
+  the near-vertical Paris mansard. Window texture: 4×6 grid, density 0.30.
+  Height estimate default: **16.0m** (4-storey Bordeaux block at 4m/floor, `isHeightEstimated: true`).
+  **Do NOT raise the base blue channel** (currently B=0.50) — higher values push the facade toward
+  Parisian cream; the amber distinction requires keeping blue below 0.55.
+
+All three are in `capStyles` (get hip roof geometry). All three have road materials in
+`roadMaterial(for:mood:)`.
+
+**`makeRoofCapEntities` loop bug fixed (2026-07-09)**: the loop originally only iterated over
+`[.balinese, .colonial, .javanese, .religious]`. Both `.haussmannien` and `.medieval` were in
+`capStyles` but **not** in the loop, so Paris and Rennes buildings had no mansard/gabled cap
+geometry — their rooftops were flat surfaces with only wall material. Fixed when adding
+`bordelaisClassical`: the loop now iterates all 7 cap styles:
+`[.balinese, .colonial, .javanese, .religious, .haussmannien, .medieval, .bordelaisClassical]`.
+Per-style parameters in the loop body: haussmannien roughness 0.86, metallic 0.04 (patinated zinc
+identity); bordelaisClassical clearcoat 0.04; all others clearcoat 0.07, metallic 0.0.
+
+### HEIGHT_PROMOTION_BYPASS — height-promotion bypass
+
+In `tools/fetch_district_data.py`, buildings whose area default style is in `HEIGHT_PROMOTION_BYPASS`
+are NOT promoted to `modernConcrete` at 15m+ or `modernGlass` at 30m+. This preserves the correct
+area-character classification: a 20m Haussmann block stays `haussmannien`, a 16m Bordeaux quay
+building stays `bordelaisClassical`, a 25m Madrid Ensanche block stays `madrileño`. Buildings with
+explicit OSM tags (hotel, curtain-wall, etc.) are still classified normally regardless of the bypass.
+
+Current bypass set (as of 2026-07-09):
+```python
+HEIGHT_PROMOTION_BYPASS = {"haussmannien", "medieval", "bordelaisClassical", "madrileño", "romanOchre"}
+```
+
+**`londonBrick` is NOT in the bypass** — City of London's real glass towers (Gherkin 180m,
+Cheesegrater 224m, 22 Bishopsgate 278m) must auto-promote to `modernGlass`. If a new London district
+has predominantly Victorian stock-brick fabric, use `londonBrick` as `--default-style` and let
+height promotion handle the towers automatically.
+
+Height estimation defaults (all `isHeightEstimated: true`):
+`haussmannien → 18.0m`, `medieval → 9.0m`, `bordelaisClassical → 16.0m`,
+`londonBrick → 12.0m`, `madrileño → 20.0m`, `romanOchre → 14.0m`.
+
+**Known limitation**: all estimated-height haussmannien buildings are 18m (6 floors). This creates
+a slightly uniform carpet in dense areas. Real Haussmann buildings range 15–27m (5–8 floors). A
+future improvement: hash-varied estimation `15m / 18m / 21m / 24m` based on osmID. Did not block
+v1 — Paris OSM data has many `building:levels` tags on named buildings so actual variation exists
+in the data; the uniform carpet only affects unnamed/untagged buildings.
+
+### New Mood cases
+
+Three cases added to `DistrictRealityScene.Mood`:
+- **`parisianCore`** (Le Marais, Saint-Germain, Montmartre): cool pearl overcast sky
+  `sun (0.90,0.90,0.94)`, 22,000 lux, elevation 0.55. Zenith `(0.52,0.58,0.70)` / horizon
+  `(0.78,0.80,0.84)` / ground `(0.32,0.30,0.28)`. Distance 0.16, height 0.14.
+  Road material: warm grey-beige limestone macadam — pedestrian `(0.72,0.68,0.60)`,
+  primary `(0.28,0.25,0.22)`. Ground texture: limestone block mosaic, mortar joints, warm cream.
+- **`bordeauxWaterfront`** (Bordeaux): golden-hour Garonne riverside. Sun `(1.0,0.88,0.65)`,
+  30,000 lux, elevation 0.40. Distance 0.16, height 0.12. Ground: sandy Garonne ochre.
+- **`rennesMedieval`** (Rennes): morning mist, slate-grey Breton sky. Sun `(0.95,0.92,0.80)`,
+  25,000 lux, elevation 0.38. Distance 0.14, height 0.12. Ground: dark Breton granite.
+
+La Défense uses the existing `skyscraperCorridor` mood (correct — it has towers 160–231m).
+
+### Paris OSM data quality and KNOWN_HEIGHTS
+
+Paris OSM has unusually good `building:levels` and `height` coverage on named structures. The
+KNOWN_HEIGHTS_METERS table in `tools/fetch_district_data.py` was expanded with 40+ Paris/Bordeaux/
+Rennes entries for landmarks that either aren't `way["building"]` in OSM or whose OSM height tags
+are missing. Key confirmed heights from the data audit:
+- Basilique du Sacré-Cœur (Montmartre): **83m** — matched, classified `religious`, dominant in scene
+- Tour First (La Défense): **231m** — matched, classified `modernGlass`, tallest in app
+- Tour Majunga: 195m, Hekla: 192m, Tour Granite: 184m — all matched
+- Tour Saint-Jacques (Le Marais): **52m** — gothic tower, `focusBuildingName` for Le Marais
+- Aux Bienheureux Martyrs de Saint-Sulpice (Saint-Germain): **73m** — OSM has real height tag,
+  matched building; the focusBuildingName "Église Saint-Sulpice" is display-only (not a 3D beacon lookup)
+
+`apply_named_point_landmarks` in the fetch script now matches beyond museums: `amenity=place_of_worship`,
+`historic=church/castle/monument/memorial/building`, `tourism=attraction` — all now route to the
+building polygon that spatially contains them and inherit their name + height.
+
+### France + Europe heavyDistricts
+
+All Paris, Bordeaux, London, Madrid districts (> ~1,800 buildings) are in `heavyDistricts` in
+`MetaCityApp.swift` (load on demand, not startup prefetch):
+```swift
+["Malioboro", "Kraton", "Seminyak", "Canggu", "Uluwatu",
+ "Montmartre", "LeMarais", "SaintGermain", "LaDefense",
+ "VieuxBordeaux", "LesChartrons",
+ "CityOfLondon", "Westminster", "Salamanca", "CentroStorico", "Malasana"]
+```
+Montmartre (5,863 buildings) is the heaviest district in the entire app.
+Le Marais: 2,658 buildings | Saint-Germain: 2,399 buildings | La Défense: 2,110 buildings.
+VieuxBordeaux: 3,817 buildings | LesChartrons: 4,712 buildings.
+CityOfLondon: 2,404 buildings | Westminster: 2,362 buildings.
+Salamanca: 2,463 buildings | Malasana: 2,534 buildings | CentroStorico: 4,917 buildings.
+
+### Bordeaux OSM data quality and KNOWN_HEIGHTS
+
+VieuxBordeaux and LesChartrons were fetched 2026-07-09 using `--default-style bordelaisClassical`.
+Key confirmed heights after KNOWN_HEIGHTS alternate-name fix (see below):
+- **Grand Théâtre de Bordeaux**: 32m — `focusBuildingName` for VieuxBordeaux
+- **Cathédrale Saint-André**: 47m, religious — prominent landmark in VieuxBordeaux
+- **Tour Pey Berland**: 66m, religious — Gothic bell tower, tallest in VieuxBordeaux
+- **Halle des Chartrons**: 16m (estimated), bordelaisClassical — `focusBuildingName` for LesChartrons
+- **Le Concorde**: 40m modernGlass — tallest named building in LesChartrons
+
+**OSM name vs. KNOWN_HEIGHTS key mismatch** (confirmed regression, now fixed): OSM building names
+in Bordeaux are often shorter than the canonical form — "Grand Théâtre" (no city suffix),
+"Tour Pey Berland" (space, not hyphen). The fix: KNOWN_HEIGHTS contains both forms:
+`"Grand Théâtre de Bordeaux": 32` AND `"Grand Théâtre": 32`; `"Tour Pey-Berland": 66` AND
+`"Tour Pey Berland": 66`. When fetching any new French district, always grep the output JSON for
+key landmark heights and cross-check against KNOWN_HEIGHTS if they appear at the 16m/18m/9m
+estimated-height default.
+
+**Garonne water rendering**: `process_green_zones` in the fetch script now captures
+`natural=water` and `waterway=river/canal/stream` tags, writing them as `GreenZone` entries with
+`kind: "natural=water"`. `greenZoneColor(kind:)` renders these as muted tidal blue-grey
+`(0.32, 0.44, 0.52)` day / dark `(0.08, 0.12, 0.18)` night. The Garonne appears in both Bordeaux
+districts as multiple water polygons — the river itself and the quay basin.
+
+**Fetch commands used (from cache — do not re-run from live Overpass):**
+```
+python3 fetch_district_data.py \
+  --name VieuxBordeaux --bbox 44.836 -0.580 44.848 -0.561 \
+  --anchor 44.842 -0.571 --default-style bordelaisClassical \
+  --out ../MetaCity/Resources/Districts/VieuxBordeaux.json \
+  --cache /tmp/vieux_bordeaux_raw.json
+
+python3 fetch_district_data.py \
+  --name LesChartrons --bbox 44.849 -0.575 44.864 -0.557 \
+  --anchor 44.856 -0.567 --default-style bordelaisClassical \
+  --out ../MetaCity/Resources/Districts/LesChartrons.json \
+  --cache /tmp/les_chartrons_raw.json
+```
+
+**Screenshot-verified 2026-07-09:**
+- VieuxBordeaux: warm amber-gold fabric, canal-tile terracotta rooftops, sandy bordeauxWaterfront
+  ground, Tour Pey Berland visible as tallest building, parks and water zones present
+- LesChartrons: denser amber block, diagonal tramway line along the Garonne quays clearly visible,
+  Halle des Chartrons warehouse silhouette recognizable upper-center, Le Concorde modernGlass at 40m
+
+### To add Rennes districts
+
+Run `tools/fetch_district_data.py` with `--default-style medieval`. The bboxes and anchor points
+are already in `CityManifest.json` under the placeholder entries. After fetching, set
+`dataBundled: true` and add to `heavyDistricts` if building count exceeds ~1,800.
+Do NOT use `--default-style haussmannien` for Rennes — Breton medieval fabric is `medieval`.
+Do NOT use `--default-style bordelaisClassical` — that's Bordeaux-only (Gironde limestone).
+Do NOT use `--default-style balinese` — Bali-only.
+
+## London/Madrid/Rome architecture (added 2026-07-09)
+
+Phase 0 (style + mood foundation) implemented 2026-07-09. Data fetch (Phase 1) pending.
+All three cities have placeholder `CityManifest.json` entries (`dataBundled: false`).
+
+### New BuildingStyle cases
+
+Three cases added to `BuildingStyle` in `DistrictFootprint.swift` (after `bordelaisClassical`):
+
+- **`londonBrick`**: Victorian/Georgian London stock brick — fired yellow-buff clay, the dominant
+  non-tower material of the City of London. Wall: `dayR = 0.74 + 0.08·wobble`,
+  `dayG = 0.62 + 0.06·wobble`, `dayB = 0.38 + 0.04·wobble` (warm yellow-buff range). Roughness
+  0.82–0.89, clearcoat 0.05. Roof: Welsh slate `(0.44,0.46,0.50)` — cool blue-grey, distinctly
+  cooler than Paris zinc `(0.42,0.46,0.52)` and warmer than rain-slicked concrete.
+  Cap geometry: **25° pitch** (`pitchTan: 0.466`), `maxRidgeInset: 5.0m` (long shallow ridge),
+  overhang 0.20m. Night emissive 0.30. Window texture: 4×7 grid, density 0.32.
+  **NOT in HEIGHT_PROMOTION_BYPASS** — City glass towers auto-promote to `modernGlass`.
+
+- **`madrileño`**: 19th-century Madrid Ensanche limestone/sandstone render — warm golden-beige.
+  Wall: `dayR = 0.84 + 0.06·wobble`, `dayG = 0.76 + 0.04·wobble`, `dayB = 0.54 + 0.06·wobble`.
+  Roughness 0.72–0.79, clearcoat 0.12. Roof: flat azotea concrete `(0.80,0.76,0.68)`, roughness
+  0.86 — **NO hip roof cap, NOT in `capStyles`, does NOT appear in `makeRoofCapEntities` loop.**
+  Night emissive 0.35. Window texture: 5×8 grid, density 0.38.
+  **IN HEIGHT_PROMOTION_BYPASS** — Salamanca blocks up to 28m must stay `madrileño`.
+
+- **`romanOchre`**: Roman tuff/brick and ochre render plaster. Wall: `dayR = 0.78 + 0.08·wobble`,
+  `dayG = 0.54 + 0.06·wobble`, `dayB = 0.30 + 0.06·wobble` (sienna-amber range). Roughness
+  0.78–0.86, clearcoat 0.07. Roof: Roman coppo canal-tile `(0.62,0.24,0.10)`, roughness 0.93,
+  clearcoat 0.05. Cap geometry: **35° pitch** (`pitchTan: 0.700`), `maxRidgeInset: 3.5m`,
+  overhang 0.30m. Night emissive 0.22. Window texture: 3×5 grid, density 0.22.
+  **IN HEIGHT_PROMOTION_BYPASS** — Vittoriano at 70m stays `romanOchre`.
+  **CRITICAL**: keep dayB ≤ 0.40 — higher blue pushes Rome ochre toward bordelaisClassical amber
+  or madrileño golden-beige. The low B (`≈0.30–0.36`) is the visual discriminator for Rome.
+
+Both `londonBrick` and `romanOchre` are in `capStyles` and in `makeRoofCapEntities` loop.
+`madrileño` is explicitly excluded from both — flat azotea is architecturally correct and saves draw calls.
+
+### New Mood cases
+
+Three cases added to `DistrictRealityScene.Mood`:
+
+- **`londonSilver`** (City of London, Shoreditch, Westminster): cool overcast silver British sky.
+  Sun `(0.88,0.90,0.95)`, 26,000 lux, elevation 0.45. Zenith `(0.42,0.48,0.62)` / horizon
+  `(0.70,0.73,0.78)` / ground `(0.24,0.22,0.20)`. Camera distance 0.18, height 0.13.
+  Road material: dark wet black tarmac (primary `(0.20,0.20,0.22)`), Portland stone pedestrian
+  zones `(0.68,0.66,0.62)`. Ground texture: flat dark cool-blue tarmac (no joint grid — London
+  streets are resurfaced/uniform rather than stone-paved like European continental cities).
+
+- **`madridAfternoon`** (Salamanca, Gran Vía, Malasaña): warm Spanish golden-hour sun.
+  Sun `(1.0,0.84,0.55)`, 38,000 lux, elevation 0.38. Zenith `(0.38,0.44,0.62)` / horizon
+  `(0.72,0.68,0.54)` / ground `(0.40,0.34,0.24)`. Camera distance 0.18, height 0.12.
+  Road material: warm Spanish granite (primary `(0.42,0.38,0.32)`), pedestrian zones
+  `(0.60,0.54,0.44)`. Ground texture: 8px joint grid warm granite slabs.
+
+- **`romanGoldenHour`** (Centro Storico, Trastevere, Prati): warm sienna-amber low-angle sun.
+  Sun `(1.0,0.82,0.52)`, 32,000 lux, elevation 0.32 (lowest elevation in the app — Rome's golden
+  hour is notably low-angle). Zenith `(0.30,0.38,0.58)` / horizon `(0.68,0.54,0.36)` /
+  ground `(0.28,0.22,0.16)`. Camera distance 0.18, height 0.13.
+  Road material: dark basalt sanpietrini cobbles (primary `(0.22,0.20,0.18)`), travertine
+  pedestrian zones `(0.74,0.70,0.62)`. Ground texture: **tight 4px sanpietrini grid**
+  `(x % 4 == 0) || (y % 4 == 0)` with warm amber mortar joints `(108,82,54)` and dark basalt
+  cubes — 8×8 sett grid per 32px tile, distinctively Roman.
+
+### KNOWN_HEIGHTS additions for London/Madrid/Rome
+
+~50 entries added to `KNOWN_HEIGHTS_METERS` in `tools/fetch_district_data.py`. Key entries:
+
+**London (City of London):** 22 Bishopsgate 278m, Leadenhall Building "Cheesegrater" 224m, 
+30 St Mary Axe "Gherkin" 180m, NatWest Tower "Tower 42" 183m, One Canada Square 235m,
+St Paul's Cathedral 111m, Tower of London 27m, Monument 62m.
+
+**Madrid (Salamanca district):** Puerta de Alcalá 22m, Palacio de Cibeles 82m,
+Biblioteca Nacional 26m, Palacio del Buen Retiro 11m, Torre de los Lujanes 22m.
+
+**Rome (Centro Storico):** Pantheon 21m, Colosseum 48m, Sant'Agnese in Agone 55m,
+Sant'Ivo alla Sapienza 56m, Palazzo Madama 35m, Palazzo Montecitorio 36m,
+Palazzo Venezia 42m, Castel Sant'Angelo 48m.
+
+### OSM data quality — CityOfLondon / Salamanca / CentroStorico (fetched 2026-07-09)
+
+**CityOfLondon: 2,404 buildings** (1,444 londonBrick 60%, 653 modernConcrete 27%, 185 modernGlass 7%, 75 government 3%, 47 religious 1%). 9,739 roads, 104 green zones. 58 point-mapped landmarks matched.
+- `30 St Mary Axe` at 180m ✓ — focusBuildingName confirmed in dataset
+- Full tower skyline present: 22 Bishopsgate 244m, Heron Tower 230m, 8 Bishopsgate 204m, Leadenhall 192m, Tower 42 183m — all from KNOWN_HEIGHTS, all classified `modernGlass` via height promotion (londonBrick NOT in HEIGHT_PROMOTION_BYPASS)
+- londonBrick HEIGHT_PROMOTION_BYPASS deliberately excluded: City's real glass towers auto-promote correctly.
+
+**Salamanca: 2,463 buildings** (2,339 madrileño 94%, 107 government 4%, 17 religious 0%). 2,173 roads, 79 green zones. 55 point-mapped landmarks matched.
+- `Puerta de Alcalá` at 22m (non-estimated) ✓ — focusBuildingName confirmed in dataset
+- Palacio de Cibeles: 82m government ✓; Torres de Colón: 100m — **manually reclassified** to `modernGlass` in JSON (1976 modern office towers; HEIGHT_PROMOTION_BYPASS kept them as madrileño by default, which is architecturally wrong).
+- Pattern: after any `--default-style madrileño` fetch, grep output JSON for `madrileño` buildings ≥50m and verify they are actually 19th-c Ensanche blocks, not modern towers. Reclassify modern towers to `modernGlass` or `modernConcrete` directly in JSON.
+
+**CentroStorico: 4,917 buildings** (4,707 romanOchre 95%, 153 religious 3%, 57 government 1%). 7,240 roads, 522 green zones. 37 point-mapped landmarks matched.
+- **`Pantheon` NOT in dataset** — not mapped as a `way["building"]` polygon in OSM within the bbox. `focusBuildingName` changed to `"Sant'Ivo alla Sapienza"` (60m, non-estimated, Borromini's Baroque church at Sapienza — tallest named building in the dataset and architecturally significant).
+- Sant'Ivo alla Sapienza: 60m ✓ — in dataset. Castel Sant'Angelo: 14m (shows as government, height not matching KNOWN_HEIGHTS 48m — OSM tag may override KNOWN_HEIGHTS; acceptable since Castel Sant'Angelo is outside the dense historic core)
+- OSM Centro Storico has unusually organic medieval street layout with very few straight arteries — verified in 3D render.
+
+**CityManifest.json field-name fix (2026-07-09)**: the three new island entries were initially written with `"name"` instead of `"displayName"` and `"mapLatitude"/"mapLongitude"/"zoomLevel"` instead of the required `"shortName"/"mapZoomRadius"/"markerColor"/"markerHeight"` fields. `CityManifest` decoded them silently to `.fallback` (Jakarta-only). Fixed to match the existing schema. Always use `python3 -c "import json; m=json.load(open('CityManifest.json')); print(len([d for i in m['islands'] for c in i['cities'] for d in c['districts']]))"` to verify district count after editing the JSON.
+
+**Screenshot-verified 2026-07-09:**
+- CityOfLondon: warm yellow-buff londonBrick fabric, dark glass towers, dark cool tarmac ground, Road network dense — correctly reads as the City of London financial district
+- Salamanca: warm golden-amber madridAfternoon sky, flat azotea rooftops, classic Ensanche grid, warm granite ground — unmistakably Madrid
+- CentroStorico: warm sienna-amber romanOchre fabric, organic winding medieval street layout, hip canal-tile roofs — unmistakably Rome
+
+### Fetch commands (all districts fetched and screenshot-verified 2026-07-09)
+
+```
+# City of London
+python3 fetch_district_data.py \
+  --name CityOfLondon --bbox 51.506 -0.104 51.521 -0.074 \
+  --anchor 51.5136 -0.0886 --default-style londonBrick \
+  --out ../MetaCity/Resources/Districts/CityOfLondon.json \
+  --cache /tmp/city_of_london_raw.json
+
+# Westminster (fetched 2026-07-09 — Overpass 504s twice, succeeded on third try)
+python3 fetch_district_data.py \
+  --name Westminster --bbox 51.490 -0.145 51.507 -0.115 \
+  --anchor 51.498 -0.130 --default-style londonBrick \
+  --out ../MetaCity/Resources/Districts/Westminster.json \
+  --cache /tmp/westminster_raw.json
+
+# Salamanca
+python3 fetch_district_data.py \
+  --name Salamanca --bbox 40.416 -3.694 40.432 -3.670 \
+  --anchor 40.4243 -3.6808 --default-style madrileño \
+  --out ../MetaCity/Resources/Districts/Salamanca.json \
+  --cache /tmp/salamanca_raw.json
+
+# Malasaña (Gran Vía / Malasaña neighborhood)
+python3 fetch_district_data.py \
+  --name Malasana --bbox 40.418 -3.712 40.432 -3.696 \
+  --anchor 40.425 -3.703 --default-style "madrileño" \
+  --out ../MetaCity/Resources/Districts/Malasana.json \
+  --cache /tmp/malasana_raw.json
+
+# Rome Centro Storico
+python3 fetch_district_data.py \
+  --name CentroStorico --bbox 41.887 12.460 41.910 12.487 \
+  --anchor 41.8987 12.4727 --default-style romanOchre \
+  --out ../MetaCity/Resources/Districts/CentroStorico.json \
+  --cache /tmp/centro_storico_raw.json
+```
+
+### Authored overrides (applied + screenshot-verified 2026-07-09)
+
+**Authored override files** are applied by `District.load(named:)` via `DistrictAuthoredOverrides.load(for:)`.
+Each file is `MetaCity/Resources/<DistrictId>_authored.json` with exact case.
+Supported fields per override: `osmID` (exact), `nameMatch` (case-insensitive substring), `style`, `roofType`, `heightMeters`.
+
+**`LeMarais_authored.json`** (4 overrides, screenshot-verified 2026-07-09):
+- osmID 20326709 (Tour Saint-Jacques, 52m): `government → religious`, `roofType: flat` — Gothic clock tower, not a civic building
+- osmID 22870791 (Institut du Monde arabe, 48m): `government → modernGlass`, `roofType: flat` — Jean Nouvel mashrabiya-glass facade
+- osmID 55503397 (Centre Georges Pompidou, 9m estimated): `government → modernGlass`, `roofType: flat`, `heightMeters: 42.0` — Renzo Piano/Rogers high-tech, 9m OSM height is wrong
+- osmID 201611261 (Trésor de Notre-Dame, 69m): `government → religious` — polygon matches Notre-Dame cathedral mass
+
+**`Westminster_authored.json`** (7 overrides, screenshot-verified 2026-07-09):
+- osmID 367642689 (Victoria Tower, 98m): `modernGlass → government`, `roofType: flat` — Gothic Revival stone, height-promoted incorrectly because londonBrick not in HEIGHT_PROMOTION_BYPASS
+- nameMatch "Westminster Abbey": `religious` (already), `roofType: flat` — confirms lead-covered nave roof
+- nameMatch "Westminster Cathedral": `religious` (already), `roofType: dome` — Byzantine campanile
+- nameMatch "Houses of Parliament": `government`, `roofType: flat`
+- nameMatch "Palace of Westminster": `government`, `roofType: flat`
+- nameMatch "Buckingham Palace": `government`, `roofType: flat`
+- nameMatch "Banqueting House": `government`, `roofType: flat` — Inigo Jones, Whitehall
+
+**`Malasana_authored.json`** (4 overrides, screenshot-verified 2026-07-09):
+- nameMatch "Espacio Fundación Telefónica": `heightMeters: 81.0`, `style: government` — 1929 Art Deco, Spain's first skyscraper; OSM had 20m estimated
+- nameMatch "Palacio de la Prensa": `heightMeters: 36.0`, `style: government` — 1928 Art Deco press building
+- nameMatch "Teatro Príncipe Gran Vía": `heightMeters: 30.0`, `style: government`
+- nameMatch "Palacio de Liria": `style: government`, `roofType: flat`
+
+**Westminster OSM data quality notes:**
+- "Houses of Parliament" / "Palace of Westminster" may not appear as a single named polygon — they may be
+  mapped as multiple unnamed segments or as a relation in OSM. The authored override nameMatch entries
+  are pre-loaded; they apply if OSM names match in a future re-fetch.
+- Victoria Tower (osmID 367642689) at 98m is the confirmed regression case: `londonBrick` NOT in
+  HEIGHT_PROMOTION_BYPASS means any londonBrick building ≥ 30m auto-promotes to modernGlass or
+  modernConcrete. For Gothic Revival structures that are tall but not glass, use the authored override
+  to revert the style.
+- Millbank Tower (132m) correctly stays modernGlass — it's a genuine 1960s curtain-wall tower.
+
+**Malasaña OSM data quality notes:**
+- Edificio España (osmID 49031978): madrileño at 92m (non-estimated) — correctly HEIGHT_PROMOTION_BYPASS
+  prevents promotion to modernGlass for madrileño default-style buildings. Focus building.
+- Espacio Fundación Telefónica: OSM height was 20m estimated. Real height is 81m. Fixed via authored override.
+  Next re-fetch will auto-correct via KNOWN_HEIGHTS (entries added 2026-07-09).
+- No Edificio Metrópolis in the Malasana bbox (it's at the Alcalá/Gran Vía corner, ~40.4185°N which is
+  at the southern edge of the bbox — not included in the 2534-building fetch).
+
+**`DiscoverViewModel` Europe-first default (2026-07-09):**
+- `indonesiaCamera` renamed to `europeCamera`: `centerCoordinate: 47°N/7°E`, `distance: 3_000_000` —
+  Paris/London/Madrid/Rome all visible at a glance.
+- Cold-launch default changed from Bali (`denpasar`) to Paris (`paris`): `init()` calls
+  `applyUITestOverrides` which now opens Paris in `cityFocused` state if no `UITEST_OPEN_*` env var.
+- The `back()` function (cityFocused → worldMap) returns to `europeCamera` (not `indonesiaCamera`).
+
+### Planned authored overrides (not yet created)
+
+- **`CityOfLondon_authored.json`**: 30 St Mary Axe → flat, Tower of London → flat, St Paul's → dome
+- **`CentroStorico_authored.json`**: Pantheon → dome, Sant'Agnese → dome, Sant'Ivo → conical
+- No authored file needed for Salamanca (flat azotea on all `madrileño` buildings by default)
 
 ## Known Simulator/test gotchas
 

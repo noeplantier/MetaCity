@@ -168,17 +168,22 @@ private struct ContactCard: View {
 
             // Header row
             HStack(alignment: .top, spacing: Spacing.md) {
-                // Avatar — gradient circle with emoji
-                ZStack {
-                    Circle()
-                        .fill(LinearGradient(
-                            colors: [Color.metacityPrimary.opacity(0.22), Color.metacityPrimary.opacity(0.06)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        ))
-                    Circle()
-                        .strokeBorder(Color.metacityPrimary.opacity(0.30), lineWidth: 1)
-                    Text(contact.avatarEmoji)
-                        .font(.system(size: 28))
+                // Avatar — real photo via AsyncImage when URL is available, else gradient + emoji
+                Group {
+                    if let urlStr = contact.avatarURL, let url = URL(string: urlStr) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let img):
+                                img.resizable().scaledToFill()
+                                    .clipShape(Circle())
+                                    .overlay(Circle().strokeBorder(Color.metacityPrimary.opacity(0.30), lineWidth: 1))
+                            default:
+                                emojiAvatar
+                            }
+                        }
+                    } else {
+                        emojiAvatar
+                    }
                 }
                 .frame(width: 60, height: 60)
 
@@ -308,6 +313,20 @@ private struct ContactCard: View {
                 )
         )
         .shadow(color: Color.metacityPrimary.opacity(0.08), radius: 12, y: 4)
+    }
+
+    private var emojiAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(LinearGradient(
+                    colors: [Color.metacityPrimary.opacity(0.22), Color.metacityPrimary.opacity(0.06)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ))
+            Circle()
+                .strokeBorder(Color.metacityPrimary.opacity(0.30), lineWidth: 1)
+            Text(contact.avatarEmoji)
+                .font(.system(size: 28))
+        }
     }
 }
 

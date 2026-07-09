@@ -1,0 +1,25 @@
+{
+  "districtId": "Malasana",
+  "overrides": [
+    {
+      "nameMatch": "Espacio Fundación Telefónica",
+      "heightMeters": 81.0,
+      "style": "government"
+    },
+    {
+      "nameMatch": "Palacio de la Prensa",
+      "heightMeters": 36.0,
+      "style": "government"
+    },
+    {
+      "nameMatch": "Teatro Príncipe Gran Vía",
+      "heightMeters": 30.0,
+      "style": "government"
+    },
+    {
+      "nameMatch": "Palacio de Liria",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

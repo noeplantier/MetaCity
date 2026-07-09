@@ -37,6 +37,7 @@ targets:
         NSLocationAlwaysAndWhenInUseUsageDescription: "MetaCity can keep showing your position to nearby friends while the app is in the background."
         NSCameraUsageDescription: "MetaCity needs camera access for video calls."
         NSMicrophoneUsageDescription: "MetaCity needs microphone access so other participants can hear you on a call."
+        NSSpeechRecognitionUsageDescription: "MetaCity uses voice recognition so you can search for cities and districts by speaking."
         NSFaceIDUsageDescription: "MetaCity can use Face ID to lock your profile when you enable it in Profile > Security."
         CFBundleURLTypes:
           - CFBundleURLSchemes:

@@ -1,0 +1,40 @@
+{
+  "districtId": "Westminster",
+  "overrides": [
+    {
+      "osmID": "367642689",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Westminster Abbey",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Westminster Cathedral",
+      "style": "religious",
+      "roofType": "dome"
+    },
+    {
+      "nameMatch": "Houses of Parliament",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Palace of Westminster",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Buckingham Palace",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Banqueting House",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

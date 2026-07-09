@@ -10,6 +10,7 @@ struct DiscoverView: View {
     @ObservedObject var viewModel: DiscoverViewModel
     /// Briefly flashes to black on district transitions for a "warp to location" travel feel.
     @State private var transitionFlash: Double = 0
+    @StateObject private var speechManager = SpeechSearchManager()
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -85,17 +86,16 @@ struct DiscoverView: View {
             DistrictRealityView(
                 districtName: district.id,
                 mood: district.mood,
-                isNightMode: viewModel.isNightMode,
                 isAutoRotating: viewModel.isAutoRotating,
                 rotationSpeed: viewModel.rotationSpeed,
                 cameraResetToken: viewModel.cameraResetToken,
+                buildingOrbitToken: viewModel.buildingOrbitToken,
                 onZoomBack: { viewModel.back() },
                 onBuildingSelected: { viewModel.selectBuilding($0) },
                 onPOISelected: { viewModel.selectPOIById($0, districtId: district.id) },
                 venueTargetPOIId: viewModel.venueTargetPOIId,
                 searchFlyToken: viewModel.searchFlyToken,
-                searchFlyCentroid: viewModel.searchFlyCentroid,
-                isElevated: viewModel.isElevated
+                searchFlyCentroid: viewModel.searchFlyCentroid
             )
             .ignoresSafeArea()
             .opacity(viewModel.showingMap ? 0 : 1)
@@ -123,13 +123,13 @@ struct DiscoverView: View {
     // MARK: - worldMap overlay
 
     private var worldMapOverlay: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("MetaCity")
                         .font(.metacityLargeTitle)
                         .foregroundStyle(Color.metacityTextPrimary)
-                    Text("INDONESIA · \(viewModel.manifest.allCities.count) VILLES · \(viewModel.manifest.allDistricts.count) QUARTIERS 3D")
+                    Text("\(viewModel.manifest.allCities.count) VILLES · \(viewModel.manifest.allDistricts.filter(\.dataBundled).count) QUARTIERS 3D")
                         .font(.system(size: 10, weight: .semibold, design: .monospaced))
                         .foregroundStyle(Color.metacityPrimary.opacity(0.8))
                         .tracking(0.8)
@@ -138,6 +138,20 @@ struct DiscoverView: View {
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.top, Spacing.md)
+
+            globalSearchBar
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, Spacing.sm)
+
+            let results = viewModel.globalSearchResults()
+            if viewModel.isGlobalSearchActive && !viewModel.globalSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
+                GlobalSearchDropdown(results: results) { result in
+                    viewModel.selectGlobalSearchResult(result)
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, 4)
+            }
+
             Spacer()
         }
     }
@@ -145,10 +159,27 @@ struct DiscoverView: View {
     // MARK: - cityFocused overlay
 
     private func cityFocusedOverlay(city: CityEntry) -> some View {
-        VStack(alignment: .leading) {
-            backButton
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                backButton
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.top, Spacing.md)
+
+            globalSearchBar
                 .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.md)
+                .padding(.top, Spacing.sm)
+
+            let results = viewModel.globalSearchResults()
+            if viewModel.isGlobalSearchActive && !viewModel.globalSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
+                GlobalSearchDropdown(results: results) { result in
+                    viewModel.selectGlobalSearchResult(result)
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.top, 4)
+            }
+
             Spacer()
             CityCalloutCard(
                 city: city,
@@ -161,26 +192,91 @@ struct DiscoverView: View {
         }
     }
 
+    // MARK: - Global search bar
+
+    private var globalSearchBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Color.metacityTextSecondary)
+
+            TextField("Rechercher villes, quartiers, lieux…", text: $viewModel.globalSearchQuery)
+                .font(.system(size: 14))
+                .foregroundStyle(Color.metacityTextPrimary)
+                .tint(Color.metacityPrimary)
+                .onTapGesture { viewModel.isGlobalSearchActive = true }
+                .submitLabel(.search)
+                .onSubmit {
+                    let results = viewModel.globalSearchResults()
+                    if let first = results.first { viewModel.selectGlobalSearchResult(first) }
+                }
+
+            if viewModel.isListening {
+                Image(systemName: "waveform")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.metacityPrimary)
+                    .symbolEffect(.pulse)
+            }
+
+            if !viewModel.globalSearchQuery.isEmpty {
+                Button {
+                    viewModel.globalSearchQuery = ""
+                    viewModel.isGlobalSearchActive = false
+                    viewModel.isListening = false
+                    speechManager.stopListening()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.metacityTextTertiary)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Button {
+                    if viewModel.isListening {
+                        viewModel.isListening = false
+                        speechManager.stopListening()
+                    } else {
+                        viewModel.isListening = true
+                        viewModel.isGlobalSearchActive = true
+                        speechManager.startListening(text: $viewModel.globalSearchQuery) {
+                            viewModel.isListening = false
+                        }
+                    }
+                } label: {
+                    Image(systemName: viewModel.isListening ? "stop.circle.fill" : "mic.fill")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(viewModel.isListening
+                            ? Color.metacityPrimary
+                            : Color.metacityTextSecondary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(
+                    viewModel.isGlobalSearchActive
+                        ? Color.metacityPrimary.opacity(0.45)
+                        : Color.white.opacity(0.12),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: .black.opacity(0.18), radius: 10, y: 3)
+        .animation(.easeInOut(duration: 0.18), value: viewModel.isGlobalSearchActive)
+    }
+
     // MARK: - districtExplore overlay
 
     private func districtExploreOverlay(district: DistrictEntry) -> some View {
         VStack(spacing: 0) {
-            // HUD header
+            // HUD header — minimal: back button only, no district name label.
+            // The 3D scene is the spatial indicator; text clutter defeats premium clarity.
             HStack {
                 backButton
                 Spacer()
-                VStack(spacing: 1) {
-                    Text(district.displayName.uppercased())
-                        .font(.system(size: 13, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white)
-                        .tracking(0.8)
-                    Text(district.moodKey.uppercased())
-                        .font(.system(size: 8, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color.metacityPrimary.opacity(0.8))
-                        .tracking(1.2)
-                }
-                Spacer()
-                Image(systemName: "arrow.left").opacity(0).frame(width: 36, height: 36)
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.top, Spacing.md)
@@ -215,7 +311,7 @@ struct DiscoverView: View {
 
             // BuildingInfoCard
             if let building = viewModel.selectedBuilding {
-                HUDBuildingCard(building: building, onDismiss: { viewModel.clearSelectedBuilding() })
+                HUDBuildingCard(building: building, onDismiss: { viewModel.clearSelectedBuilding() }, onOrbit: { viewModel.startBuildingOrbit() })
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.sm)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -542,12 +638,18 @@ private struct CityCalloutCard: View {
                 .buttonStyle(.plain)
             }
         }
-        .background(Color.metacitySurface, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                .strokeBorder(Color.metacityBorder, lineWidth: 1)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.28), Color.metacityPrimary.opacity(0.20)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
-        .elevation(.raised)
+        .shadow(color: .black.opacity(0.28), radius: 20, y: 8)
     }
 
     private func moodColor(for district: DistrictEntry) -> Color {
@@ -573,15 +675,8 @@ private struct DistrictControlsPanel: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: Spacing.lg) {
-            VStack(spacing: 2) {
-                Toggle("", isOn: $viewModel.isNightMode)
-                    .labelsHidden()
-                    .tint(Color.metacityPrimary)
-                Text("Night")
-                    .font(.metacityCaption)
-                    .foregroundStyle(Color.metacityTextSecondary)
-            }
-
+            // Auto-rotate toggle — only control left now that night mode is day-only
+            // and the overview/close binary split is replaced by continuous pinch zoom.
             VStack(spacing: 2) {
                 Toggle("", isOn: $viewModel.isAutoRotating)
                     .labelsHidden()
@@ -592,22 +687,6 @@ private struct DistrictControlsPanel: View {
             }
 
             Spacer()
-
-            Button { viewModel.isElevated.toggle() } label: {
-                Label(viewModel.isElevated ? "Close" : "Overview",
-                      systemImage: viewModel.isElevated ? "location.viewfinder" : "eye")
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(1)
-                    .foregroundStyle(viewModel.isElevated ? Color.metacityPrimary : Color.metacityTextSecondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        (viewModel.isElevated ? Color.metacityPrimary.opacity(0.12) : Color.metacitySurface.opacity(0.8)),
-                        in: Capsule()
-                    )
-            }
-            .buttonStyle(.plain)
-            .animation(.easeInOut(duration: 0.2), value: viewModel.isElevated)
 
             Button { viewModel.resetCamera() } label: {
                 Label("Reset", systemImage: "arrow.counterclockwise")
@@ -635,6 +714,7 @@ private struct DistrictControlsPanel: View {
 private struct HUDBuildingCard: View {
     let building: BuildingFootprint
     let onDismiss: () -> Void
+    let onOrbit: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -680,6 +760,24 @@ private struct HUDBuildingCard: View {
             .padding(.vertical, 8)
             .padding(.horizontal, 14)
 
+            // Orbit action
+            Divider()
+                .padding(.horizontal, 14)
+            Button(action: onOrbit) {
+                HStack(spacing: 6) {
+                    Image(systemName: "rotate.3d")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text("ORBIT 360°")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .tracking(1.0)
+                }
+                .foregroundStyle(accentColor)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(accentColor.opacity(0.08))
+            }
+            .buttonStyle(.plain)
+
         }
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(
@@ -724,6 +822,12 @@ private struct HUDBuildingCard: View {
         case .religious:      return Color(red: 0.90, green: 0.85, blue: 0.40)
         case .balinese:       return Color(red: 0.90, green: 0.60, blue: 0.32)
         case .javanese:       return Color(red: 0.75, green: 0.55, blue: 0.30)
+        case .haussmannien:        return Color(red: 0.92, green: 0.88, blue: 0.72)  // Lutetian limestone cream
+        case .medieval:            return Color(red: 0.80, green: 0.72, blue: 0.58)  // Breton stone
+        case .bordelaisClassical:  return Color(red: 0.95, green: 0.80, blue: 0.42)  // calcaire à astéries amber-gold
+        case .londonBrick:         return Color(red: 0.76, green: 0.60, blue: 0.42)  // warm buff London stock brick
+        case .madrileño:           return Color(red: 0.88, green: 0.78, blue: 0.42)  // warm Madrid golden-beige
+        case .romanOchre:          return Color(red: 0.78, green: 0.58, blue: 0.32)  // Roman sienna-amber ochre
         }
     }
 
@@ -1020,6 +1124,66 @@ private struct ScanLineView: View {
         }
         .allowsHitTesting(false)
         .clipped()
+    }
+}
+
+// MARK: - Global search dropdown
+
+private struct GlobalSearchDropdown: View {
+    let results: [GlobalSearchResult]
+    let onSelect: (GlobalSearchResult) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(results) { result in
+                Button {
+                    onSelect(result)
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: result.icon)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(iconColor(for: result))
+                            .frame(width: 22)
+
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(result.name)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Color.metacityTextPrimary)
+                                .lineLimit(1)
+                            Text(result.subtitle)
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.metacityTextTertiary)
+                                .lineLimit(1)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+                }
+                .buttonStyle(.plain)
+
+                if result.id != results.last?.id {
+                    Divider().padding(.horizontal, 14)
+                }
+            }
+        }
+        .background(.ultraThinMaterial,
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.22), radius: 14, y: 4)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    private func iconColor(for result: GlobalSearchResult) -> Color {
+        switch result.kind {
+        case .city:     return Color(red: 0.20, green: 0.82, blue: 0.65)
+        case .district: return Color.metacityPrimary
+        case .building: return Color(red: 0.85, green: 0.65, blue: 0.25)
+        case .poi:      return Color(red: 0.95, green: 0.28, blue: 0.05)
+        }
     }
 }
 

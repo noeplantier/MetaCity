@@ -13,11 +13,13 @@ import SwiftUI
 struct DistrictRealityView: UIViewRepresentable {
     let districtName: String
     let mood: DistrictRealityScene.Mood
-    var isNightMode: Bool
     var isAutoRotating: Bool
     var rotationSpeed: Double
     /// Bumped by the parent to fly the camera back to the default orbit position.
     var cameraResetToken: Int = 0
+    /// Bumped by `DiscoverViewModel.startBuildingOrbit()`. Signals the coordinator to begin a
+    /// persistent 360° orbit around the currently inspected building's centroid.
+    var buildingOrbitToken: Int = 0
     /// Called when the user pinches out past the map-transition threshold.
     var onZoomBack: (() -> Void)? = nil
     /// Called on each successful building tap with the selected `BuildingFootprint`.
@@ -33,8 +35,6 @@ struct DistrictRealityView: UIViewRepresentable {
     var searchFlyToken: Int = 0
     /// Model-local camera target (metres from district anchor) for the most-recent search selection.
     var searchFlyCentroid: SIMD3<Float> = .zero
-    /// When true the camera pulls back to 2.2× the default orbit distance for a wide city overview.
-    var isElevated: Bool = false
 
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
@@ -53,7 +53,6 @@ struct DistrictRealityView: UIViewRepresentable {
             in: arView,
             districtName: districtName,
             mood: mood,
-            isNightMode: isNightMode,
             isAutoRotating: isAutoRotating,
             rotationSpeed: rotationSpeed
         )
@@ -90,14 +89,13 @@ struct DistrictRealityView: UIViewRepresentable {
         context.coordinator.onBuildingSelected = onBuildingSelected
         context.coordinator.onPOISelected = onPOISelected
         context.coordinator.update(
-            isNightMode: isNightMode,
             isAutoRotating: isAutoRotating,
             rotationSpeed: rotationSpeed,
             venueTargetPOIId: venueTargetPOIId,
             resetToken: cameraResetToken,
+            buildingOrbitToken: buildingOrbitToken,
             searchFlyToken: searchFlyToken,
-            searchFlyCentroid: searchFlyCentroid,
-            isElevated: isElevated
+            searchFlyCentroid: searchFlyCentroid
         )
     }
 
@@ -140,14 +138,18 @@ struct DistrictRealityView: UIViewRepresentable {
         private var currentElevation: Float = 50
         private var currentDistance: Float = 100
 
-        private var currentIsNight = false
         private var currentIsAutoRotating = false
         private var currentVenueTargetPOIId: String? = nil
-        private var currentIsElevated = false
         private var rotationSpeed: Double = 1.0
         private var loadGeneration = 0
         private var lastResetToken: Int = 0
         private var lastSearchFlyToken: Int = 0
+        private var lastBuildingOrbitToken: Int = 0
+        // Updated on each building tap — used by buildingOrbitToken to restart the orbit
+        // around the selected building's centroid rather than the district centre.
+        private var inspectedBuildingCentroid: SIMD3<Float>? = nil
+        private var inspectedOrbitDist: Float = 0
+        private var inspectedOrbitH: Float = 0
         /// Cached after first load — `handleSingleTap` looks up building centroids on every tap,
         /// so we avoid re-fetching from the `District` cache on the gesture hot path.
         private var cachedDistrict: District?
@@ -157,11 +159,10 @@ struct DistrictRealityView: UIViewRepresentable {
         var onPOISelected: ((String) -> Void)? = nil
 
         func setUp(in arView: ARView, districtName: String, mood: DistrictRealityScene.Mood,
-                   isNightMode: Bool, isAutoRotating: Bool, rotationSpeed: Double) {
+                   isAutoRotating: Bool, rotationSpeed: Double) {
             self.arView = arView
             self.districtName = districtName
             self.mood = mood
-            self.currentIsNight = isNightMode
             self.currentIsAutoRotating = isAutoRotating
             self.rotationSpeed = rotationSpeed
 
@@ -175,8 +176,9 @@ struct DistrictRealityView: UIViewRepresentable {
             arView.scene.addAnchor(anchor)
             districtAnchor = anchor
 
+            // Night mode removed — always day. isNight: false throughout.
             DistrictRealityScene.installLighting(in: arView, anchor: anchor, mood: mood,
-                                                  extent: district.extent, isNight: isNightMode)
+                                                  extent: district.extent, isNight: false)
 
             let camera = PerspectiveCamera()
             camera.camera.fieldOfViewInDegrees = mood.fieldOfViewDegrees
@@ -186,8 +188,10 @@ struct DistrictRealityView: UIViewRepresentable {
 
             let lookY: Float = district.extent * 0.03
             center = SIMD3(district.buildingCentroid.x, lookY, district.buildingCentroid.z)
-            distance = district.extent * mood.cameraDistanceFraction
-            height = district.extent * mood.cameraHeightFraction
+            // Start wider than the mood default so the user opens to a full district overview.
+            // Continuous pinch replaces the old binary isElevated split.
+            distance = district.extent * mood.cameraDistanceFraction * 1.5
+            height   = district.extent * mood.cameraHeightFraction   * 1.4
             districtExtent = district.extent
             districtCenter = center
             districtDistance = distance
@@ -200,27 +204,17 @@ struct DistrictRealityView: UIViewRepresentable {
 
             camera.look(at: center, from: SIMD3(center.x, height, center.z + distance), relativeTo: nil)
 
-            loadModel(named: districtName, isNight: isNightMode, into: anchor)
+            loadModel(named: districtName, into: anchor)
             restartOrbit(isAutoRotating: isAutoRotating)
             startCinematicEntry(camera: camera, scene: arView.scene)
         }
 
-        func update(isNightMode: Bool, isAutoRotating: Bool, rotationSpeed: Double,
-                    venueTargetPOIId: String?, resetToken: Int,
-                    searchFlyToken: Int, searchFlyCentroid: SIMD3<Float>,
-                    isElevated: Bool = false) {
-            guard let arView, let district = District.load(named: districtName) else { return }
+        func update(isAutoRotating: Bool, rotationSpeed: Double,
+                    venueTargetPOIId: String?, resetToken: Int, buildingOrbitToken: Int,
+                    searchFlyToken: Int, searchFlyCentroid: SIMD3<Float>) {
+            guard let arView else { return }
 
             self.rotationSpeed = rotationSpeed
-
-            if isNightMode != currentIsNight {
-                currentIsNight = isNightMode
-                if let anchor = districtAnchor {
-                    loadModel(named: districtName, isNight: isNightMode, into: anchor)
-                    DistrictRealityScene.installLighting(in: arView, anchor: anchor, mood: mood,
-                                                          extent: district.extent, isNight: isNightMode)
-                }
-            }
 
             if isAutoRotating != currentIsAutoRotating {
                 currentIsAutoRotating = isAutoRotating
@@ -245,7 +239,16 @@ struct DistrictRealityView: UIViewRepresentable {
 
             if resetToken != lastResetToken {
                 lastResetToken = resetToken
+                inspectedBuildingCentroid = nil   // reset clears building-focus state
                 resetToDefaultPosition()
+            }
+
+            if buildingOrbitToken != lastBuildingOrbitToken {
+                lastBuildingOrbitToken = buildingOrbitToken
+                if let bc = inspectedBuildingCentroid {
+                    startBuildingOrbit360(center: bc, orbDist: inspectedOrbitDist,
+                                          orbH: inspectedOrbitH, scene: arView.scene)
+                }
             }
 
             if searchFlyToken != lastSearchFlyToken {
@@ -260,34 +263,6 @@ struct DistrictRealityView: UIViewRepresentable {
                     searchFlyCentroid.z + Float(districtExtent) * 0.12
                 )
                 flyCamera(to: eyePos, lookAt: searchFlyCentroid, scene: arView.scene)
-            }
-
-            if isElevated != currentIsElevated {
-                currentIsElevated = isElevated
-                applyElevation(isElevated: isElevated, scene: arView.scene)
-            }
-        }
-
-        /// Flies the camera to a wide overhead position (2.2× orbit distance, 1.8× height)
-        /// for an overview framing, or back to the default orbit position. Cancels any
-        /// in-flight auto-rotate so the elevated position doesn't spin away immediately.
-        private func applyElevation(isElevated: Bool, scene: RealityKit.Scene) {
-            cinematicSubscription?.cancel()
-            cinematicSubscription = nil
-            orbitSubscription?.cancel()
-            orbitSubscription = nil
-            if isElevated {
-                let d = districtDistance * 2.2
-                let h = districtDistance * 1.4   // high elevation angle (~33°)
-                let target = SIMD3<Float>(center.x, h, center.z + d)
-                flyCamera(to: target, lookAt: center, scene: scene)
-            } else {
-                let target = SIMD3<Float>(center.x, height, center.z + distance)
-                flyCamera(to: target, lookAt: center, scene: scene)
-                // Restore gesture state so the first pan after landing is seamless.
-                currentElevation = height
-                currentDistance  = distance
-                azimuth = 0
             }
         }
 
@@ -321,6 +296,14 @@ struct DistrictRealityView: UIViewRepresentable {
 
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
             guard let arView else { return }
+
+            // Pause auto-orbit when the user starts dragging so there's no jitter from
+            // two systems writing camera position simultaneously. Resume on lift.
+            if gesture.state == .began {
+                orbitSubscription?.cancel()
+                orbitSubscription = nil
+            }
+
             let delta = gesture.translation(in: arView)
             gesture.setTranslation(.zero, in: arView)
 
@@ -336,6 +319,17 @@ struct DistrictRealityView: UIViewRepresentable {
             currentElevation = min(max(currentElevation + elevStep, minElev), maxElev)
 
             updateCameraPosition()
+
+            if gesture.state == .ended || gesture.state == .cancelled {
+                if currentIsAutoRotating {
+                    // Resume orbit from the current manually-set position.
+                    let orbitCenter = inspectedBuildingCentroid ?? center
+                    startBuildingOrbit360(center: orbitCenter,
+                                          orbDist: currentDistance,
+                                          orbH: currentElevation,
+                                          scene: arView.scene)
+                }
+            }
         }
 
         @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
@@ -415,11 +409,18 @@ struct DistrictRealityView: UIViewRepresentable {
 
             onBuildingSelected?(building)
 
-            let n    = Float(building.polygon.count)
-            let cx   = building.polygon.map(\.x).reduce(0,+) / n
-            let cz   = building.polygon.map(\.z).reduce(0,+) / n
-            let midH = building.heightMeters * 0.5
+            let n       = Float(building.polygon.count)
+            let cx      = building.polygon.map(\.x).reduce(0,+) / n
+            let cz      = building.polygon.map(\.z).reduce(0,+) / n
+            let midH    = building.heightMeters * 0.5
             let eyeDist = max(building.heightMeters * 2.2, districtExtent * 0.08)
+            let orbitH  = midH + building.heightMeters * 0.2
+
+            // Record the inspected building so buildingOrbitToken and post-pan resume both
+            // orbit around the selected building, not the district centre.
+            inspectedBuildingCentroid = SIMD3(cx, center.y, cz)
+            inspectedOrbitDist = eyeDist
+            inspectedOrbitH    = orbitH
 
             // Holographic amber scanner rings — two counter-rotating arc-segment rings + halo.
             selectionRingSubscription?.cancel()
@@ -466,10 +467,22 @@ struct DistrictRealityView: UIViewRepresentable {
             let approachX = cx + sin(azimuth) * eyeDist
             let approachZ = cz + cos(azimuth) * eyeDist
             flyCamera(
-                to:     SIMD3(approachX, midH + building.heightMeters * 0.2, approachZ),
+                to:     SIMD3(approachX, orbitH, approachZ),
                 lookAt: SIMD3(cx, midH, cz),
                 scene:  arView.scene
             )
+
+            // If auto-rotate is on, start orbiting around the building after the fly lands.
+            if currentIsAutoRotating {
+                let bc = SIMD3<Float>(cx, center.y, cz)
+                let d  = eyeDist
+                let h  = orbitH
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: 1_250_000_000)   // ~fly duration + margin
+                    guard let self else { return }
+                    self.startBuildingOrbit360(center: bc, orbDist: d, orbH: h, scene: arView.scene)
+                }
+            }
         }
 
         private func updateCameraPosition() {
@@ -497,12 +510,12 @@ struct DistrictRealityView: UIViewRepresentable {
 
         // MARK: - Model loading
 
-        private func loadModel(named districtName: String, isNight: Bool, into anchor: AnchorEntity) {
+        private func loadModel(named districtName: String, into anchor: AnchorEntity) {
             loadGeneration += 1
             let generation = loadGeneration
             Task { @MainActor [weak self] in
                 guard let entity = try? await DistrictRealityKit.loadDistrictEntity(
-                    named: districtName, isNight: isNight, mood: self?.mood ?? .parkDaylight)
+                    named: districtName, isNight: false, mood: self?.mood ?? .parkDaylight)
                 else { return }
                 guard let self, self.loadGeneration == generation else { return }
                 anchor.children.first(where: { $0.name == "districtModel" })?.removeFromParent()
@@ -611,6 +624,25 @@ struct DistrictRealityView: UIViewRepresentable {
         }
 
         // MARK: - Camera animation
+
+        /// Starts a smooth 360° orbit around `center` at the given distance and height.
+        /// Used by the building-select flow and the ORBIT 360° button via `buildingOrbitToken`.
+        private func startBuildingOrbit360(center: SIMD3<Float>, orbDist: Float, orbH: Float,
+                                            scene: RealityKit.Scene) {
+            cinematicSubscription?.cancel()
+            cinematicSubscription = nil
+            orbitSubscription?.cancel()
+            orbitSubscription = nil
+            guard let cameraEntity else { return }
+            orbitSubscription = DistrictRealityScene.startOrbit(
+                camera: cameraEntity,
+                scene: scene,
+                center: center,
+                distance: orbDist,
+                height: orbH,
+                rotationSpeed: { [weak self] in self?.rotationSpeed ?? 1.0 }
+            )
+        }
 
         private func restartOrbit(isAutoRotating: Bool) {
             cinematicSubscription?.cancel()

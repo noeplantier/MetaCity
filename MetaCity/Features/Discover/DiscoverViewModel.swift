@@ -23,6 +23,21 @@ struct DistrictSearchResult: Identifiable {
     let localCentroid: SIMD3<Float>
 }
 
+/// A result from the global map search (cities, districts, buildings, POIs across all data).
+struct GlobalSearchResult: Identifiable {
+    enum Kind {
+        case city(CityEntry)
+        case district(DistrictEntry, CityEntry)
+        case building(BuildingFootprint, DistrictEntry, CityEntry)
+        case poi(CangguPOI, DistrictEntry, CityEntry)
+    }
+    let id: String
+    let name: String
+    let subtitle: String
+    let icon: String
+    let kind: Kind
+}
+
 @MainActor
 final class DiscoverViewModel: ObservableObject {
 
@@ -49,16 +64,15 @@ final class DiscoverViewModel: ObservableObject {
 
     // District 3D inspector controls — owned here so the values survive
     // back-and-forth navigation without resetting every time.
-    @Published var isNightMode = false
     // Auto-rotation is off by default. Users orbit manually with a pan gesture.
     @Published var isAutoRotating = false
     @Published var rotationSpeed: Double = 1.0
-    /// When true the orbit camera pulls back to 2.2× default distance for a wider
-    /// city-overview framing. Toggle via the Overview button in DistrictControlsPanel.
-    @Published var isElevated: Bool = false
     /// Bumped by `resetCamera()`. `DistrictRealityView` observes changes and flies the
     /// camera back to the default orbit position without requiring a gesture.
     @Published private(set) var cameraResetToken: Int = 0
+    /// Bumped by `startBuildingOrbit()`. Signals the 3D coordinator to begin a smooth
+    /// 360° orbit around the currently inspected building.
+    @Published private(set) var buildingOrbitToken: Int = 0
     /// The building the user last tapped — drives the building info card overlay when no POI matches.
     @Published private(set) var selectedBuilding: BuildingFootprint? = nil
     /// The POI the user last selected — drives the VenueCard overlay and triggers flyTo.
@@ -76,21 +90,25 @@ final class DiscoverViewModel: ObservableObject {
     /// Last selected search result's model-local centroid (metres from district anchor).
     @Published private(set) var searchFlyCentroid: SIMD3<Float> = .zero
 
+    // MARK: - Global map search bar
+    @Published var globalSearchQuery: String = ""
+    @Published var isGlobalSearchActive: Bool = false
+    /// True while the speech recogniser is listening for voice input.
+    @Published var isListening: Bool = false
+
     let manifest: CityManifest
 
-    // Geographic center of all 10 city pins (lon 98.67–119.43, lat -8.67 to +3.60).
-    // Midpoint: ~(-2.5, 109.0). Distance 4.8M keeps Medan top-left and Makassar right
-    // both in frame while Java (Jakarta at bottom-left) stays visible.
-    private static let indonesiaCamera = MapCamera(
-        centerCoordinate: CLLocationCoordinate2D(latitude: -2.5, longitude: 109.0),
-        distance: 4_800_000,
+    // Western-Europe overview: 47°N/7°E at 3 000 km — Paris, London, Madrid, Rome all in frame.
+    private static let europeCamera = MapCamera(
+        centerCoordinate: CLLocationCoordinate2D(latitude: 47.0, longitude: 7.0),
+        distance: 3_000_000,
         heading: 0,
         pitch: 0
     )
 
     init(manifest: CityManifest = .shared) {
         self.manifest = manifest
-        self.cameraPosition = .camera(DiscoverViewModel.indonesiaCamera)
+        self.cameraPosition = .camera(DiscoverViewModel.europeCamera)
         applyUITestOverrides(manifest: manifest)
     }
 
@@ -102,7 +120,6 @@ final class DiscoverViewModel: ObservableObject {
     ///   which is unreliable on this Simulator build — see CLAUDE.md / iOS Simulator quirks memory)
     private func applyUITestOverrides(manifest: CityManifest) {
         let env = ProcessInfo.processInfo.environment
-        if env["UITEST_NIGHT_MODE"] == "1" { isNightMode = true }
         if let cityID = env["UITEST_OPEN_CITY"],
            let city = manifest.allCities.first(where: { $0.id == cityID }) {
             state = .cityFocused(city)
@@ -117,12 +134,12 @@ final class DiscoverViewModel: ObservableObject {
             state = .districtExplore(city, district)
             return
         }
-        // Default: open Bali on every cold launch (no UITEST override active)
-        if let bali = manifest.allCities.first(where: { $0.id == "denpasar" }) {
-            state = .cityFocused(bali)
+        // Default: open Paris on every cold launch — Europe is the primary focus.
+        if let paris = manifest.allCities.first(where: { $0.id == "paris" }) {
+            state = .cityFocused(paris)
             cameraPosition = .camera(MapCamera(
-                centerCoordinate: bali.anchor.clLocationCoordinate,
-                distance: bali.mapZoomRadius, heading: 0, pitch: 15))
+                centerCoordinate: paris.anchor.clLocationCoordinate,
+                distance: paris.mapZoomRadius, heading: 0, pitch: 15))
         }
     }
 
@@ -199,6 +216,13 @@ final class DiscoverViewModel: ObservableObject {
         cameraResetToken += 1
     }
 
+    /// Starts a 360° auto-orbit around the currently selected building. Enables
+    /// auto-rotation and signals the 3D coordinator via a token change.
+    func startBuildingOrbit() {
+        isAutoRotating = true
+        buildingOrbitToken += 1
+    }
+
     func selectBuilding(_ building: BuildingFootprint) {
         selectedBuilding = building
         selectedVenuePOI = nil
@@ -223,6 +247,75 @@ final class DiscoverViewModel: ObservableObject {
     }
 
     // MARK: - Search
+
+    /// Returns up to 10 global results matching `globalSearchQuery` across all cities, districts,
+    /// bundled buildings, and POI collections. Minimum 2 characters before any results are shown.
+    func globalSearchResults() -> [GlobalSearchResult] {
+        let q = globalSearchQuery.trimmingCharacters(in: .whitespaces).lowercased()
+        guard q.count >= 2 else { return [] }
+        var results: [GlobalSearchResult] = []
+
+        for island in manifest.islands {
+            for city in island.cities {
+                if city.displayName.lowercased().contains(q) {
+                    results.append(GlobalSearchResult(
+                        id: "city_\(city.id)", name: city.displayName,
+                        subtitle: island.displayName,
+                        icon: "building.2.fill", kind: .city(city)
+                    ))
+                }
+                for district in city.districts {
+                    if district.displayName.lowercased().contains(q) {
+                        results.append(GlobalSearchResult(
+                            id: "dist_\(district.id)", name: district.displayName,
+                            subtitle: city.displayName,
+                            icon: "map.fill", kind: .district(district, city)
+                        ))
+                    }
+                    guard district.dataBundled else { continue }
+                    if let data = District.load(named: district.id) {
+                        for building in data.buildings
+                        where building.name?.lowercased().contains(q) == true {
+                            guard let name = building.name else { continue }
+                            results.append(GlobalSearchResult(
+                                id: "b_\(building.osmID ?? name)_\(district.id)",
+                                name: name,
+                                subtitle: "\(district.displayName), \(city.displayName)",
+                                icon: "building.fill",
+                                kind: .building(building, district, city)
+                            ))
+                        }
+                    }
+                    if let col = CangguPOICollection.load(for: district.id) {
+                        for poi in col.pois where poi.name.lowercased().contains(q) {
+                            results.append(GlobalSearchResult(
+                                id: "poi_\(poi.id)", name: poi.name,
+                                subtitle: "\(district.displayName), \(city.displayName)",
+                                icon: "mappin.fill",
+                                kind: .poi(poi, district, city)
+                            ))
+                        }
+                    }
+                }
+            }
+        }
+        return Array(results.prefix(10))
+    }
+
+    func selectGlobalSearchResult(_ result: GlobalSearchResult) {
+        globalSearchQuery = ""
+        isGlobalSearchActive = false
+        switch result.kind {
+        case .city(let city):
+            selectCity(city)
+        case .district(let district, let city):
+            selectDistrict(district, in: city)
+        case .building(_, let district, let city):
+            selectDistrict(district, in: city)
+        case .poi(let poi, let district, let city):
+            selectVenuePOI(poi, in: district, city: city)
+        }
+    }
 
     /// Returns up to 8 named buildings + POIs in `district` whose name contains `districtSearchQuery`.
     func searchResults(in district: DistrictEntry) -> [DistrictSearchResult] {
@@ -272,12 +365,9 @@ final class DiscoverViewModel: ObservableObject {
     }
 
     func selectDistrict(_ district: DistrictEntry, in city: CityEntry) {
-        // Reset inspector controls to defaults on each new district open so the
-        // night/mode state from a previous visit doesn't persist confusingly.
-        isNightMode = false
+        // Reset inspector controls to defaults on each new district open.
         isAutoRotating = false  // manual orbit — user pans to rotate
         rotationSpeed = 1.0
-        isElevated = false
         selectedBuilding = nil
         selectedVenuePOI = nil
         venueTargetPOIId = nil
@@ -289,10 +379,8 @@ final class DiscoverViewModel: ObservableObject {
     /// Transitions directly from the world map to a district's 3D view with the camera already
     /// flying to the given venue POI. Used when the user taps a `VenueMapPin` on the city map.
     func selectVenuePOI(_ poi: CangguPOI, in district: DistrictEntry, city: CityEntry) {
-        isNightMode = false
         isAutoRotating = false
         rotationSpeed = 1.0
-        isElevated = false
         selectedBuilding = nil
         selectedVenuePOI = poi
         venueTargetPOIId = poi.id
@@ -316,7 +404,7 @@ final class DiscoverViewModel: ObservableObject {
         case .cityFocused:
             withAnimation(.easeInOut(duration: 0.5)) {
                 state = .worldMap
-                cameraPosition = .camera(DiscoverViewModel.indonesiaCamera)
+                cameraPosition = .camera(DiscoverViewModel.europeCamera)
             }
         case .worldMap:
             break

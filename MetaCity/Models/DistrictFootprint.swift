@@ -29,6 +29,33 @@ enum BuildingStyle: String, Codable {
     /// terracotta roofs darker than Dutch colonial, amber lantern glow at night.
     /// Applies to Malioboro and Kraton in Yogyakarta. Do not conflate with `colonial` (Dutch).
     case javanese
+    /// Haussmann-era Parisian limestone building — cream/beige cut stone facade, mansard zinc roof.
+    /// The dominant typology of Paris (c. 1853–1927), Bordeaux centre, and other French cities
+    /// rebuilt under the Second Empire. Visually unmistakable: pale stone walls, grey zinc attic.
+    case haussmannien
+    /// Medieval/half-timber urban fabric — Vieux-Rennes pan-de-bois, Breton granite townhouses.
+    /// White plaster or granite walls, steep pitched tile roofs in dark brown/dark red.
+    case medieval
+    /// Bordeaux classical limestone — calcaire à astéries (shelly Gironde limestone), distinctly
+    /// warmer amber-gold than Parisian Lutetian cream. Low-pitch (~30°) Provençal canal-tile roof.
+    /// The UNESCO Port de la Lune fabric: Place de la Bourse, Cours de l'Intendance, quays.
+    case bordelaisClassical
+    /// London stock brick — fired yellow-buff clay brick, the dominant Victorian/Georgian material
+    /// of the City of London's non-tower fabric. Leadenhall Market, Cornhill, Cheapside terrace rows.
+    /// Rougher and warmer than Parisian limestone. Shallow (~25°) pitched slate roof with long ridge.
+    /// Height promotion NOT bypassed: City of London glass towers should auto-promote to modernGlass.
+    case londonBrick
+    /// 19th-century Madrid Ensanche apartment block — limestone/sandstone render in a warm golden-beige
+    /// distinctly warmer than Parisian haussmannien cream. The Salamanca grid, Calle Serrano, the
+    /// barrios of Argüelles and Chueca. Flat azotea rooftop — NO hip roof cap, no mansard.
+    /// Do NOT add madrileño to capStyles.
+    case madrileño
+    /// Roman tuff/brick and ochre render plaster — the dominant wall surface of Rome's historic core.
+    /// Warm sienna-amber finish on tuff-block substrate. Campo de' Fiori, Piazza Navona surrounds,
+    /// the Ghetto fabric. Canal-tile roof at 35°.
+    /// Do NOT raise B channel above 0.40 — the low blue (B≈0.32) distinguishes Rome ochre from
+    /// bordelaisClassical amber and madrileño golden-beige.
+    case romanOchre
 }
 
 /// A real OpenStreetMap building footprint, simplified and classified by
@@ -105,6 +132,12 @@ extension BuildingStyle {
         case .religious:      return "Religious"
         case .balinese:       return "Balinese"
         case .javanese:       return "Javanese"
+        case .haussmannien:        return "Haussmannien"
+        case .medieval:            return "Médiéval"
+        case .bordelaisClassical:  return "Bordelais"
+        case .londonBrick:         return "London Brick"
+        case .madrileño:           return "Madrileño"
+        case .romanOchre:          return "Roman Ochre"
         }
     }
 
@@ -117,6 +150,12 @@ extension BuildingStyle {
         case .religious:      return "moon.fill"
         case .balinese:       return "flame.fill"
         case .javanese:       return "archivebox.fill"
+        case .haussmannien:       return "building.2.fill"
+        case .medieval:           return "house.lodge.fill"
+        case .bordelaisClassical: return "building.columns.fill"
+        case .londonBrick:        return "house.fill"
+        case .madrileño:          return "building.2.fill"
+        case .romanOchre:         return "building.columns.circle.fill"
         }
     }
 }

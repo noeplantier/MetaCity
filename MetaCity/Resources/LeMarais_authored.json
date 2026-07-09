@@ -1,0 +1,25 @@
+{
+  "districtId": "LeMarais",
+  "overrides": [
+    {
+      "osmID": "20326709",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "22870791",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "55503397",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 42.0
+    },
+    {
+      "osmID": "201611261",
+      "style": "religious"
+    }
+  ]
+}
