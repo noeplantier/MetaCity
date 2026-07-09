@@ -14,7 +14,6 @@ struct PlaceAnnotationItem: Identifiable, Equatable {
     let subtitle: String
     let coordinate: Coordinate
     let category: PlaceCategory
-    let city: IndonesianCity
 
     /// The bundled `District` JSON name (see `MetaCity/Resources/Districts/`) this landmark has
     /// real, OpenStreetMap-derived 3D coverage for, if any. Landmarks without a curated district

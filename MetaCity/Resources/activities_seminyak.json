@@ -1,0 +1,83 @@
+{
+  "cityId": "seminyak",
+  "activities": [
+    {
+      "id": "seminyak_sunset_beach_club",
+      "name": "Sunset at Potato Head Beach Club",
+      "category": "nightlife",
+      "tier": "premium",
+      "description": "Bali's most iconic sunset ritual: stake a daybed by the infinity pool at Potato Head, order a signature cocktail as the sun drops over the Indian Ocean at 18:05. Book daybed in advance from April to October.",
+      "area": "Seminyak",
+      "priceRange": "$$$",
+      "duration": "3h",
+      "latitude": -8.6843,
+      "longitude": 115.1607,
+      "officialURL": "https://www.ptthead.com/"
+    },
+    {
+      "id": "seminyak_fine_dining",
+      "name": "Fine Dining at Métis",
+      "category": "eat",
+      "tier": "premium",
+      "description": "Award-winning French-Mediterranean tasting menu in a restored colonial villa surrounded by paddy fields. The gallery's rotating collection of Indonesian contemporary art is viewable pre-dinner. Reserve 48h in advance.",
+      "area": "Seminyak",
+      "priceRange": "$$$$",
+      "duration": "2.5h",
+      "latitude": -8.6830,
+      "longitude": 115.1660,
+      "officialURL": "https://www.metisbali.com/"
+    },
+    {
+      "id": "seminyak_spa_como",
+      "name": "COMO Shambhala Spa",
+      "category": "wellness",
+      "tier": "premium",
+      "description": "COMO's flagship Bali spa at the Uma Canggu property — Ayurvedic treatments, Javanese lulur, COMO Shambhala products. The signature 2-hour Essential COMO Experience combines full-body massage, scalp treatment, and facial ritual.",
+      "area": "Seminyak",
+      "priceRange": "$$$$",
+      "duration": "2h",
+      "latitude": -8.6448,
+      "longitude": 115.1330,
+      "officialURL": "https://www.comohotels.com/como-uma-canggu"
+    },
+    {
+      "id": "seminyak_temple_visit",
+      "name": "Sunrise at Pura Petitenget",
+      "category": "explore",
+      "tier": "standard",
+      "description": "One of Bali's six most sacred sea temples, Pura Petitenget sits on the spiritual axis connecting Tanah Lot to Uluwatu. Visit at sunrise before the beach crowds arrive — respectful dress (sarong + sash) required, available to borrow at the gate.",
+      "area": "Seminyak",
+      "priceRange": "Free",
+      "duration": "1h",
+      "latitude": -8.6835,
+      "longitude": 115.1606,
+      "officialURL": null
+    },
+    {
+      "id": "seminyak_surf_lesson",
+      "name": "Surf Lesson on Seminyak Beach",
+      "category": "sport",
+      "tier": "standard",
+      "description": "The beach break north of Pura Petitenget is slightly more powerful than Kuta — good for intermediates who've already stood. Local schools run small-group lessons from 07:00 daily, including board and rash vest.",
+      "area": "Seminyak",
+      "priceRange": "$$",
+      "duration": "2h",
+      "latitude": -8.6838,
+      "longitude": 115.1614,
+      "officialURL": "https://www.prosurfbali.com/"
+    },
+    {
+      "id": "seminyak_market_shopping",
+      "name": "Boutique Shopping on Seminyak Square",
+      "category": "shopping",
+      "tier": "standard",
+      "description": "Seminyak Square and Jalan Laksmana host Bali's premium fashion boutiques: Biasa, Magali Pascal, Ciel, and dozens of local designer labels. Best browsed between 10:00–13:00 before the afternoon heat peaks.",
+      "area": "Seminyak",
+      "priceRange": "$$-$$$",
+      "duration": "2h",
+      "latitude": -8.6857,
+      "longitude": 115.1641,
+      "officialURL": null
+    }
+  ]
+}

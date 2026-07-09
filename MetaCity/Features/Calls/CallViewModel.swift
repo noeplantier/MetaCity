@@ -4,6 +4,7 @@ import Foundation
 final class CallViewModel: ObservableObject {
     @Published var rooms: [CallRoom] = []
     @Published var contacts: [CallContact] = []
+    @Published private(set) var tourismContacts: [TourismContact] = []
     @Published var callState: CallState = .idle
     @Published var newRoomName: String = ""
     @Published var presentedSnackbar: SnackbarMessage?
@@ -14,13 +15,16 @@ final class CallViewModel: ObservableObject {
     /// capture exists).
     @Published var isSpeakerOn = false
     @Published var isFrontCamera = true
-    /// Seconds since `.connected` was first reached for the current call — drives the timer label
-    /// in `InCallView`. Reset to 0 whenever the call leaves `.connected`.
-    @Published var elapsedSeconds = 0
+    /// When the current call first reached `.connected` — `nil` whenever not on a connected call.
+    /// `InCallView`'s timer reads this once and ticks its own display via `TimelineView`, rather
+    /// than this ViewModel publishing a new value every second: a per-second `@Published` was
+    /// re-evaluating the *entire* `InCallView` body every tick (remote video, control bar, all of
+    /// it) for a one-line label, the exact "broad `@Published` update for one subview" pattern
+    /// worth avoiding — see CLAUDE.md's performance notes.
+    @Published private(set) var callStartDate: Date?
 
     private let callService: CallService
     private let joinCallUseCase: JoinCallUseCase
-    private var timerTask: Task<Void, Never>?
 
     init(callService: CallService, joinCallUseCase: JoinCallUseCase) {
         self.callService = callService
@@ -40,30 +44,12 @@ final class CallViewModel: ObservableObject {
                     self.presentedSnackbar = SnackbarMessage(text: error.localizedDescription, style: .error)
                 }
                 if state.isConnected && !wasConnected {
-                    self.startTimer()
+                    self.callStartDate = Date()
                 } else if !state.isConnected && wasConnected {
-                    self.stopTimer()
+                    self.callStartDate = nil
                 }
             }
         }
-    }
-
-    private func startTimer() {
-        elapsedSeconds = 0
-        timerTask?.cancel()
-        timerTask = Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                guard !Task.isCancelled else { return }
-                self?.elapsedSeconds += 1
-            }
-        }
-    }
-
-    private func stopTimer() {
-        timerTask?.cancel()
-        timerTask = nil
-        elapsedSeconds = 0
     }
 
     func loadRooms() async {
@@ -82,6 +68,12 @@ final class CallViewModel: ObservableObject {
         } catch {
             presentedSnackbar = SnackbarMessage(text: "Couldn't load contacts.", style: .error)
         }
+    }
+
+    /// Loads real tourism contacts from `contacts_<cityId>.json` in the bundle.
+    /// Defaults to Jakarta if no city is focused in the Discover tab.
+    func loadTourismContacts(for cityId: String = "jakarta") {
+        tourismContacts = TourismContact.load(for: cityId)
     }
 
     func createAndJoinRoom() async {

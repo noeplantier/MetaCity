@@ -35,10 +35,19 @@ USER_AGENT = "MetaCityResearch/1.0 (educational iOS app prototype)"
 # not in it falls back to the building:levels-based or style-based estimate below, both flagged
 # isHeightEstimated=true so the app never claims false precision.
 KNOWN_HEIGHTS_METERS = {
+    # Jakarta / Kota Tua
     "Museum Sejarah Jakarta": 13,  # former Stadhuis (Batavia town hall), two-storey Dutch colonial landmark
     "Wayang Museum": 11,
     "Museum BNI": 14,
     "Gedoeng BNI": 20,  # building:levels=5 confirms a taller bank building than the surrounding shophouses
+    # Canggu / Bali — hand-verified from satellite + street-level imagery
+    "COMO Uma Canggu": 20,          # 5-storey luxury resort with rooftop pool
+    "The Slow Hotel": 15,           # 4-storey boutique hotel, Jalan Canggu
+    "Finns Recreation Club": 12,    # 3-storey sports centre, Berawa
+    "Atlas Beach Club": 8,          # 2-storey beach club (large footprint, low profile)
+    "La Brisa Bali": 6,             # open pavilion structure, Berawa Beach
+    "Deus Ex Machina": 7,           # 2-storey compound with mezzanine
+    "Canggu Club": 9,               # 2-storey sports club with pool wing
 }
 
 STYLE_BY_BUILDING_TAG = {
@@ -70,6 +79,8 @@ def fetch_overpass(bbox, cache_path):
       way["leisure"="park"]({south},{west},{north},{east});
       way["landuse"]({south},{west},{north},{east});
       way["natural"="water"]({south},{west},{north},{east});
+      way["natural"="beach"]({south},{west},{north},{east});
+      way["natural"="scrub"]({south},{west},{north},{east});
       way["tourism"="museum"]({south},{west},{north},{east});
       way["amenity"="museum"]({south},{west},{north},{east});
       node["tourism"="museum"]({south},{west},{north},{east});
@@ -203,25 +214,20 @@ def preliminary_height(tags, name):
     return None, True
 
 
-def classify_style(tags, height_hint):
+def classify_style(tags, height_hint, default_style="colonial"):
     building_tag = tags.get("building")
     if building_tag in STYLE_BY_BUILDING_TAG:
         return STYLE_BY_BUILDING_TAG[building_tag]
     if tags.get("amenity") == "museum" or tags.get("tourism") == "museum":
         return "government"
-    # No definitive tag. A real height signal overrides the area's generic low-rise default —
-    # colonial-era Jakarta buildings essentially never exceed ~3 storeys, so anything genuinely
-    # tall (real `building:levels`, not an estimate) is modern construction regardless of district
-    # character. This is what stopped Sudirman-Thamrin's actual towers (Hotel Indonesia Kempinski,
-    # Keraton at The Plaza, ...) from being misclassified as colonial stucco.
-    if height_hint is not None and height_hint > 20:
-        return "modernGlass"
-    # Otherwise fall back to the district's predominant unlabeled-building character — colonial
-    # for Kota Tua/Menteng's low-rise infill, which is the common case across most named buildings
-    # actually checked so far. Districts with a different generic infill character should pass
-    # `--default-style` (not yet needed in practice — revisit if a future district's anonymous
-    # buildings read wrong).
-    return "colonial"
+    # Real height signal overrides district-character fallback.
+    # Thresholds from CLAUDE.md: ≥30m → modernGlass, ≥15m → modernConcrete, else default.
+    if height_hint is not None:
+        if height_hint >= 30:
+            return "modernGlass"
+        if height_hint >= 15:
+            return "modernConcrete"
+    return default_style
 
 
 def estimate_height(height_hint, is_estimated, style):
@@ -231,7 +237,7 @@ def estimate_height(height_hint, is_estimated, style):
     return base, True
 
 
-def process_buildings(elements, anchor_lat, anchor_lon):
+def process_buildings(elements, anchor_lat, anchor_lon, default_style="colonial"):
     out = []
     seen_ids = set()
     for el in elements:
@@ -251,7 +257,7 @@ def process_buildings(elements, anchor_lat, anchor_lon):
         points = simplify([project(p["lat"], p["lon"], anchor_lat, anchor_lon) for p in geometry])
         name = tags.get("name")
         prelim_height, is_estimated = preliminary_height(tags, name)
-        style = classify_style(tags, prelim_height)
+        style = classify_style(tags, prelim_height, default_style)
         height, estimated = estimate_height(prelim_height, is_estimated, style)
         out.append({
             "name": name,
@@ -283,11 +289,32 @@ def process_roads(elements, anchor_lat, anchor_lon):
     return out
 
 
+def _green_zone_kind(tags):
+    natural = tags.get("natural")
+    landuse = tags.get("landuse")
+    if natural == "beach":                           return "natural=beach"
+    if natural in ("scrub",):                        return "natural=scrub"
+    if natural == "wood":                            return "landuse=forest"
+    if landuse == "farmland":                        return "landuse=farmland"
+    if landuse == "orchard":                         return "landuse=orchard"
+    if landuse == "meadow":                          return "landuse=meadow"
+    if landuse == "forest":                          return "landuse=forest"
+    if landuse == "allotments":                      return "landuse=allotments"
+    return "leisure=park"
+
+
 def process_green_zones(elements, anchor_lat, anchor_lon):
     out = []
     for el in elements:
         tags = el.get("tags", {})
-        is_green = tags.get("leisure") == "park" or tags.get("landuse") in ("grass", "recreation_ground", "village_green")
+        is_green = (
+            tags.get("leisure") == "park"
+            or tags.get("natural") in ("beach", "scrub", "wood")
+            or tags.get("landuse") in (
+                "grass", "recreation_ground", "village_green",
+                "farmland", "orchard", "meadow", "forest", "allotments",
+            )
+        )
         if not is_green:
             continue
         geometry = el.get("geometry")
@@ -296,6 +323,7 @@ def process_green_zones(elements, anchor_lat, anchor_lon):
         points = [project(p["lat"], p["lon"], anchor_lat, anchor_lon) for p in geometry]
         out.append({
             "name": tags.get("name"),
+            "kind": _green_zone_kind(tags),
             "polygon": [{"x": round(x, 2), "z": round(z, 2)} for x, z in points],
             "osmID": str(el["id"]),
         })
@@ -309,13 +337,18 @@ def main():
     parser.add_argument("--anchor", nargs=2, type=float, required=True, metavar=("LAT", "LON"))
     parser.add_argument("--out", required=True)
     parser.add_argument("--cache", default=None, help="Raw Overpass response cache path (skips network if present)")
+    parser.add_argument(
+        "--default-style", default="colonial",
+        help="BuildingStyle applied to any building whose OSM tags and height both fail to determine a style. "
+             "Use 'balinese' for Bali districts, 'colonial' (default) for Jakarta/Bandung/Yogya."
+    )
     args = parser.parse_args()
 
     data = fetch_overpass(args.bbox, args.cache)
     elements = data["elements"]
     anchor_lat, anchor_lon = args.anchor
 
-    buildings = process_buildings(elements, anchor_lat, anchor_lon)
+    buildings = process_buildings(elements, anchor_lat, anchor_lon, default_style=args.default_style)
     apply_named_point_landmarks(elements, buildings, anchor_lat, anchor_lon)
     roads = process_roads(elements, anchor_lat, anchor_lon)
     green_zones = process_green_zones(elements, anchor_lat, anchor_lon)

@@ -1,0 +1,83 @@
+{
+  "cityId": "kuta",
+  "activities": [
+    {
+      "id": "kuta_surf_lesson",
+      "name": "Surf Lesson at Kuta Beach",
+      "category": "sport",
+      "tier": "standard",
+      "description": "Kuta's beach break is the easiest learning wave in Bali — consistent knee-to-waist-high shore-break, professional ISA-certified instructors, foam boards included. Group lessons at 08:00 and 14:00.",
+      "area": "Kuta",
+      "priceRange": "$",
+      "duration": "2h",
+      "latitude": -8.7181,
+      "longitude": 115.1660,
+      "officialURL": "https://www.prosurfbali.com/"
+    },
+    {
+      "id": "waterbom_full_day",
+      "name": "Full Day at Waterbom Bali",
+      "category": "explore",
+      "tier": "premium",
+      "description": "Asia's top-rated water park for multiple consecutive years: 37 slides including the Climax (vertical free-fall), Superbowl (360° loop), and Lazy River over 3.8 ha of manicured tropical gardens. All-inclusive wristband.",
+      "area": "Kuta",
+      "priceRange": "$$$",
+      "duration": "Full day",
+      "latitude": -8.7196,
+      "longitude": 115.1688,
+      "officialURL": "https://www.waterbom-bali.com/"
+    },
+    {
+      "id": "kuta_sunset_walk",
+      "name": "Kuta Sunset Walk",
+      "category": "explore",
+      "tier": "standard",
+      "description": "Stroll 4km of black volcanic sand from Kuta to Legian at sunset — Bali's most accessible ocean sunset, free, no reservation needed. Vendors sell corn on the cob and coconuts along the way.",
+      "area": "Kuta",
+      "priceRange": "Free",
+      "duration": "1.5h",
+      "latitude": -8.7183,
+      "longitude": 115.1659,
+      "officialURL": null
+    },
+    {
+      "id": "kuta_nightlife",
+      "name": "Kuta Nightlife: Legian Street",
+      "category": "nightlife",
+      "tier": "standard",
+      "description": "The most concentrated strip of nightlife in Bali: Sky Garden (6 floors), Bounty (2,000 capacity replica ship), Apache (live reggae, no cover), Mango's (rooftop terrace). Best from 22:00 onwards.",
+      "area": "Kuta",
+      "priceRange": "$$",
+      "duration": "4h",
+      "latitude": -8.7187,
+      "longitude": 115.1698,
+      "officialURL": "https://www.skygardenbali.com/"
+    },
+    {
+      "id": "kuta_spa_session",
+      "name": "Traditional Balinese Spa",
+      "category": "wellness",
+      "tier": "standard",
+      "description": "One-hour Balinese massage with hot stone and lemongrass oil at one of Kuta's dozens of garden spas. Book walk-in on Popples Lane or Poppies Lane II — rates start at $10 USD.",
+      "area": "Kuta",
+      "priceRange": "$",
+      "duration": "1h",
+      "latitude": -8.7195,
+      "longitude": 115.1690,
+      "officialURL": null
+    },
+    {
+      "id": "krisna_shopping",
+      "name": "Krisna Souvenir Shopping",
+      "category": "shopping",
+      "tier": "standard",
+      "description": "Three floors of Balinese handicrafts, batik, silver jewellery, branded food products, and resort wear. Fixed prices (no bargaining needed), huge selection, and air-conditioned — the most efficient one-stop souvenir shop in Bali.",
+      "area": "Kuta",
+      "priceRange": "$-$$",
+      "duration": "1.5h",
+      "latitude": -8.7062,
+      "longitude": 115.1685,
+      "officialURL": "https://www.krisnabali.co.id/"
+    }
+  ]
+}

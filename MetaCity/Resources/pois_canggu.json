@@ -1,0 +1,455 @@
+{
+  "districtId": "Canggu",
+  "pois": [
+    {
+      "id": "batu_bolong_beach",
+      "name": "Batu Bolong Beach",
+      "category": "beach",
+      "tier": "standard",
+      "latitude": -8.6493,
+      "longitude": 115.1258,
+      "description": "Canggu's most popular beach and surf break. Black volcanic sand, consistent waves, and a temple perched on the headland.",
+      "partnerURL": null
+    },
+    {
+      "id": "pura_batu_bolong",
+      "name": "Pura Batu Bolong",
+      "category": "temple",
+      "tier": "standard",
+      "latitude": -8.6502,
+      "longitude": 115.1252,
+      "description": "Sea temple perched on a volcanic rock outcrop at Batu Bolong Beach. Ceremonies held at sunset.",
+      "partnerURL": null
+    },
+    {
+      "id": "echo_beach",
+      "name": "Echo Beach",
+      "category": "beach",
+      "tier": "standard",
+      "latitude": -8.6405,
+      "longitude": 115.1205,
+      "description": "Long beach with strong beach-break surf, lined with warung restaurants and surf shops.",
+      "partnerURL": null
+    },
+    {
+      "id": "old_mans",
+      "name": "Old Man's",
+      "category": "surf",
+      "tier": "featured",
+      "latitude": -8.6408,
+      "longitude": 115.1218,
+      "description": "Canggu's iconic surf bar and beach club with a mellow wave ideal for beginners.",
+      "approachBearing": 270,
+      "approachDistance": 40,
+      "partnerURL": "https://www.oldmansbali.com/"
+    },
+    {
+      "id": "berawa_beach",
+      "name": "Berawa Beach",
+      "category": "beach",
+      "tier": "standard",
+      "latitude": -8.6534,
+      "longitude": 115.1375,
+      "description": "Quieter beach south of Batu Bolong, home to several beach clubs and a strong shore-break.",
+      "partnerURL": null
+    },
+    {
+      "id": "como_uma",
+      "name": "COMO Uma Canggu",
+      "category": "hotel",
+      "tier": "featured",
+      "latitude": -8.6448,
+      "longitude": 115.1330,
+      "description": "Luxury beachside resort with minimalist Balinese architecture, COMO Shambhala Retreat spa, and a rooftop pool.",
+      "partnerURL": "https://www.comohotels.com/como-uma-canggu"
+    },
+    {
+      "id": "the_layar",
+      "name": "The Layar",
+      "category": "villa",
+      "tier": "standard",
+      "latitude": -8.6435,
+      "longitude": 115.1312,
+      "description": "Award-winning private villa estate with 16 villas, tropical gardens, and a staffed experience.",
+      "partnerURL": "https://thelayar.com/"
+    },
+    {
+      "id": "the_slow",
+      "name": "The Slow",
+      "category": "hotel",
+      "tier": "featured",
+      "latitude": -8.6462,
+      "longitude": 115.1328,
+      "description": "Artisan boutique hotel with eight unique suites, a rooftop bar, and an art-forward design.",
+      "partnerURL": "https://theslow.com/"
+    },
+    {
+      "id": "finns_rec",
+      "name": "Finns Recreation Club",
+      "category": "beach",
+      "tier": "featured",
+      "latitude": -8.6510,
+      "longitude": 115.1330,
+      "description": "Bali's largest recreation club: pools, gym, squash, restaurant, and beach club at Berawa.",
+      "partnerURL": "https://finnsrecreationclub.com/"
+    },
+    {
+      "id": "la_brisa",
+      "name": "La Brisa",
+      "category": "beach",
+      "tier": "featured",
+      "latitude": -8.6598,
+      "longitude": 115.1400,
+      "description": "Bohemian beach club built from 500 recycled fishing boats. Signature cocktails and sunset dining.",
+      "approachBearing": 270,
+      "approachDistance": 60,
+      "partnerURL": "https://www.labrisabali.com/"
+    },
+    {
+      "id": "satu_satu",
+      "name": "Satu-Satu",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.6490,
+      "longitude": 115.1332,
+      "description": "Third-wave coffee specialty bar in a bamboo-roofed compound. Single-origin roasts from Java and Flores.",
+      "partnerURL": null
+    },
+    {
+      "id": "sensorium",
+      "name": "Sensorium",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.6505,
+      "longitude": 115.1300,
+      "description": "Café and cocktail bar in a tropical garden. Known for creative mocktails and plant-forward brunch.",
+      "partnerURL": null
+    },
+    {
+      "id": "shady_shack",
+      "name": "The Shady Shack",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": -8.6598,
+      "longitude": 115.1325,
+      "description": "Beloved plant-based restaurant with an open-air garden, colourful smoothie bowls, and rice plates.",
+      "partnerURL": null
+    },
+    {
+      "id": "shelter",
+      "name": "Shelter Restaurant",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": -8.6478,
+      "longitude": 115.1323,
+      "description": "Modern Asian dining under a soaring bamboo roof. Weekend brunch is a Canggu institution.",
+      "partnerURL": null
+    },
+    {
+      "id": "motion_canggu",
+      "name": "Motion",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.6470,
+      "longitude": 115.1358,
+      "description": "Café and co-working space popular with digital nomads. Reliable wifi, iced matcha, and light meals.",
+      "partnerURL": null
+    },
+    {
+      "id": "brunch_club",
+      "name": "Brunch Club Bali",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.6462,
+      "longitude": 115.1332,
+      "description": "Casual all-day dining venue with giant acai bowls, smashed avo, and freshly pressed juice.",
+      "partnerURL": null
+    },
+    {
+      "id": "nook",
+      "name": "Nook Canggu",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": -8.6480,
+      "longitude": 115.1340,
+      "description": "Perched above a rice field, this café serves healthy bowls and Western brunch against a green backdrop.",
+      "partnerURL": null
+    },
+    {
+      "id": "sprout",
+      "name": "Sprout",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.6500,
+      "longitude": 115.1312,
+      "description": "Tiny wellness café focused on cold-press juice, raw desserts, and organic superfood plates.",
+      "partnerURL": null
+    },
+    {
+      "id": "deus_ex_machina",
+      "name": "Deus Ex Machina",
+      "category": "shop",
+      "tier": "featured",
+      "latitude": -8.6492,
+      "longitude": 115.1325,
+      "description": "Cult motorcycle-surf brand compound: café, barber, surf shop, and custom bike workshop in one complex.",
+      "partnerURL": "https://deuscustoms.com/"
+    },
+    {
+      "id": "peloton",
+      "name": "Peloton Supershop",
+      "category": "sport",
+      "tier": "standard",
+      "latitude": -8.6498,
+      "longitude": 115.1315,
+      "description": "Cycling concept store with high-end bikes, gear, and a popular café frequented by Canggu cyclists.",
+      "partnerURL": null
+    },
+    {
+      "id": "love_anchor",
+      "name": "Love Anchor Market",
+      "category": "shop",
+      "tier": "featured",
+      "latitude": -8.6472,
+      "longitude": 115.1305,
+      "description": "Open-air market and boutique strip with vintage clothing, local designer labels, and surf apparel.",
+      "approachBearing": 90,
+      "approachDistance": 30,
+      "partnerURL": "https://www.loveanchorbali.com/"
+    },
+    {
+      "id": "desa_seni",
+      "name": "Desa Seni",
+      "category": "wellness",
+      "tier": "featured",
+      "latitude": -8.6440,
+      "longitude": 115.1358,
+      "description": "Boutique eco-resort and yoga village with daily classes in a garden of antique Javanese houses.",
+      "partnerURL": "https://desaseni.com/"
+    },
+    {
+      "id": "samadi_bali",
+      "name": "Samadi Bali",
+      "category": "wellness",
+      "tier": "standard",
+      "latitude": -8.6442,
+      "longitude": 115.1348,
+      "description": "Wellness centre, yoga studio, and organic market in a lush tropical compound.",
+      "partnerURL": "https://www.samadibali.com/"
+    },
+    {
+      "id": "radiantly_alive",
+      "name": "Radiantly Alive",
+      "category": "wellness",
+      "tier": "standard",
+      "latitude": -8.6482,
+      "longitude": 115.1348,
+      "description": "Respected yoga school offering drop-in classes, teacher training, and bodywork therapies.",
+      "partnerURL": "https://www.radiantlyalive.com/"
+    },
+    {
+      "id": "taksu_yoga",
+      "name": "Taksu Yoga",
+      "category": "wellness",
+      "tier": "standard",
+      "latitude": -8.6470,
+      "longitude": 115.1312,
+      "description": "Ocean-view yoga shala and spa with twice-daily classes and Balinese healing treatments.",
+      "partnerURL": null
+    },
+    {
+      "id": "canggu_club",
+      "name": "Canggu Club",
+      "category": "sport",
+      "tier": "standard",
+      "latitude": -8.6488,
+      "longitude": 115.1360,
+      "description": "Sports and leisure club with tennis, pool, gym, and a family-friendly restaurant.",
+      "partnerURL": "https://www.cangguclub.com/"
+    },
+    {
+      "id": "rip_curl_school",
+      "name": "Rip Curl School of Surf",
+      "category": "surf",
+      "tier": "standard",
+      "latitude": -8.6482,
+      "longitude": 115.1270,
+      "description": "Established surf school operating from Batu Bolong Beach. Beginner to advanced coaching.",
+      "partnerURL": "https://www.ripcurl.com/au/school-of-surf.html"
+    },
+    {
+      "id": "surf_goddess",
+      "name": "Surf Goddess",
+      "category": "surf",
+      "tier": "standard",
+      "latitude": -8.6490,
+      "longitude": 115.1265,
+      "description": "Women-focused surf retreat with daily surf lessons, yoga, and accommodation packages.",
+      "partnerURL": "https://surfgoddessretreats.com/"
+    },
+    {
+      "id": "odyssey_surf",
+      "name": "Odyssey Surf School",
+      "category": "surf",
+      "tier": "standard",
+      "latitude": -8.6438,
+      "longitude": 115.1258,
+      "description": "Small-group surf lessons at Echo Beach, run by local pro surfers with years of coaching experience.",
+      "partnerURL": null
+    },
+    {
+      "id": "pura_petitenget",
+      "name": "Pura Petitenget",
+      "category": "temple",
+      "tier": "standard",
+      "latitude": -8.6470,
+      "longitude": 115.1280,
+      "description": "Important sea temple on the Seminyak-Canggu boundary, part of Bali's spiritual sea-axis.",
+      "partnerURL": null
+    },
+    {
+      "id": "pura_dalem_canggu",
+      "name": "Pura Dalem Canggu",
+      "category": "temple",
+      "tier": "standard",
+      "latitude": -8.6480,
+      "longitude": 115.1332,
+      "description": "Village death temple at the heart of Canggu Banjar, decorated with elaborate stone carvings.",
+      "partnerURL": null
+    },
+    {
+      "id": "sandbar_canggu",
+      "name": "Sandbar Canggu",
+      "category": "nightlife",
+      "tier": "standard",
+      "latitude": -8.6502,
+      "longitude": 115.1358,
+      "description": "Open-air beach bar with fire shows, live DJ sets, and a sand floor. Packs out on weekend nights.",
+      "partnerURL": null
+    },
+    {
+      "id": "sea_circus",
+      "name": "Sea Circus",
+      "category": "nightlife",
+      "tier": "standard",
+      "latitude": -8.6485,
+      "longitude": 115.1325,
+      "description": "Eclectic bar and restaurant known for colourful interior, house music, and jumbo cocktails.",
+      "partnerURL": null
+    },
+    {
+      "id": "canggu_social",
+      "name": "Canggu Social",
+      "category": "nightlife",
+      "tier": "standard",
+      "latitude": -8.6478,
+      "longitude": 115.1342,
+      "description": "Sports bar with pool tables, craft beers on tap, and live sports screenings.",
+      "partnerURL": null
+    },
+    {
+      "id": "atlas_beach",
+      "name": "Atlas Beach Club",
+      "category": "beach",
+      "tier": "featured",
+      "latitude": -8.6625,
+      "longitude": 115.1418,
+      "description": "Claimed world's largest beach club: 10,000 sqm, 6 pools, and international DJ residencies.",
+      "approachBearing": 270,
+      "approachDistance": 50,
+      "partnerURL": "https://www.atlasbali.com/"
+    },
+    {
+      "id": "castaway",
+      "name": "Castaway Hostel",
+      "category": "hotel",
+      "tier": "standard",
+      "latitude": -8.6475,
+      "longitude": 115.1332,
+      "description": "Social hostel with a pool and rooftop bar. A hub for backpackers and solo travellers in Canggu.",
+      "partnerURL": null
+    },
+    {
+      "id": "rice_fields_walk",
+      "name": "Canggu Rice Fields Walk",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": -8.6440,
+      "longitude": 115.1350,
+      "description": "Narrow paths through working rice terraces — the most iconic free experience in Canggu at sunrise.",
+      "partnerURL": null
+    },
+    {
+      "id": "umalas_stables",
+      "name": "Umalas Stables",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": -8.6438,
+      "longitude": 115.1370,
+      "description": "Horse-riding through rice fields and coastal paths. Sunset beach rides are most popular.",
+      "partnerURL": "https://www.umalasstables.com/"
+    },
+    {
+      "id": "canggu_flea",
+      "name": "Canggu Flea Market",
+      "category": "shop",
+      "tier": "standard",
+      "latitude": -8.6482,
+      "longitude": 115.1325,
+      "description": "Weekly outdoor market (Saturdays) with vintage clothing, jewellery, batik fabrics, and street food.",
+      "partnerURL": null
+    },
+    {
+      "id": "fins_diving",
+      "name": "Fins to Feathers Dive",
+      "category": "sport",
+      "tier": "standard",
+      "latitude": -8.6495,
+      "longitude": 115.1302,
+      "description": "Dive shop and freediving centre offering PADI courses and Bali-wide dive trips from Canggu.",
+      "partnerURL": null
+    },
+    {
+      "id": "avocado_factory",
+      "name": "The Avocado Factory",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": -8.6460,
+      "longitude": 115.1310,
+      "description": "The name says it all: 11 varieties of avocado toast, thick smoothies, and fresh-pressed green juice.",
+      "partnerURL": null
+    },
+    {
+      "id": "bali_bike_breakfast",
+      "name": "Bali Bike Breakfast",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": -8.6445,
+      "longitude": 115.1275,
+      "description": "Morning bicycle tour through Canggu rice paddies and traditional banjar villages with breakfast.",
+      "partnerURL": null
+    },
+    {
+      "id": "lacalita",
+      "name": "Lacalita Beach Bar",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": -8.6558,
+      "longitude": 115.1400,
+      "description": "Mexican-Caribbean beachfront restaurant at Berawa Beach. Frozen margaritas and fresh ceviche.",
+      "partnerURL": null
+    },
+    {
+      "id": "lawn_canggu",
+      "name": "The Lawn",
+      "category": "beach",
+      "tier": "featured",
+      "latitude": -8.6585,
+      "longitude": 115.1297,
+      "description": "Beachfront lawn bar with stunning sunset views, regular live music, and a buzzing happy hour.",
+      "approachBearing": 270,
+      "approachDistance": 50,
+      "partnerURL": "https://thelawncanggu.com/"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+ "districtId": "Canggu",
+ "overrides": [
+  { "nameMatch": "Old Man's",         "roofType": "thatched" },
+  { "nameMatch": "The Lawn",          "roofType": "thatched" },
+  { "nameMatch": "Atlas Super Club",  "roofType": "thatched" },
+  { "nameMatch": "Pura Dalem Prancak","roofType": "conical"  },
+  { "nameMatch": "Pura Dalem Tandeg", "roofType": "conical"  },
+  { "nameMatch": "Pura Ulun Suwi",    "roofType": "conical"  },
+  { "nameMatch": "Masjid Al Hasanah", "roofType": "dome"     },
+  { "nameMatch": "Castaway Hostel",   "roofType": "thatched" },
+  { "nameMatch": "Tugu",              "roofType": "dome"     },
+  { "nameMatch": "Serenity Yoga",     "roofType": "conical"  }
+ ]
+}

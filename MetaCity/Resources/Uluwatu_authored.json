@@ -1,0 +1,11 @@
+{
+  "overrides": [
+    { "nameMatch": "Entrance to Uluwatu temple", "roofType": "conical"  },
+    { "nameMatch": "Single Fin",                 "roofType": "thatched" },
+    { "nameMatch": "Lounge Deck",                "roofType": "thatched" },
+    { "nameMatch": "The Chapel",                 "roofType": "dome"     },
+    { "nameMatch": "Ayodhya Uluwatu",            "roofType": "flat"     },
+    { "nameMatch": "Soma Aesthetics",            "roofType": "conical"  },
+    { "nameMatch": "Freefall Surf",              "roofType": "thatched" }
+  ]
+}

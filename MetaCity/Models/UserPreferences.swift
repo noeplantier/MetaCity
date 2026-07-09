@@ -15,6 +15,11 @@ struct UserPreferences: Codable, Equatable {
     var isProfilePublic: Bool
     var isLocationSharingEnabled: Bool
     var isBiometricLockEnabled: Bool
+    /// District IDs (matching `DistrictEntry.id`) the user has opened the 3D inspector for.
+    /// Set by `DiscoverViewModel.selectDistrict` on every 3D open — persisted immediately
+    /// (not debounced) since this is a rare, meaningful action. Shown as "passport stamps" on
+    /// the Profile travel passport view.
+    var visitedDistrictIds: Set<String>
 
     static let `default` = UserPreferences(
         avatarSymbol: "face.smiling",
@@ -22,7 +27,8 @@ struct UserPreferences: Codable, Equatable {
         bio: "",
         isProfilePublic: false,
         isLocationSharingEnabled: false,
-        isBiometricLockEnabled: false
+        isBiometricLockEnabled: false,
+        visitedDistrictIds: []
     )
 
     /// SF Symbols, not emoji — see `Avatar.systemImage`'s doc comment for why.

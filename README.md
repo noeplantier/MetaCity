@@ -39,7 +39,6 @@ MetaCity/
 ├── Models/          plain entities — zero framework imports
 ├── Repositories/    protocols only (the contracts: AuthRepository, MapRepository, CallService, ...)
 ├── Services/        concrete implementations of those protocols (mocks today, real backends later)
-├── Networking/      reserved for real API/Firebase/WebRTC clients (empty until Phase 2+)
 ├── DesignSystem/     colors, typography, spacing, reusable components
 └── Features/         Explore/ Map/ AR/ Calls/ Profile/ Auth/ Home/ — one folder per screen
 ```

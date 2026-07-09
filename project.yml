@@ -35,7 +35,7 @@ targets:
           UIApplicationSupportsMultipleScenes: false
         NSLocationWhenInUseUsageDescription: "MetaCity uses your location to center the map, find nearby landmarks, and power live presence."
         NSLocationAlwaysAndWhenInUseUsageDescription: "MetaCity can keep showing your position to nearby friends while the app is in the background."
-        NSCameraUsageDescription: "MetaCity needs camera access for video calls and to power the AR landmark experience."
+        NSCameraUsageDescription: "MetaCity needs camera access for video calls."
         NSMicrophoneUsageDescription: "MetaCity needs microphone access so other participants can hear you on a call."
         NSFaceIDUsageDescription: "MetaCity can use Face ID to lock your profile when you enable it in Profile > Security."
         CFBundleURLTypes:

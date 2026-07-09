@@ -6,6 +6,18 @@ struct CallLobbyView: View {
     var body: some View {
         NavigationStack {
             List {
+                if !viewModel.tourismContacts.isEmpty {
+                    Section {
+                        ForEach(viewModel.tourismContacts) { contact in
+                            TourismContactRow(contact: contact)
+                        }
+                    } header: {
+                        SectionHeader(title: "Tourism Contacts")
+                    }
+                    .textCase(nil)
+                    .listRowBackground(Color.metacitySurface)
+                }
+
                 Section {
                     contactsContent
                 } header: {
@@ -45,6 +57,7 @@ struct CallLobbyView: View {
             .task {
                 await viewModel.loadRooms()
                 await viewModel.loadContacts()
+                viewModel.loadTourismContacts()
             }
             .refreshable { await viewModel.loadRooms() }
             .snackbar($viewModel.presentedSnackbar)
@@ -148,6 +161,59 @@ struct CallLobbyView: View {
                 }
             }
         )
+    }
+}
+
+private struct TourismContactRow: View {
+    let contact: TourismContact
+
+    var body: some View {
+        HStack(alignment: .center, spacing: Spacing.md) {
+            ZStack {
+                Circle()
+                    .fill(Color.metacitySurfaceElevated)
+                    .frame(width: 44, height: 44)
+                Text(contact.avatarEmoji)
+                    .font(.title3)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(contact.name)
+                    .font(.metacityHeadline)
+                    .foregroundStyle(Color.metacityTextPrimary)
+                Text(contact.role)
+                    .font(.metacityCaption)
+                    .foregroundStyle(Color.metacityTextSecondary)
+                Text(contact.organization)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.metacityTextTertiary)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: Spacing.xs)
+
+            HStack(spacing: Spacing.sm) {
+                if let phone = contact.phoneURL {
+                    Link(destination: phone) {
+                        Image(systemName: "phone.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.metacityPrimary)
+                            .frame(width: 36, height: 36)
+                            .background(Color.metacityPrimary.opacity(0.12), in: Circle())
+                    }
+                }
+                if let wa = contact.whatsappURL {
+                    Link(destination: wa) {
+                        Image(systemName: "message.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.green)
+                            .frame(width: 36, height: 36)
+                            .background(Color.green.opacity(0.12), in: Circle())
+                    }
+                }
+            }
+        }
+        .padding(.vertical, Spacing.xs)
     }
 }
 

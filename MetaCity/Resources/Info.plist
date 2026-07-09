@@ -28,7 +28,7 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSCameraUsageDescription</key>
-	<string>MetaCity needs camera access for video calls and to power the AR landmark experience.</string>
+	<string>MetaCity needs camera access for video calls.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>MetaCity can use Face ID to lock your profile when you enable it in Profile &gt; Security.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

@@ -1,67 +1,73 @@
 import SwiftUI
 
-/// Single place where every feature tab is assembled and wired to its dependencies — adding a new
-/// tab means adding one `@StateObject` here and one `make...ViewModel()` in `AppEnvironment`.
-///
-/// Every ViewModel is created once via `@StateObject` in `init`, not inline as `@ObservedObject`
-/// arguments — see the note in `RootView` for why that distinction matters (it's what keeps the map
-/// camera, the in-call state, etc. from resetting whenever this view's body re-evaluates).
 struct HomeTabView: View {
-    @ObservedObject private var session: SessionStore
-    @ObservedObject private var selectionStore: AppSelectionStore
-    @StateObject private var exploreViewModel: ExploreViewModel
-    @StateObject private var mapViewModel: MapViewModel
-    @StateObject private var arViewModel: ARViewModel
-    @StateObject private var callViewModel: CallViewModel
+    @StateObject private var discoverViewModel: DiscoverViewModel
+    @StateObject private var placesViewModel: PlacesViewModel
+    @StateObject private var activitiesViewModel: ActivitiesViewModel
+    @StateObject private var contactsViewModel: ContactsViewModel
     @StateObject private var profileViewModel: ProfileViewModel
-    @State private var selectedTab: AppTab = .explore
+    @State private var selectedTab: AppTab = .discover
 
     init(environment: AppEnvironment, session: SessionStore) {
-        self.session = session
-        self.selectionStore = environment.selectionStore
-        _exploreViewModel = StateObject(wrappedValue: environment.makeExploreViewModel(session: session))
-        _mapViewModel = StateObject(wrappedValue: environment.makeMapViewModel())
-        _arViewModel = StateObject(wrappedValue: environment.makeARViewModel())
-        _callViewModel = StateObject(wrappedValue: environment.makeCallViewModel())
-        _profileViewModel = StateObject(wrappedValue: environment.makeProfileViewModel(session: session))
+        _discoverViewModel = StateObject(wrappedValue: environment.makeDiscoverViewModel())
+        _placesViewModel   = StateObject(wrappedValue: PlacesViewModel())
+        _activitiesViewModel = StateObject(wrappedValue: ActivitiesViewModel())
+        _contactsViewModel = StateObject(wrappedValue: ContactsViewModel())
+        _profileViewModel  = StateObject(wrappedValue: environment.makeProfileViewModel(session: session))
     }
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            ExploreScreenView(viewModel: exploreViewModel)
-                .tabItem { Label("Explore", systemImage: "safari.fill") }
-                .tag(AppTab.explore)
+            DiscoverView(viewModel: discoverViewModel)
+                .tabItem { Label("Discover", systemImage: "globe.asia.australia.fill") }
+                .tag(AppTab.discover)
 
-            MapScreenView(viewModel: mapViewModel)
-                .tabItem { Label("Map", systemImage: "map.fill") }
-                .tag(AppTab.map)
+            PlacesView(
+                viewModel: placesViewModel,
+                discoverViewModel: discoverViewModel,
+                selectedTab: $selectedTab
+            )
+            .tabItem { Label("Places", systemImage: "map.fill") }
+            .tag(AppTab.places)
 
-            ARScreenView(viewModel: arViewModel)
-                .tabItem { Label("AR", systemImage: "arkit") }
-                .tag(AppTab.ar)
+            ActivitiesView(viewModel: activitiesViewModel)
+                .tabItem { Label("Activités", systemImage: "ticket.fill") }
+                .tag(AppTab.activities)
 
-            CallLobbyView(viewModel: callViewModel)
-                .tabItem { Label("Calls", systemImage: "phone.fill") }
-                .tag(AppTab.calls)
+            ContactsView(viewModel: contactsViewModel)
+                .tabItem { Label("Contacts", systemImage: "person.2.fill") }
+                .tag(AppTab.contacts)
 
             ProfileView(viewModel: profileViewModel)
                 .tabItem { Label("Profile", systemImage: "person.fill") }
                 .tag(AppTab.profile)
         }
         .tint(Color.metacityPrimary)
-        // One-shot signal: Map's "View in AR" (or any future entry point) sets `requestedTab` on
-        // the shared store; consuming it here and resetting to nil stops it from re-firing on an
-        // unrelated re-render, and keeps Map/AR from needing to know about each other or about
-        // this tab view directly.
-        .onChange(of: selectionStore.requestedTab) { _, requestedTab in
-            guard let requestedTab else { return }
-            selectedTab = requestedTab
-            selectionStore.requestedTab = nil
+        .onChange(of: selectedTab) { _, newTab in
+            if newTab == .activities, let city = discoverViewModel.focusedCity {
+                activitiesViewModel.selectCity(city)
+            }
+            if newTab == .places, let city = discoverViewModel.focusedCity {
+                placesViewModel.loadPlaces(for: city)
+            }
+            if newTab == .contacts, let city = discoverViewModel.focusedCity {
+                contactsViewModel.selectCity(city.id)
+            }
+        }
+        .onChange(of: discoverViewModel.selectedDistrict) { _, newDistrict in
+            if let id = newDistrict?.id {
+                profileViewModel.markVisited(id)
+            }
+        }
+        .onAppear {
+            let env = ProcessInfo.processInfo.environment
+            if env["UITEST_OPEN_DISTRICT"] != nil || env["UITEST_OPEN_CITY"] != nil {
+                selectedTab = .discover
+            }
         }
     }
 }
 
 #Preview {
-    let environment = AppEnvironment()
-    HomeTabView(environment: environment, session: SessionStore(authRepository: MockAuthRepository()))
+    HomeTabView(environment: AppEnvironment(), session: SessionStore(authRepository: MockAuthRepository()))
 }

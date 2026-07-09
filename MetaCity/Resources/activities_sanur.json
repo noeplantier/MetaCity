@@ -1,0 +1,83 @@
+{
+  "cityId": "sanur",
+  "activities": [
+    {
+      "id": "sanur_sunrise_walk",
+      "name": "Sanur Beach Sunrise Walk",
+      "category": "explore",
+      "tier": "standard",
+      "description": "Sanur faces east — the only beach in Bali where the sunrise is unobstructed. Walk the 5km beachfront promenade from Pura Blanjong to Mertasari Beach before 06:30 for a crowd-free golden hour over the strait toward Nusa Penida.",
+      "area": "Sanur",
+      "priceRange": "$",
+      "duration": "1.5h",
+      "latitude": -8.710,
+      "longitude": 115.264,
+      "officialURL": null
+    },
+    {
+      "id": "sanur_crystal_bay_snorkel",
+      "name": "Day Trip to Nusa Penida",
+      "category": "explore",
+      "tier": "premium",
+      "description": "Fast boat from Sanur harbour to Nusa Penida: Kelingking sea-cliff viewpoint, Crystal Bay snorkelling over coral gardens, and Broken Beach natural arch. Boats depart 07:00–09:00; journey ~45 min. Book the combined snorkel + viewpoint tour.",
+      "area": "Sanur Harbour",
+      "priceRange": "$$",
+      "duration": "Full day",
+      "latitude": -8.719,
+      "longitude": 115.259,
+      "officialURL": "https://www.peramaboat.com/"
+    },
+    {
+      "id": "sanur_warung_ibu_oka",
+      "name": "Dinner at Café Batu Jimbar",
+      "category": "eat",
+      "tier": "premium",
+      "description": "Sanur's most enduring garden restaurant — open-air pavilions under frangipanis, Indonesian-fusion menu, and a wine list unusual for this price tier. Saturday evening jazz sets. Reservations recommended.",
+      "area": "Sanur",
+      "priceRange": "$$",
+      "duration": "2h",
+      "latitude": -8.7113,
+      "longitude": 115.2625,
+      "officialURL": null
+    },
+    {
+      "id": "sanur_spa_cove_dahayu",
+      "name": "Cove Dahayu Sanctuary",
+      "category": "wellness",
+      "tier": "premium",
+      "description": "Boutique spa set inside a restored Dutch colonial villa — four treatment rooms, traditional Balinese boreh scrub, and coconut-milk bath. No walk-ins: advance booking required. 90-min Harmony Journey recommended.",
+      "area": "Sanur",
+      "priceRange": "$$$",
+      "duration": "90 min",
+      "latitude": -8.7152,
+      "longitude": 115.2618,
+      "officialURL": null
+    },
+    {
+      "id": "sanur_power_of_now",
+      "name": "Yoga at Power Of Now Oasis",
+      "category": "wellness",
+      "tier": "standard",
+      "description": "Beachfront yoga studio directly on Sanur beach. Morning Hatha at 07:00, Vinyasa at 09:00. Drop-in welcome. The open-air shala has an unobstructed view over the Lombok Strait — sessions run regardless of weather.",
+      "area": "Sanur",
+      "priceRange": "$",
+      "duration": "1.5h",
+      "latitude": -8.7121,
+      "longitude": 115.2632,
+      "officialURL": "https://powerofnowoasis.com/"
+    },
+    {
+      "id": "sanur_bike_paths",
+      "name": "Sanur–Gianyar Cycling Route",
+      "category": "sport",
+      "tier": "standard",
+      "description": "30km flat coastal cycling route north through Lebih and Gianyar rice fields. Rent hybrid bikes at Sanur promenade (from ~$5/day). The road shoulder is wide and traffic light past Lebih. Bring water — no convenience stores for 15km past Kusamba.",
+      "area": "Sanur",
+      "priceRange": "$",
+      "duration": "4h",
+      "latitude": -8.706,
+      "longitude": 115.262,
+      "officialURL": null
+    }
+  ]
+}

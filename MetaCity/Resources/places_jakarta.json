@@ -1,0 +1,118 @@
+{
+  "cityId": "jakarta",
+  "places": [
+    {
+      "id": "kota_tua_jakarta",
+      "name": "Kota Tua",
+      "type": "heritage",
+      "cityId": "jakarta",
+      "districtId": "KotaTua",
+      "coordinate": { "latitude": -6.1352, "longitude": 106.8133 },
+      "description": "Jakarta's old Dutch colonial quarter. Fatahillah Square is ringed by 18th-century warehouses turned into museums, galleries, and street-side cafés — the best-preserved colonial core in Southeast Asia.",
+      "highlights": [
+        "Museum Sejarah Jakarta, the former Batavia town hall (1710)",
+        "Historic harbour warehouses along Sunda Kelapa",
+        "Café Batavia overlooking the square, serving since 1805",
+        "Ondel-ondel puppet performances on weekends"
+      ],
+      "category": "explore",
+      "tags": ["colonial", "museum", "history", "architecture"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "bundaran_hi_jakarta",
+      "name": "Bundaran HI",
+      "type": "neighborhood",
+      "cityId": "jakarta",
+      "districtId": "SudirmanThamrin",
+      "coordinate": { "latitude": -6.1944, "longitude": 106.8229 },
+      "description": "The pulsing heart of Jakarta's CBD. The Welcome Monument roundabout is flanked by Indonesia's tallest skyscrapers along a 4km corridor stretching south to Senayan.",
+      "highlights": [
+        "Welcome Monument — Jakarta's most iconic landmark",
+        "Menara BCA and Pacific Place tower cluster",
+        "Car-Free Day every Sunday morning on 26km of pedestrian roads",
+        "Grand Indonesia and Plaza Indonesia connected by a sky bridge"
+      ],
+      "category": "explore",
+      "tags": ["skyscrapers", "CBD", "shopping", "landmark"],
+      "isFeatured": true,
+      "priceRange": "$$"
+    },
+    {
+      "id": "kemang_jakarta",
+      "name": "Kemang",
+      "type": "nightlife",
+      "cityId": "jakarta",
+      "districtId": "Kemang",
+      "coordinate": { "latitude": -6.2611, "longitude": 106.8145 },
+      "description": "Jakarta's most cosmopolitan neighbourhood — a dense grid of boutique restaurants, rooftop bars, art galleries, and independent boutiques favoured by expats and creative locals.",
+      "highlights": [
+        "Jalan Kemang Raya's 2km strip of restaurants and bars",
+        "Rooftop cocktail venues overlooking South Jakarta",
+        "Independent fashion boutiques and design studios",
+        "Weekend Kemang Timur flea market"
+      ],
+      "category": "nightlife",
+      "tags": ["restaurants", "bars", "nightlife", "boutiques"],
+      "isFeatured": false,
+      "priceRange": "$$"
+    },
+    {
+      "id": "menteng_jakarta",
+      "name": "Menteng",
+      "type": "heritage",
+      "cityId": "jakarta",
+      "districtId": "Menteng",
+      "coordinate": { "latitude": -6.2058, "longitude": 106.8371 },
+      "description": "Jakarta's original Dutch colonial residential suburb. Wide tree-lined avenues lead to Taman Suropati at its centre — the most elegant park in the city.",
+      "highlights": [
+        "Taman Suropati, Jakarta's finest colonial public garden",
+        "Art deco embassies and ministerial residences",
+        "Barack Obama's childhood neighbourhood",
+        "Jalan Diponegoro antiques and heritage row"
+      ],
+      "category": "explore",
+      "tags": ["colonial", "parks", "architecture", "history"],
+      "isFeatured": false,
+      "priceRange": "$"
+    },
+    {
+      "id": "ancol_jakarta",
+      "name": "Ancol Dreamland",
+      "type": "nature",
+      "cityId": "jakarta",
+      "districtId": "Ancol",
+      "coordinate": { "latitude": -6.1258, "longitude": 106.8346 },
+      "description": "Jakarta's largest beachfront recreation park — art markets, a full marina, and the city's only direct sea access, just 30 minutes from the CBD.",
+      "highlights": [
+        "Pasar Seni art village with 50+ Indonesian artists' studios",
+        "Marina Ancol for weekend boat and yacht departures",
+        "Atlantis Water Adventure and Dufan amusement park",
+        "Jakarta's longest accessible bay view at sunset"
+      ],
+      "category": "explore",
+      "tags": ["beach", "recreation", "family", "art"],
+      "isFeatured": false,
+      "priceRange": "$$"
+    },
+    {
+      "id": "glodok_jakarta",
+      "name": "Glodok — Pecinan",
+      "type": "cultural",
+      "cityId": "jakarta",
+      "coordinate": { "latitude": -6.148, "longitude": 106.814 },
+      "description": "Jakarta's Chinatown — a labyrinth of covered lanes, traditional medicine shops, temple incense, and night food stalls that hasn't changed since the 1700s.",
+      "highlights": [
+        "Jin De Yuan Temple, Jakarta's oldest Chinese temple (1755)",
+        "Petak Sembilan traditional market",
+        "Night food market with Hainanese chicken rice and hand-pulled noodles",
+        "Electronics and rare hardware quarter"
+      ],
+      "category": "explore",
+      "tags": ["chinatown", "temple", "food", "market"],
+      "isFeatured": false,
+      "priceRange": "$"
+    }
+  ]
+}

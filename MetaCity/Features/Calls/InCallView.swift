@@ -40,8 +40,8 @@ struct InCallView: View {
                 HStack {
                     statusBadge
                     Spacer()
-                    if case .connected = viewModel.callState {
-                        timerBadge
+                    if let callStartDate = viewModel.callStartDate {
+                        CallTimerBadge(startDate: callStartDate)
                     }
                 }
                 .padding()
@@ -112,25 +112,6 @@ struct InCallView: View {
         }
     }
 
-    private var timerBadge: some View {
-        HStack(spacing: 5) {
-            Image(systemName: "circle.fill")
-                .font(.system(size: 7))
-                .foregroundStyle(.red)
-            Text(formattedDuration)
-                .font(.metacityCaption.monospacedDigit())
-        }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xs)
-        .background(Capsule().fill(.black.opacity(0.4)))
-        .foregroundStyle(.white)
-    }
-
-    private var formattedDuration: String {
-        let minutes = viewModel.elapsedSeconds / 60
-        let seconds = viewModel.elapsedSeconds % 60
-        return String(format: "%02d:%02d", minutes, seconds)
-    }
 
     private var controlBar: some View {
         HStack(spacing: Spacing.lg) {
@@ -270,6 +251,34 @@ private struct RingingView: View {
                 }
             }
         }
+    }
+}
+
+/// Self-ticking call-duration label. Owns its own per-second updates via `TimelineView` instead of
+/// reading a `@Published` counter from `CallViewModel` — only this small badge re-renders each
+/// second, not the whole `InCallView` (remote video, control bar, everything else stays untouched).
+private struct CallTimerBadge: View {
+    let startDate: Date
+
+    var body: some View {
+        TimelineView(.periodic(from: startDate, by: 1)) { context in
+            HStack(spacing: 5) {
+                Image(systemName: "circle.fill")
+                    .font(.system(size: 7))
+                    .foregroundStyle(.red)
+                Text(formattedDuration(at: context.date))
+                    .font(.metacityCaption.monospacedDigit())
+            }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .background(Capsule().fill(.black.opacity(0.4)))
+            .foregroundStyle(.white)
+        }
+    }
+
+    private func formattedDuration(at now: Date) -> String {
+        let elapsed = max(0, Int(now.timeIntervalSince(startDate)))
+        return String(format: "%02d:%02d", elapsed / 60, elapsed % 60)
     }
 }
 

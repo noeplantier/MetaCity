@@ -14,6 +14,7 @@ final class SessionStore: ObservableObject {
     }
 
     func restoreExistingSession() async {
+        guard currentUser == nil else { return }  // already signed in (e.g., UITEST_SKIP_AUTH flag)
         currentUser = await authRepository.currentUser()
     }
 

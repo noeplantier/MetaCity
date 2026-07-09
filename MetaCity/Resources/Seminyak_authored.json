@@ -1,0 +1,25 @@
+{
+  "districtId": "Seminyak",
+  "overrides": [
+    { "nameMatch": "Pura Petitenget",            "roofType": "conical"  },
+    { "nameMatch": "Pura Masceti",               "roofType": "conical"  },
+    { "nameMatch": "Pura Desa Seminyak",         "roofType": "conical"  },
+    { "nameMatch": "Pura Basangkasa",            "roofType": "conical"  },
+    { "nameMatch": "Masjid",                     "roofType": "dome"     },
+    { "nameMatch": "Mosque",                     "roofType": "dome"     },
+    { "nameMatch": "KU DE TA",                   "roofType": "thatched" },
+    { "nameMatch": "Ku De Ta",                   "roofType": "thatched" },
+    { "nameMatch": "La Plancha",                 "roofType": "thatched" },
+    { "nameMatch": "Potato Head",                "roofType": "flat"     },
+    { "nameMatch": "W Bali",                     "roofType": "flat"     },
+    { "nameMatch": "W Retreat",                  "roofType": "flat"     },
+    { "nameMatch": "Métis",                      "roofType": "thatched" },
+    { "nameMatch": "Metis",                      "roofType": "thatched" },
+    { "nameMatch": "Sardine",                    "roofType": "thatched" },
+    { "nameMatch": "Mama San",                   "roofType": "flat"     },
+    { "nameMatch": "Merah Putih",                "roofType": "flat"     },
+    { "nameMatch": "Unit Seminyak",              "roofType": "thatched" },
+    { "nameMatch": "Mirror",                     "roofType": "flat"     },
+    { "nameMatch": "Biku",                       "roofType": "hip"      }
+  ]
+}
