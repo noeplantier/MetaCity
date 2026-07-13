@@ -792,7 +792,7 @@
               },
               "focusBuildingName": "Marine Building",
               "moodKey": "vancouverCoastal",
-              "dataBundled": false,
+              "dataBundled": true,
               "dataPath": "Districts/VancouverDowntown.json"
             },
             {
@@ -810,7 +810,7 @@
               },
               "focusBuildingName": "Roedde House Museum",
               "moodKey": "vancouverCoastal",
-              "dataBundled": false,
+              "dataBundled": true,
               "dataPath": "Districts/WestEnd.json"
             }
           ]
@@ -842,7 +842,7 @@
               },
               "focusBuildingName": "Transamerica Pyramid",
               "moodKey": "sfMorning",
-              "dataBundled": false,
+              "dataBundled": true,
               "dataPath": "Districts/SFDowntown.json"
             },
             {
@@ -858,9 +858,9 @@
                 "north": 37.813,
                 "east": -122.408
               },
-              "focusBuildingName": "Ghirardelli Square",
+              "focusBuildingName": "Ghirardelli Chocolate Experience",
               "moodKey": "sfMorning",
-              "dataBundled": false,
+              "dataBundled": true,
               "dataPath": "Districts/FishermansWharf.json"
             }
           ]
@@ -892,7 +892,7 @@
               },
               "focusBuildingName": "Chrysler Building",
               "moodKey": "nycDusk",
-              "dataBundled": false,
+              "dataBundled": true,
               "dataPath": "Districts/MidtownManhattan.json"
             },
             {
@@ -910,7 +910,7 @@
               },
               "focusBuildingName": "One World Trade Center",
               "moodKey": "nycDusk",
-              "dataBundled": false,
+              "dataBundled": true,
               "dataPath": "Districts/LowerManhattan.json"
             }
           ]

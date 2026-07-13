@@ -1,0 +1,65 @@
+{
+  "districtId": "LowerManhattan",
+  "overrides": [
+    {
+      "osmID": "713565776",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "166839381",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "278033587",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "277890516",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "279530782",
+      "style": "modernConcrete",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "75363809",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "278042250",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "278053520",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Brooklyn Bridge",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Federal Hall",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Trinity Church",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "St. Paul",
+      "style": "religious",
+      "roofType": "flat"
+    }
+  ]
+}

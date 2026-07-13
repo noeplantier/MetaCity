@@ -1,0 +1,85 @@
+{
+  "districtId": "MidtownManhattan",
+  "overrides": [
+    {
+      "osmID": "265875648",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "86216914",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "261504062",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "636861359",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "137564642",
+      "style": "modernConcrete",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "1240347246",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "413056165",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "osmID": "265947366",
+      "style": "nycBrick",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "30 Rock",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "30 Rockefeller",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Hearst Tower",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "United Nations",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Chrysler Building",
+      "style": "nycBrick",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Empire State Building",
+      "style": "nycBrick",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Grand Central Terminal",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Saint Patrick",
+      "style": "religious",
+      "roofType": "flat"
+    }
+  ]
+}
