@@ -760,6 +760,162 @@
           ]
         }
       ]
+    },
+    {
+      "id": "northAmerica",
+      "displayName": "North America",
+      "cities": [
+        {
+          "id": "vancouver",
+          "displayName": "Vancouver",
+          "shortName": "YVR",
+          "anchor": {
+            "latitude": 49.2827,
+            "longitude": -123.1207
+          },
+          "mapZoomRadius": 8000,
+          "markerColor": "#4A7FA5",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "VancouverDowntown",
+              "displayName": "Downtown",
+              "anchor": {
+                "latitude": 49.2827,
+                "longitude": -123.1207
+              },
+              "boundingBox": {
+                "south": 49.276,
+                "west": -123.137,
+                "north": 49.292,
+                "east": -123.110
+              },
+              "focusBuildingName": "Marine Building",
+              "moodKey": "vancouverCoastal",
+              "dataBundled": false,
+              "dataPath": "Districts/VancouverDowntown.json"
+            },
+            {
+              "id": "WestEnd",
+              "displayName": "West End",
+              "anchor": {
+                "latitude": 49.2867,
+                "longitude": -123.1320
+              },
+              "boundingBox": {
+                "south": 49.280,
+                "west": -123.145,
+                "north": 49.294,
+                "east": -123.120
+              },
+              "focusBuildingName": "Roedde House Museum",
+              "moodKey": "vancouverCoastal",
+              "dataBundled": false,
+              "dataPath": "Districts/WestEnd.json"
+            }
+          ]
+        },
+        {
+          "id": "sanfrancisco",
+          "displayName": "San Francisco",
+          "shortName": "SFO",
+          "anchor": {
+            "latitude": 37.7749,
+            "longitude": -122.4194
+          },
+          "mapZoomRadius": 8000,
+          "markerColor": "#E8A85A",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "SFDowntown",
+              "displayName": "Downtown / FiDi",
+              "anchor": {
+                "latitude": 37.7929,
+                "longitude": -122.3996
+              },
+              "boundingBox": {
+                "south": 37.786,
+                "west": -122.410,
+                "north": 37.800,
+                "east": -122.392
+              },
+              "focusBuildingName": "Transamerica Pyramid",
+              "moodKey": "sfMorning",
+              "dataBundled": false,
+              "dataPath": "Districts/SFDowntown.json"
+            },
+            {
+              "id": "FishermansWharf",
+              "displayName": "Fisherman's Wharf",
+              "anchor": {
+                "latitude": 37.8080,
+                "longitude": -122.4177
+              },
+              "boundingBox": {
+                "south": 37.803,
+                "west": -122.428,
+                "north": 37.813,
+                "east": -122.408
+              },
+              "focusBuildingName": "Ghirardelli Square",
+              "moodKey": "sfMorning",
+              "dataBundled": false,
+              "dataPath": "Districts/FishermansWharf.json"
+            }
+          ]
+        },
+        {
+          "id": "newyork",
+          "displayName": "New York",
+          "shortName": "NYC",
+          "anchor": {
+            "latitude": 40.7589,
+            "longitude": -73.9851
+          },
+          "mapZoomRadius": 8000,
+          "markerColor": "#8B6DBE",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "MidtownManhattan",
+              "displayName": "Midtown",
+              "anchor": {
+                "latitude": 40.7549,
+                "longitude": -73.9840
+              },
+              "boundingBox": {
+                "south": 40.748,
+                "west": -73.998,
+                "north": 40.762,
+                "east": -73.973
+              },
+              "focusBuildingName": "Chrysler Building",
+              "moodKey": "nycDusk",
+              "dataBundled": false,
+              "dataPath": "Districts/MidtownManhattan.json"
+            },
+            {
+              "id": "LowerManhattan",
+              "displayName": "Lower Manhattan",
+              "anchor": {
+                "latitude": 40.7074,
+                "longitude": -74.0113
+              },
+              "boundingBox": {
+                "south": 40.700,
+                "west": -74.022,
+                "north": 40.715,
+                "east": -74.000
+              },
+              "focusBuildingName": "One World Trade Center",
+              "moodKey": "nycDusk",
+              "dataBundled": false,
+              "dataPath": "Districts/LowerManhattan.json"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

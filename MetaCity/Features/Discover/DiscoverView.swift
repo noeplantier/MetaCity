@@ -828,6 +828,7 @@ private struct HUDBuildingCard: View {
         case .londonBrick:         return Color(red: 0.76, green: 0.60, blue: 0.42)  // warm buff London stock brick
         case .madrileño:           return Color(red: 0.88, green: 0.78, blue: 0.42)  // warm Madrid golden-beige
         case .romanOchre:          return Color(red: 0.78, green: 0.58, blue: 0.32)  // Roman sienna-amber ochre
+        case .nycBrick:            return Color(red: 0.72, green: 0.38, blue: 0.28)  // NYC red-brown fired brick
         }
     }
 

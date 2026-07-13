@@ -513,6 +513,52 @@ enum DistrictRealityKit {
             default:
                 mat.baseColor = .init(tint: UIColor(red: 0.38, green: 0.34, blue: 0.29, alpha: 1))
             }
+        case .vancouverCoastal:
+            // Vancouver — dark wet asphalt (Pacific North Coast — perpetually damp like London) +
+            // light concrete pedestrian zones. Similar to londonSilver but slightly cooler/greener tint.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.62, green: 0.62, blue: 0.60, alpha: 1))  // cool concrete
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.16, green: 0.17, blue: 0.18, alpha: 1))  // dark wet tarmac
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.20, green: 0.21, blue: 0.22, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.24, green: 0.25, blue: 0.26, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.28, green: 0.29, blue: 0.30, alpha: 1))
+            }
+        case .sfMorning:
+            // SF: warm cool-grey concrete (the city's dominant street surface) +
+            // cream sidewalks (concrete slabs, not stone). Tinted slightly warmer than Vancouver.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.68, green: 0.65, blue: 0.60, alpha: 1))  // warm concrete sidewalk
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.20, green: 0.19, blue: 0.18, alpha: 1))  // dark asphalt
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.26, green: 0.25, blue: 0.23, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.32, green: 0.30, blue: 0.28, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.36, green: 0.34, blue: 0.32, alpha: 1))
+            }
+        case .nycDusk:
+            // NYC dusk: dark near-black asphalt under dusk orange sky. Crosswalk / pedestrian
+            // zones slightly lighter warm concrete. The contrast between warm sky and near-black
+            // streets is the definitive Manhattan night-falls visual.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.42, green: 0.40, blue: 0.36, alpha: 1))  // warm concrete sidewalk
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.10, green: 0.10, blue: 0.11, alpha: 1))  // near-black NYC asphalt
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.14, green: 0.13, blue: 0.14, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.18, green: 0.17, blue: 0.18, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.22, green: 0.21, blue: 0.22, alpha: 1))
+            }
         default:
             // Jakarta / Bandung / Yogya: dark asphalt, graded by road class.
             switch kind {
@@ -645,6 +691,9 @@ enum DistrictRealityKit {
             case .londonSilver:       fallback = UIColor(red: 0.22, green: 0.22, blue: 0.25, alpha: 1)  // dark wet London tarmac
             case .madridAfternoon:    fallback = UIColor(red: 0.62, green: 0.56, blue: 0.44, alpha: 1)  // warm Madrid granite
             case .romanGoldenHour:    fallback = UIColor(red: 0.32, green: 0.26, blue: 0.20, alpha: 1)  // dark Roman sanpietrini basalt
+            case .vancouverCoastal:   fallback = UIColor(red: 0.22, green: 0.23, blue: 0.25, alpha: 1)  // dark wet Pacific Northwest concrete
+            case .sfMorning:          fallback = UIColor(red: 0.30, green: 0.28, blue: 0.26, alpha: 1)  // warm SF concrete sidewalk
+            case .nycDusk:            fallback = UIColor(red: 0.12, green: 0.11, blue: 0.12, alpha: 1)  // near-black NYC asphalt at dusk
             }
             umat.color = .init(tint: fallback)
         }
@@ -664,7 +713,7 @@ enum DistrictRealityKit {
     /// artifacts at oblique sun angles. Water at horizon reads as ambient colour — unlit is correct.
     @MainActor
     private static func makeWaterPlane(mood: DistrictRealityScene.Mood, extent: Float, center: (x: Float, z: Float), isNight: Bool) -> ModelEntity? {
-        guard mood == .beachResort || mood == .coastalPark else { return nil }
+        guard mood == .beachResort || mood == .coastalPark || mood == .vancouverCoastal || mood == .sfMorning else { return nil }
 
         let waterExt = extent * 5.0   // large enough to fill the sky-dome horizon visually
         let cx = center.x, cz = center.z
@@ -699,6 +748,18 @@ enum DistrictRealityKit {
             mat.color = .init(tint: isNight
                 ? UIColor(red: 0.04, green: 0.08, blue: 0.14, alpha: 1)
                 : UIColor(red: 0.14, green: 0.28, blue: 0.38, alpha: 1))
+        case .vancouverCoastal:
+            // Burrard Inlet / English Bay — cold Pacific deep blue-grey. Much cooler and deeper
+            // than Bali turquoise; the overcast Pacific light removes tropical brightness.
+            mat.color = .init(tint: isNight
+                ? UIColor(red: 0.04, green: 0.08, blue: 0.18, alpha: 1)
+                : UIColor(red: 0.10, green: 0.22, blue: 0.38, alpha: 1))
+        case .sfMorning:
+            // San Francisco Bay — cool medium blue-grey. Slightly lighter/warmer than Vancouver
+            // (morning sun on the Bay creates a silvery glint), but clearly cold-water Pacific.
+            mat.color = .init(tint: isNight
+                ? UIColor(red: 0.04, green: 0.09, blue: 0.20, alpha: 1)
+                : UIColor(red: 0.12, green: 0.28, blue: 0.44, alpha: 1))
         default:
             return nil
         }
@@ -970,6 +1031,40 @@ enum DistrictRealityKit {
                         g = UInt8(clamping: base - 2 + noise / 4)
                         b = UInt8(clamping: base - 6 + noise / 5)  // dark warm-grey basalt
                     }
+
+                case .vancouverCoastal:
+                    // Vancouver Downtown — dark cool wet concrete, Pacific Northwest character.
+                    // No stone paving grid here — Vancouver's streets are standard North American
+                    // poured concrete and asphalt. Subtle cool-blue tint from overcast sky reflection.
+                    let base = blockParity ? 64 : 54
+                    r = UInt8(clamping: base + noise / 5)
+                    g = UInt8(clamping: base + 1 + noise / 5)
+                    b = UInt8(clamping: base + 6 + noise / 3)  // cool Pacific sky reflection
+
+                case .sfMorning:
+                    // San Francisco Downtown / FiDi — warm medium concrete sidewalks.
+                    // SF has concrete paving typical of North American cities, but the morning
+                    // light gives it a warm cast (vs Vancouver's cool overcast). Slightly lighter.
+                    if isJoint {
+                        r = 76; g = 72; b = 66
+                    } else {
+                        let br = blockParity ? 112 : 98
+                        let bg = blockParity ? 106 : 93
+                        let bb = blockParity ? 94 : 82
+                        r = UInt8(clamping: br + noise / 3)
+                        g = UInt8(clamping: bg + noise / 4)
+                        b = UInt8(clamping: bb + noise / 5)
+                    }
+
+                case .nycDusk:
+                    // New York City — near-black asphalt at dusk. Manhattan streets are the
+                    // darkest ground in the app — thick layers of resurfaced blacktop absorb the
+                    // orange dusk sky completely. Almost featureless, like londonSilver but warmer
+                    // (slightly less blue-grey, slightly more warm dark from the dusk sky).
+                    let base = blockParity ? 36 : 28
+                    r = UInt8(clamping: base + 2 + noise / 6)  // faint warm tint from dusk orange
+                    g = UInt8(clamping: base + noise / 7)
+                    b = UInt8(clamping: base + noise / 8)
                 }
 
                 let i = (y * size + x) * 4
@@ -1614,16 +1709,24 @@ enum DistrictRealityKit {
     /// orbit camera (mostly looking down) reads the scene as architecturally rich rather than
     /// a sea of same-material boxes.
     private static func roofMaterialPreset(for style: BuildingStyle, isNight: Bool) -> any RealityKit.Material {
-        // modernGlass rooftops use UnlitMaterial for the same reason green zones do:
-        // ARView's non-removable studio IBL floods upward-facing PBR surfaces (normal=(0,1,0))
-        // with its full overhead ambient even at metallic=0.10 + roughness=0.70, rendering a
-        // grey (0.13) base as bright teal. UnlitMaterial sidesteps the IBL entirely.
-        // Architecturally correct — HVAC/gravel penthouse is not a specular surface.
+        // modernGlass + nycBrick rooftops use UnlitMaterial: ARView's non-removable studio IBL floods
+        // upward-facing PBR surfaces (normal=(0,1,0)) with overhead ambient even at low metallic,
+        // rendering near-black bases as bright teal. UnlitMaterial sidesteps the IBL entirely.
+        // Architecturally correct — HVAC/gravel/tar roof is not a specular surface.
         if style == .modernGlass {
             var m = UnlitMaterial()
             m.color = .init(tint: isNight
                 ? UIColor(red: 0.06, green: 0.08, blue: 0.15, alpha: 1) // dark cool-blue equipment glow
                 : UIColor(white: 0.10, alpha: 1))                         // dark charcoal HVAC deck
+            return m
+        }
+        if style == .nycBrick {
+            // NYC flat tar/EPDM roof — near-black membrane from orbit camera.
+            // UnlitMaterial: even metallic=0 PBR reads as teal on a flat black face under the studio IBL.
+            var m = UnlitMaterial()
+            m.color = .init(tint: isNight
+                ? UIColor(red: 0.05, green: 0.04, blue: 0.04, alpha: 1)  // near-black night roof
+                : UIColor(red: 0.12, green: 0.11, blue: 0.11, alpha: 1)) // very dark warm-grey tar membrane
             return m
         }
 
@@ -1639,8 +1742,8 @@ enum DistrictRealityKit {
             mat.metallic    = .init(floatLiteral: 0.0)
             mat.clearcoat   = .init(floatLiteral: 0.05)   // faint glaze from rain
             mat.clearcoatRoughness = .init(floatLiteral: 0.80)
-        case .modernGlass:
-            break   // handled above — unreachable
+        case .modernGlass, .nycBrick:
+            break   // both handled above by early UnlitMaterial return — unreachable
         case .modernConcrete:
             // Light grey concrete rooftop — typical of modern Jakarta residential/commercial.
             mat.baseColor   = .init(tint: UIColor(white: isNight ? 0.30 : 0.62, alpha: 1))
@@ -1794,6 +1897,7 @@ enum DistrictRealityKit {
         case .londonBrick:        (cols, rows, winW, winH, density) = (4,  7, 3, 4, 0.32)  // Victorian sash windows — tall, narrow panes, moderate density
         case .madrileño:          (cols, rows, winW, winH, density) = (5,  8, 3, 5, 0.38)  // Madrid balcony doors — tall French-door proportions, denser grid
         case .romanOchre:         (cols, rows, winW, winH, density) = (3,  5, 4, 5, 0.22)  // Roman palazzo windows — large tall arched openings, sparse
+        case .nycBrick:           (cols, rows, winW, winH, density) = (4,  6, 3, 4, 0.30)  // NYC double-hung sash — rectangular 4×6 grid, moderate density (~30% lit at night)
         }
         let cellW = size / cols, cellH = size / rows
         var seed: UInt32 = 2166136261
@@ -2015,6 +2119,23 @@ enum DistrictRealityKit {
             material.roughness = .init(floatLiteral: 0.78 + 0.08 * abs(wobble))  // rough tuff/render plaster
             material.clearcoat = .init(floatLiteral: 0.07)   // warm-rain sheen on ancient plaster
             material.clearcoatRoughness = .init(floatLiteral: 0.72)
+        case .nycBrick:
+            // New York City red-brown fired brick — the defining wall material of Manhattan's pre-war
+            // fabric: tenements, brownstones, and the limestone-clad office buildings of the 1900–1940s.
+            // Distinctly redder than London stock brick (yellow-buff, B≈0.38) and darker/more saturated
+            // than Roman ochre (sienna, B≈0.30). Low B channel (B≈0.20) + low G (G≈0.30) locks the
+            // warm red-brown identity across all three variation buckets.
+            // Three buckets: muted pale red / standard warm red-brown / deep terracotta-red.
+            let dayR = 0.56 + 0.06 * cgWobble  // 0.50–0.62 warm red-brown range
+            let dayG = 0.30 + 0.04 * cgWobble  // 0.26–0.34 — clearly lower than londonBrick (0.62)
+            let dayB = 0.20 + 0.04 * cgWobble  // 0.16–0.24 — lower than romanOchre (0.30)
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: dayR * 0.24, green: dayG * 0.24, blue: dayB * 0.24, alpha: 1)
+                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.0)
+            material.roughness = .init(floatLiteral: 0.88 + 0.05 * abs(wobble))  // rough fired common brick
+            material.clearcoat = .init(floatLiteral: 0.04)   // minimal — just a hint of rain-wet brick sheen
+            material.clearcoatRoughness = .init(floatLiteral: 0.86)
         }
 
         if isNight {
@@ -2047,6 +2168,7 @@ enum DistrictRealityKit {
                 case .londonBrick:         0.30  // London terrace — warm yellow-orange sodium streetlight glow
                 case .madrileño:           0.35  // Madrid terrace — warm incandescent balcony glow, moderate density
                 case .romanOchre:          0.22  // Rome historic core — intimate, lower electric density than Madrid
+                case .nycBrick:            0.34  // NYC tenements / brownstones — dense amber glow from apartment windows
                 default:                   0.35
                 }
                 material.emissiveColor     = .init(color: UIColor(red: 1.0, green: 0.84, blue: 0.55, alpha: 1))

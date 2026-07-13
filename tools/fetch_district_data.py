@@ -239,6 +239,129 @@ KNOWN_HEIGHTS_METERS = {
     "Castel Sant'Angelo": 48,           # cylindrical fortress
     "Chiesa di San Luigi dei Francesi": 22,
     "Tempio di Adriano": 15,            # surviving colonnade incorporated into Borsa
+
+    # -----------------------------------------------------------------------
+    # Vancouver — Downtown + West End benchmark districts
+    # Verified from CTBUH, City of Vancouver planning documents, Wikipedia.
+    # -----------------------------------------------------------------------
+    "Harbour Centre": 177,             # Vancouver Lookout tower (revolving restaurant top)
+    "Sheraton Vancouver Wall Centre": 137,   # tallest hotel in Vancouver (north tower)
+    "Wall Centre": 137,
+    "Trump International Hotel & Tower Vancouver": 188,  # tallest building in Vancouver
+    "Living Shangri-La": 201,          # residential supertall, tallest in BC
+    "Shangri-La": 201,
+    "MNP Tower": 152,                  # 1500 West Georgia
+    "Royal Centre": 140,               # mixed office tower
+    "Marine Building": 98,             # Art Deco landmark (1930), 23 storeys
+    "Burrard Building": 82,
+    "Hotel Vancouver": 88,             # chateau-style copper roof landmark
+    "The Fairmont Hotel Vancouver": 88,
+    "Fairmont Hotel Vancouver": 88,
+    "Christ Church Cathedral": 25,     # Gothic Revival, copper roof, very short
+    "Vancouver Art Gallery": 14,       # former courthouse (Robson Square) — low neoclassical
+    "Robson Square": 12,               # civic plaza
+    "The Bay": 28,                     # Hudson's Bay Company downtown store
+    "Canada Place": 30,                # convention centre / cruise ship terminal roof sails
+    "Pan Pacific Hotel": 117,          # tower adjacent to Canada Place
+    "Westin Bayshore": 128,            # Coal Harbour waterfront
+    "Coal Harbour Community Centre": 12,
+    "English Bay Beach": 8,            # any nominal building polygons on the beach
+    "Stanley Park Pavilion": 10,       # historic fieldhouse, very low
+
+    # -----------------------------------------------------------------------
+    # San Francisco — Downtown/FiDi + Fisherman's Wharf benchmark districts
+    # Verified from CTBUH, SF Planning Department, Wikipedia.
+    # -----------------------------------------------------------------------
+    "Transamerica Pyramid": 260,       # architectural height to tip (not broadcast antenna)
+    "555 California Street": 237,      # BofA Center / 52 floors
+    "Bank of America Center": 237,
+    "Salesforce Tower": 326,           # SF's tallest building (2018)
+    "First Market Tower": 183,         # 50 Fremont / 1st Market Tower
+    "One Market Plaza": 159,           # twin-tower office complex
+    "Embarcadero Center": 113,         # 4 towers; #4 is tallest
+    "Ferry Building": 75,              # clock tower (building body is ~13m)
+    "555 Mission Street": 181,         # UCSF Mission Bay adjacent
+    "101 California Street": 183,      # distinctive round top glass tower
+    "The Ritz-Carlton San Francisco": 77,
+    "Westin St. Francis": 76,          # Union Square landmark
+    "St. Francis Hotel": 76,
+    "Grace Cathedral": 90,             # Nob Hill cathedral — if in West End bbox
+    "Coit Tower": 64,                  # Telegraph Hill column + tower
+    "SF MOMA": 44,                     # Museum of Modern Art — stepped postmodern
+    "San Francisco Museum of Modern Art": 44,
+    "Ghirardelli Square": 12,          # historic chocolate factory complex — low 3-4 storey
+    "Pier 39": 10,                     # tourist pier — low structures
+    "Fisherman's Wharf": 8,            # nominal for any wharf building polygon
+    "The Cannery": 14,                 # Del Monte fruit cannery converted to retail — 3 storeys
+
+    # -----------------------------------------------------------------------
+    # New York City — Midtown Manhattan + Lower Manhattan benchmark districts
+    # Verified from CTBUH, Emporis, New York City Buildings database, Wikipedia.
+    # Heights to architectural top (no antennas/spires unless integral).
+    # -----------------------------------------------------------------------
+
+    # Midtown Manhattan supertalls + landmarks
+    "One Vanderbilt": 427,             # SL Green / KPF, 2020 (architectural top)
+    "One57": 306,                      # 157 West 57th St / Hyatt
+    "432 Park Avenue": 426,            # SLCE / CIM / DBOX, supertall residential
+    "111 West 57th Street": 435,       # Billionaires' Row pencil tower (under construction)
+    "Central Park Tower": 472,         # 217 West 57th, tallest by architectural height in US
+    "Empire State Building": 381,      # architectural top (no antenna); 102-floor observation
+    "Chrysler Building": 319,          # Art Deco crown + eagle gargoyles; no broadcasting antenna
+    "Rockefeller Center": 70,          # 30 Rock (70 Rockefeller Plaza) — the main 30-floor tower is 259m
+    "30 Rockefeller Plaza": 259,       # Comcast Building / NBC Studios (architectural top)
+    "30 Rock": 259,
+    "Rockefeller Plaza": 70,           # the plaza plinth buildings, not the tower
+    "Citigroup Center": 279,           # 601 Lexington / Citicorp Center / triangulated base
+    "885 Third Avenue": 163,           # Lipstick Building (Johnson/Burgee elliptical)
+    "MetLife Building": 246,           # 200 Park Avenue / Grand Central North face
+    "Pan Am Building": 246,            # historic name for MetLife Building
+    "Grand Central Terminal": 75,      # Beaux-Arts facade — low building (office tower above not directly mapped)
+    "New York Public Library": 22,     # Rose Main Reading Room block — 5 storeys
+    "St. Patrick's Cathedral": 101,    # Neo-Gothic spires (roof of nave only: 43m; spires 101m)
+    "St Patrick's Cathedral": 101,
+    "United Nations Headquarters": 97, # Secretariat glass curtain-wall slab
+    "UN Headquarters": 97,
+    "Lever House": 94,                 # Skidmore Owings & Merrill 1952 glass box
+    "Seagram Building": 157,           # Mies van der Rohe curtain-wall tower (Steetbee)
+    "432 Park Avenue": 426,
+    "Hearst Tower": 182,               # 57-floor Foster diagonal exoskeleton
+    "TimeWarner Center": 229,          # twin towers at Columbus Circle
+    "Time Warner Center": 229,
+    "One Columbus Circle": 229,
+
+    # Lower Manhattan supertalls + landmarks (FiDi/WTC/South Street)
+    "One World Trade Center": 541,     # architectural top to roof, not antenna
+    "1 World Trade Center": 541,
+    "Freedom Tower": 541,              # alternative name
+    "Two World Trade Center": 415,     # Bjarke Ingels (under construction/planned — use CTBUH)
+    "3 World Trade Center": 329,       # Rogers Stirk Harbour 2018
+    "Three World Trade Center": 329,
+    "4 World Trade Center": 298,       # Fumihiko Maki 2013
+    "Four World Trade Center": 298,
+    "World Trade Center": 541,         # generic label — map to tallest tower
+    "Flatiron Building": 87,           # 285 Broadway / Daniel Burnham — triangular plan
+    "New York Stock Exchange": 30,     # NYSE neoclassical 6-storey colonnade (the real building is low)
+    "Federal Hall": 16,                # Greek Revival / 4 storeys
+    "Fulton Center": 42,               # transit hub with glass oculus
+    "One New York Plaza": 211,         # 50-floor tower on Whitehall
+    "55 Water Street": 213,            # large mid-block office tower
+    "70 Pine Street": 290,             # Art Deco tower (NYC's 3rd tallest when built, 1932)
+    "40 Wall Street": 283,             # Trump Building / Bank of Manhattan (originally tallest in world)
+    "60 Wall Street": 242,             # JP Morgan Deutsche Bank tower
+    "4 New York Plaza": 175,
+    "One Financial Center": 175,
+    "Pier 17": 18,                     # Seaport District retail/entertainment pier (low)
+    "Brooklyn Bridge": 84,             # main towers (the bridge deck at 41m; stone towers to 84m)
+    "Manhattan Bridge": 87,
+    "Woolworth Building": 241,         # 233 Broadway, Neo-Gothic, 1913
+    "City Hall": 28,                   # NYC City Hall, French Renaissance + Federal, very low
+    "New York City Hall": 28,
+    "Municipal Building": 178,         # 1 Centre Street, McKim Mead White 1914
+    "Foley Square": 12,                # open plaza, nominal for any mapped polygon
+    "Fulton Street": 18,               # generic street-level retail
+    "Staten Island Ferry Terminal": 20,
+    "Stone Street": 10,                # historic district, low tavern row (2-3 storey)
 }
 
 STYLE_BY_BUILDING_TAG = {
@@ -466,7 +589,10 @@ def preliminary_height(tags, name):
 # romanOchre, and a 20m Haussmann block is still haussmannien.
 # londonBrick is NOT in this set: City of London's real glass towers (Gherkin 180m,
 # Cheesegrater 224m, 22 Bishopsgate 278m) should auto-promote to modernGlass.
-HEIGHT_PROMOTION_BYPASS = {"haussmannien", "medieval", "bordelaisClassical", "madrileño", "romanOchre"}
+HEIGHT_PROMOTION_BYPASS = {"haussmannien", "medieval", "bordelaisClassical", "madrileño", "romanOchre", "nycBrick"}
+# nycBrick added 2026-07-13: pre-war Manhattan limestone office towers (e.g. 70m 20-storey
+# Beaux-Arts blocks) must stay nycBrick, not auto-promote to modernGlass. Glass supertalls
+# (One WTC 541m, Chrysler 319m, etc.) are handled via authored overrides.
 
 def classify_style(tags, height_hint, default_style="colonial"):
     building_tag = tags.get("building")
@@ -518,6 +644,10 @@ def estimate_height(height_hint, is_estimated, style):
         # Rome historic-centre tuff/brick palazzo: typically 3-4 storeys ≈ 14m.
         # Lower and more varied in height than the gridded Haussmann fabric.
         return 14.0, True
+    if style == "nycBrick":
+        # NYC tenement/brownstone: typically 4-6 storeys ≈ 15m (4 × ~3.75m NYC floor height).
+        # Pre-war office buildings in Lower Manhattan run taller, but those get authored overrides.
+        return 15.0, True
     base = 9.0 if style == "government" else 7.0
     return base, True
 
