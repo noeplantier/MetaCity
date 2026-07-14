@@ -54,6 +54,19 @@ struct HomeTabView: View {
                 contactsViewModel.selectCity(city.id)
             }
         }
+        .onChange(of: activitiesViewModel.pendingDistrictId) { _, districtId in
+            guard let districtId else { return }
+            activitiesViewModel.clearPendingNavigation()
+            // Find the district and its parent city in the manifest.
+            let manifest = CityManifest.shared
+            guard let district = manifest.district(id: districtId),
+                  let city = manifest.allCities.first(where: { c in
+                      c.districts.contains { $0.id == districtId }
+                  })
+            else { return }
+            discoverViewModel.selectDistrict(district, in: city)
+            selectedTab = .discover
+        }
         .onChange(of: discoverViewModel.selectedDistrict) { _, newDistrict in
             if let id = newDistrict?.id {
                 profileViewModel.markVisited(id)

@@ -788,7 +788,7 @@
                 "south": 49.276,
                 "west": -123.137,
                 "north": 49.292,
-                "east": -123.110
+                "east": -123.11
               },
               "focusBuildingName": "Marine Building",
               "moodKey": "vancouverCoastal",
@@ -800,13 +800,13 @@
               "displayName": "West End",
               "anchor": {
                 "latitude": 49.2867,
-                "longitude": -123.1320
+                "longitude": -123.132
               },
               "boundingBox": {
-                "south": 49.280,
+                "south": 49.28,
                 "west": -123.145,
                 "north": 49.294,
-                "east": -123.120
+                "east": -123.12
               },
               "focusBuildingName": "Roedde House Museum",
               "moodKey": "vancouverCoastal",
@@ -836,8 +836,8 @@
               },
               "boundingBox": {
                 "south": 37.786,
-                "west": -122.410,
-                "north": 37.800,
+                "west": -122.41,
+                "north": 37.8,
                 "east": -122.392
               },
               "focusBuildingName": "Transamerica Pyramid",
@@ -849,7 +849,7 @@
               "id": "FishermansWharf",
               "displayName": "Fisherman's Wharf",
               "anchor": {
-                "latitude": 37.8080,
+                "latitude": 37.808,
                 "longitude": -122.4177
               },
               "boundingBox": {
@@ -882,7 +882,7 @@
               "displayName": "Midtown",
               "anchor": {
                 "latitude": 40.7549,
-                "longitude": -73.9840
+                "longitude": -73.984
               },
               "boundingBox": {
                 "south": 40.748,
@@ -903,15 +903,54 @@
                 "longitude": -74.0113
               },
               "boundingBox": {
-                "south": 40.700,
+                "south": 40.7,
                 "west": -74.022,
                 "north": 40.715,
-                "east": -74.000
+                "east": -74.0
               },
               "focusBuildingName": "One World Trade Center",
               "moodKey": "nycDusk",
               "dataBundled": true,
               "dataPath": "Districts/LowerManhattan.json"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eastAsia",
+      "displayName": "East Asia",
+      "cities": [
+        {
+          "id": "tokyo",
+          "displayName": "Tokyo",
+          "shortName": "TYO",
+          "anchor": {
+            "latitude": 35.6762,
+            "longitude": 139.6503
+          },
+          "mapZoomRadius": 12000,
+          "markerColor": "#E91E8C",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "Shibuya",
+              "displayName": "Shibuya",
+              "anchor": {
+                "latitude": 35.6601,
+                "longitude": 139.7009
+              },
+              "boundingBox": {
+                "south": 35.655,
+                "west": 139.694,
+                "north": 35.665,
+                "east": 139.708
+              },
+              "focusBuildingName": "Scramble Square",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": false,
+              "dataPath": "Districts/Shibuya.json",
+              "supportsAR": false
             }
           ]
         }

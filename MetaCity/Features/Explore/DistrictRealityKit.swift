@@ -233,7 +233,8 @@ enum DistrictRealityKit {
                 //   (duplicate vertices from Douglas-Peucker simplification are common and
                 //   already skipped by the wall-quad loop's `guard len > 0.01` — including them
                 //   in the min() would incorrectly flag every building as a degenerate sliver).
-                guard polygonArea(pts) >= 4.0 else { continue }
+                let area = polygonArea(pts)
+                guard area >= 4.0 else { continue }
                 let minNonZeroEdge = (0..<pts.count).compactMap { i -> Float? in
                     let a = pts[i], b = pts[(i + 1) % pts.count]
                     let dx = b.x - a.x, dz = b.z - a.z
@@ -242,12 +243,7 @@ enum DistrictRealityKit {
                 }.min() ?? 0
                 guard minNonZeroEdge >= 0.5 else { continue }
 
-                // Height variation for estimated buildings: ±20% deterministic wobble so a
-                // dense residential block reads as individually varied rather than a flat grid.
-                let variation = deterministicVariation(seed: building.osmID)
-                let h: Float = building.isHeightEstimated
-                    ? building.heightMeters * (0.80 + variation * 0.40)
-                    : building.heightMeters
+                let h = displayHeight(for: building, area: area)
 
                 let n = pts.count
 
@@ -1421,7 +1417,8 @@ enum DistrictRealityKit {
         let z0 = z0r - overhang, z1 = z1r + overhang
         let W = x1 - x0, D = z1 - z0
         // 5 cm above the flat roof polygon already in the wall+roof entity.
-        let eaveY = building.heightMeters + 0.05
+        let bboxArea = (x1r - x0r) * (z1r - z0r)
+        let eaveY = displayHeight(for: building, area: bboxArea) + 0.05
 
         let E0 = SIMD3<Float>(x0, eaveY, z0)   // front-left
         let E1 = SIMD3<Float>(x1, eaveY, z0)   // front-right
@@ -1579,7 +1576,7 @@ enum DistrictRealityKit {
         let cx = (x0r + x1r) / 2
         let cz = (z0r + z1r) / 2
         let radius = min(x1r - x0r, z1r - z0r) / 2.0 + overhang
-        let eaveY  = building.heightMeters + 0.05
+        let eaveY  = displayHeight(for: building, area: (x1r - x0r) * (z1r - z0r)) + 0.05
         let apex   = SIMD3<Float>(cx, eaveY + radius * pitchTan, cz)
         let N = 8
         let eaveVerts: [SIMD3<Float>] = (0..<N).map { i in
@@ -1602,7 +1599,7 @@ enum DistrictRealityKit {
         let cx     = (x0r + x1r) / 2
         let cz     = (z0r + z1r) / 2
         let radius = min(x1r - x0r, z1r - z0r) / 2.0 + overhang
-        let baseY  = building.heightMeters + 0.05
+        let baseY  = displayHeight(for: building, area: (x1r - x0r) * (z1r - z0r)) + 0.05
         let slices = 8
         // 3 latitude rings from the pole at φ = 30°, 60°, 90°
         let stackPhis: [Float] = [.pi / 6, .pi / 3, .pi / 2]
@@ -1679,7 +1676,8 @@ enum DistrictRealityKit {
         let centroidX = xs.reduce(0, +) / Float(xs.count)
         let centroidZ = zs.reduce(0, +) / Float(zs.count)
 
-        let beaconHeight = max(building.heightMeters * 0.6, districtExtent * 0.03)
+        let dh = displayHeight(for: building, area: polygonArea(building.polygon))
+        let beaconHeight = max(dh * 0.6, districtExtent * 0.03)
         let beaconWidth  = districtExtent * 0.008
         var beaconMat    = PhysicallyBasedMaterial()
         beaconMat.baseColor       = .init(tint: .white)
@@ -1687,7 +1685,7 @@ enum DistrictRealityKit {
         beaconMat.emissiveIntensity = 4
         let beaconMesh = MeshResource.generateBox(width: beaconWidth, height: beaconHeight, depth: beaconWidth)
         let beacon = ModelEntity(mesh: beaconMesh, materials: [beaconMat])
-        beacon.position = SIMD3(centroidX, building.heightMeters + beaconHeight / 2 + districtExtent * 0.015, centroidZ)
+        beacon.position = SIMD3(centroidX, dh + beaconHeight / 2 + districtExtent * 0.015, centroidZ)
         group.addChild(beacon)
 
         let textMesh = MeshResource.generateText(
@@ -1696,7 +1694,7 @@ enum DistrictRealityKit {
             font: .systemFont(ofSize: 3, weight: .semibold)
         )
         let textEntity = ModelEntity(mesh: textMesh, materials: [UnlitMaterial(color: .white)])
-        textEntity.position = SIMD3(centroidX, building.heightMeters + beaconHeight + districtExtent * 0.02, centroidZ)
+        textEntity.position = SIMD3(centroidX, dh + beaconHeight + districtExtent * 0.02, centroidZ)
         textEntity.look(at: textEntity.position + facing, from: textEntity.position, relativeTo: nil)
         group.addChild(textEntity)
 
@@ -2218,8 +2216,7 @@ enum DistrictRealityKit {
             guard let x0 = xs.min(), let x1 = xs.max(), let z0 = zs.min(), let z1 = zs.max() else { continue }
             guard x1 - x0 >= 0.5, z1 - z0 >= 0.5 else { continue }
 
-            let v = deterministicVariation(seed: b.osmID)
-            let h: Float = b.isHeightEstimated ? b.heightMeters * (0.80 + v * 0.40) : b.heightMeters
+            let h = displayHeight(for: b, area: polygonArea(b.polygon))
 
             let base = UInt32(positions.count)
             positions += [
@@ -2532,6 +2529,132 @@ enum DistrictRealityKit {
     }
 
     // MARK: - Utilities
+
+    /// Deterministic display height for a building.
+    ///
+    /// For `isHeightEstimated` buildings of low-rise compound styles (`balinese`, `colonial`,
+    /// `javanese`, `medieval`), applies area-bucketed height scaling: small footprints become
+    /// gate pavilions / single rooms (3–5 m), large resort footprints become multi-story blocks
+    /// (9–15 m). This eliminates the "flat carpet" effect in Bali districts where the
+    /// `balinese` default of 7 m produced 560 Kuta buildings all at exactly the same height.
+    ///
+    /// All other styles retain the existing ±20 % wobble from the style default.
+    /// A separate seed suffix `"_h"` keeps height variation uncorrelated with material bucket.
+    // swiftlint:disable function_body_length
+    private static func displayHeight(for building: BuildingFootprint, area: Float) -> Float {
+        guard building.isHeightEstimated else { return building.heightMeters }
+        let v = deterministicVariation(seed: building.osmID + "_h")
+        let baseH: Float; let rangeH: Float
+        switch building.style {
+
+        // MARK: Tropical compound (3–15 m) — gate pavilions to resort wings
+        case .balinese, .colonial, .javanese, .medieval:
+            switch area {
+            case ..<40:    (baseH, rangeH) = (3.0, 2.0)
+            case ..<100:   (baseH, rangeH) = (4.0, 2.5)
+            case ..<250:   (baseH, rangeH) = (5.5, 3.0)
+            case ..<600:   (baseH, rangeH) = (7.0, 4.0)
+            default:       (baseH, rangeH) = (9.0, 6.0)
+            }
+
+        // MARK: Urban concrete infill (4–22 m) — service rooms to major commercial blocks
+        case .modernConcrete:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (4.0, 3.0)
+            case ..<150:   (baseH, rangeH) = (6.0, 4.0)
+            case ..<400:   (baseH, rangeH) = (8.5, 5.5)
+            case ..<900:   (baseH, rangeH) = (11.0, 7.0)
+            default:       (baseH, rangeH) = (14.0, 8.0)
+            }
+
+        // MARK: Haussmannien limestone (12–27 m) — 4-8 floors, street-width regulated
+        // Small footprints are courtyard wings / narrow lots (4 floors); large footprints
+        // sit on wide boulevards or are institutional buildings (7-8 floors).
+        case .haussmannien:
+            switch area {
+            case ..<80:    (baseH, rangeH) = (12.0, 6.0)   // narrow lot / courtyard wing
+            case ..<250:   (baseH, rangeH) = (15.0, 6.0)   // standard 5-floor
+            case ..<600:   (baseH, rangeH) = (18.0, 6.0)   // corner / boulevard block
+            default:       (baseH, rangeH) = (20.0, 7.0)   // institutional / grand hôtel
+            }
+
+        // MARK: Bordeaux classical (10–22 m) — 3-5 floors, Atlantic limestone
+        case .bordelaisClassical:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (10.0, 4.0)
+            case ..<150:   (baseH, rangeH) = (12.0, 6.0)
+            case ..<400:   (baseH, rangeH) = (14.0, 6.0)
+            default:       (baseH, rangeH) = (16.0, 6.0)
+            }
+
+        // MARK: London Victorian brick (7–22 m) — mews cottages to mansion blocks
+        case .londonBrick:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (7.0, 4.0)    // mews cottage
+            case ..<150:   (baseH, rangeH) = (9.0, 5.0)    // standard terrace
+            case ..<400:   (baseH, rangeH) = (11.0, 7.0)   // corner / commercial
+            default:       (baseH, rangeH) = (14.0, 8.0)   // mansion block / warehouse
+            }
+
+        // MARK: Madrid Ensanche (12–28 m) — 4-7 floors, Bourbon height regulation
+        case .madrileño:
+            switch area {
+            case ..<80:    (baseH, rangeH) = (12.0, 6.0)
+            case ..<200:   (baseH, rangeH) = (16.0, 6.0)   // standard 5-floor Ensanche
+            case ..<600:   (baseH, rangeH) = (18.0, 6.0)
+            default:       (baseH, rangeH) = (20.0, 8.0)
+            }
+
+        // MARK: Roman ochre fabric (8–22 m) — vicolo lots to grand palazzi
+        case .romanOchre:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (8.0, 4.0)    // narrow vicolo plot
+            case ..<150:   (baseH, rangeH) = (10.0, 6.0)   // standard 3-4 floor
+            case ..<400:   (baseH, rangeH) = (13.0, 6.0)   // palazzo facade
+            default:       (baseH, rangeH) = (15.0, 7.0)   // large palazzo block
+            }
+
+        // MARK: NYC pre-war brick (8–40 m) — brownstones to pre-war loft buildings
+        // Named supertalls (Empire State, Chrysler) have real heights via authored overrides
+        // and bypass this path (isHeightEstimated == false). This covers the fabric buildings
+        // which span 2-story brownstones to 12-story 1920s apartment houses.
+        case .nycBrick:
+            switch area {
+            case ..<80:    (baseH, rangeH) = (8.0, 6.0)    // brownstone / row house: 8-14 m
+            case ..<200:   (baseH, rangeH) = (10.0, 10.0)  // tenement block: 10-20 m
+            case ..<500:   (baseH, rangeH) = (14.0, 16.0)  // apartment house: 14-30 m
+            default:       (baseH, rangeH) = (18.0, 22.0)  // commercial loft: 18-40 m
+            }
+
+        // MARK: Civic buildings (5–25 m) — scales with footprint mass
+        case .government:
+            switch area {
+            case ..<80:    (baseH, rangeH) = (5.0, 5.0)    // small district office
+            case ..<200:   (baseH, rangeH) = (7.0, 7.0)    // municipal building
+            case ..<500:   (baseH, rangeH) = (10.0, 10.0)  // ministry / prefecture
+            default:       (baseH, rangeH) = (12.0, 13.0)  // large civic complex
+            }
+
+        // MARK: Religious (4–24 m) — small shrines to major church naves
+        // Towers / spires get real heights via KNOWN_HEIGHTS or authored overrides
+        // and bypass this path. This covers the nave body and ancillary structures.
+        case .religious:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (4.0, 4.0)    // small shrine / chapel
+            case ..<150:   (baseH, rangeH) = (6.0, 6.0)    // parish church
+            case ..<400:   (baseH, rangeH) = (8.0, 10.0)   // significant church
+            default:       (baseH, rangeH) = (10.0, 14.0)  // major church / cathedral nave
+            }
+
+        // MARK: modernGlass — estimated height is already well-calibrated by the fetch script
+        // (auto-promoted at ≥30 m via height-based classification, or KNOWN_HEIGHTS matched).
+        // ±20 % wobble gives sufficient tower-to-tower variety without distorting height bands.
+        default:
+            return building.heightMeters * (0.80 + v * 0.40)
+        }
+        return baseH + v * rangeH
+    }
+    // swiftlint:enable function_body_length
 
     private static func deterministicVariation(seed: String) -> Float {
         var hash: UInt32 = 2166136261

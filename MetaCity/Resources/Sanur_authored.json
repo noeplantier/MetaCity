@@ -1,11 +1,12 @@
 {
+  "districtId": "Sanur",
   "overrides": [
     { "nameMatch": "Beach Club Restaurant", "roofType": "thatched" },
     { "nameMatch": "Beach Lounge",          "roofType": "thatched" },
     { "nameMatch": "Lobby Lounge",          "roofType": "thatched" },
     { "nameMatch": "Breeze Bar",            "roofType": "thatched" },
     { "nameMatch": "Hyatt Pizzeria",        "roofType": "thatched" },
-    { "nameMatch": "Power Of Now Oasis",   "roofType": "conical"  },
+    { "nameMatch": "Power Of Now Oasis",    "roofType": "conical"  },
     { "nameMatch": "Spa",                   "roofType": "flat"     },
     { "nameMatch": "NNWW hotel",            "roofType": "flat"     }
   ]

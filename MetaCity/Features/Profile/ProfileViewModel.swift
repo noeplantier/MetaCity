@@ -104,6 +104,9 @@ final class ProfileViewModel: ObservableObject {
         preferencesStore.save(preferences, for: userID)
     }
 
+    /// Rough virtual distance covered: ~4 km per district explored (district average footprint).
+    var virtualKm: Int { preferences.visitedDistrictIds.count * 4 }
+
     /// Number of distinct cities the user has opened at least one district in.
     var visitedCityCount: Int {
         let visitedIds = preferences.visitedDistrictIds

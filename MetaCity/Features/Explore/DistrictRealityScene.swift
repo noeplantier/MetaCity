@@ -253,7 +253,11 @@ enum DistrictRealityScene {
 
         var fieldOfViewDegrees: Float {
             switch self {
-            case .skyscraperCorridor, .nycDusk: 50  // wide FOV to maximise vertical tower impact in dense skylines
+            // Dense high-rise skylines: wider FOV maximises vertical tower impact
+            case .skyscraperCorridor, .nycDusk: 50
+            // European dense fabric: 45° gives better depth perception of packed street canyons
+            // while keeping the "looking into a city block" feel vs. the flat 42° overview.
+            case .parisianCore, .bordeauxWaterfront, .londonSilver, .madridAfternoon, .romanGoldenHour: 45
             default: 42
             }
         }

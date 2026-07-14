@@ -1,0 +1,72 @@
+{
+  "cityId": "vancouver",
+  "activities": [
+    {
+      "id": "van_skyline_survol",
+      "name": "Survol skyline + waterfront",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "Coal Harbour vu depuis 400 mètres d'altitude virtuelle : le rideau de tours en verre reflète le Burrard Inlet, Stanley Park apparaît à l'ouest, et les North Shore Mountains ferment l'horizon au nord. Aucune ville nord-américaine n'offre cette proximité eau-forêt-tours.",
+      "area": "Coal Harbour",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 49.2889,
+      "longitude": -123.1211,
+      "districtId": "VancouverDowntown",
+      "fragmentAssetKey": "vancouver_downtown.waterfront_towers"
+    },
+    {
+      "id": "van_rooftop_guide",
+      "name": "Visite guidée — rooftop Engineering",
+      "category": "visiteGuidee",
+      "tier": "premium",
+      "description": "La caméra focus identifie les 12 toitures les plus techniques de Downtown : double peau ventilée, panneaux photovoltaïques en toiture terrasse, jardins suspendus. Vancouver a imposé les toitures vertes à tout bâtiment public depuis 2009.",
+      "area": "Downtown",
+      "priceRange": "Free",
+      "duration": "12 min",
+      "latitude": 49.2837,
+      "longitude": -123.1153,
+      "districtId": "VancouverDowntown"
+    },
+    {
+      "id": "van_day_night_ra",
+      "name": "Comparateur jour / nuit — Downtown",
+      "category": "experienceRA",
+      "tier": "standard",
+      "description": "Glissez le curseur pour passer du midi ensoleillé au 22h bruine de novembre : les façades en verre bleu-gris passent du reflet montagneux au glow ambré de bureaux. L'éclairage public de Granville Street dessine une nouvelle cartographie.",
+      "area": "Downtown",
+      "priceRange": "Free",
+      "duration": "8 min",
+      "latitude": 49.2800,
+      "longitude": -123.1220,
+      "districtId": "VancouverDowntown"
+    },
+    {
+      "id": "van_sea_wall_lifestyle",
+      "name": "Balade bord de mer — Sea Wall",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "Longeant le front de mer de Coal Harbour à False Creek, la caméra sol-level traverse les 22 km de la plus longue promenade côtière d'Amérique du Nord. Le mode accéléré × 8 permet de parcourir l'intégralité en 5 minutes.",
+      "area": "Sea Wall",
+      "priceRange": "Free",
+      "duration": "15 min",
+      "latitude": 49.2917,
+      "longitude": -123.1272,
+      "districtId": "VancouverDowntown"
+    },
+    {
+      "id": "van_marina_immersion",
+      "name": "Reflets de la marina — immersion",
+      "category": "immersionSensorielle",
+      "tier": "premium",
+      "description": "Le mode immersion superpose l'audio du port : clapotis, câbles de voiles, cris de goélands, klaxon de ferry vers Horseshoe Bay. La scène 3D tourne au ralenti × 0.3 et le ciel se dégrade de bleu pétrol vers l'orange du Pacifique en soirée.",
+      "area": "Coal Harbour Marina",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 49.2898,
+      "longitude": -123.1280,
+      "districtId": "VancouverDowntown",
+      "fragmentAssetKey": "vancouver_downtown.marina_reflection"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "cityId": "paris",
+  "activities": [
+    {
+      "id": "paris_vosges_panorama",
+      "name": "Vol immersif — Place des Vosges",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "Survolez la plus ancienne place de Paris vue du dessus : 36 pavillons en brique et pierre du XVIIe siècle encadrent un parterre géométrique. La caméra orbitale révèle la symétrie parfaite de l'ensemble, invisible depuis les galeries.",
+      "area": "Le Marais",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 48.8553,
+      "longitude": 2.3644,
+      "districtId": "LeMarais",
+      "fragmentAssetKey": "paris_marais.place_des_vosges"
+    },
+    {
+      "id": "paris_hotel_ville_ra",
+      "name": "Visite RA — Hôtel de Ville",
+      "category": "experienceRA",
+      "tier": "premium",
+      "description": "Superposez la façade néo-Renaissance de 1882 aux plans de l'ancienne maison aux piliers médiévale. Le mode AR identifie chaque statue de la façade et leur personnage historique en temps réel.",
+      "area": "Le Marais",
+      "priceRange": "Free",
+      "duration": "15 min",
+      "latitude": 48.8566,
+      "longitude": 2.3522,
+      "districtId": "LeMarais",
+      "fragmentAssetKey": "paris_marais.hotel_de_ville"
+    },
+    {
+      "id": "paris_saint_paul_immersion",
+      "name": "Expérience sonore — Saint-Paul-Saint-Louis",
+      "category": "immersionSensorielle",
+      "tier": "standard",
+      "description": "Le mode immersion restitue l'acoustique de 30 mètres de voûtes en plein cintre : l'orgue Clicquot, la cloche Gabrielle et les chœurs d'enfants. Fermez les yeux, la scène 3D reste visible derrière vos paupières dans le mode nuit.",
+      "area": "Le Marais",
+      "priceRange": "Free",
+      "duration": "8 min",
+      "latitude": 48.8541,
+      "longitude": 2.3564,
+      "districtId": "LeMarais"
+    },
+    {
+      "id": "paris_tour_saint_jacques",
+      "name": "Vertige — Tour Saint-Jacques",
+      "category": "visiteGuidee",
+      "tier": "premium",
+      "description": "Montez virtuellement les 52 mètres de la seule tour gothique flamboyant préservée de Paris. La caméra focus adopte un angle contreplongée brutal qui révèle la sculpture du beffroi, inaccessible physiquement depuis 1797.",
+      "area": "Le Marais (bordure)",
+      "priceRange": "Free",
+      "duration": "5 min",
+      "latitude": 48.8573,
+      "longitude": 2.3487,
+      "districtId": "LeMarais",
+      "fragmentAssetKey": "paris_marais.tour_saint_jacques"
+    },
+    {
+      "id": "paris_marais_balade_nuit",
+      "name": "Balade nocturne — Le Marais by night",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "Mode nuit activé : façades éclairées, réverbères Art Déco, vitrines des galeries. Le quartier du Marais révèle sa double vie, entre marais bourgeois et nightlife branché. Repérez les cours secrètes que le mode jour laisse dans l'ombre.",
+      "area": "Le Marais",
+      "priceRange": "Free",
+      "duration": "20 min",
+      "latitude": 48.8558,
+      "longitude": 2.3545,
+      "districtId": "LeMarais"
+    }
+  ]
+}

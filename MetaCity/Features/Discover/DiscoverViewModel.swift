@@ -23,6 +23,28 @@ struct DistrictSearchResult: Identifiable {
     let localCentroid: SIMD3<Float>
 }
 
+/// A world-city autocomplete suggestion from MKLocalSearchCompleter.
+struct WorldCitySuggestion: Identifiable {
+    let id: String
+    let title: String
+    let subtitle: String
+    /// True if this suggestion matches one of the 5 vitrine cities with bundled 3D data.
+    let isVitrine: Bool
+    /// Non-nil only when `isVitrine` is true and the city is in CityManifest.
+    let matchedCity: CityEntry?
+}
+
+/// Delegate bridge so MKLocalSearchCompleter (NSObjectProtocol) can be owned by a @MainActor class.
+private final class SearchCompleterBridge: NSObject, MKLocalSearchCompleterDelegate {
+    var onResults: ([MKLocalSearchCompletion]) -> Void = { _ in }
+
+    func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) {
+        onResults(completer.results)
+    }
+
+    func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {}
+}
+
 /// A result from the global map search (cities, districts, buildings, POIs across all data).
 struct GlobalSearchResult: Identifiable {
     enum Kind {
@@ -95,6 +117,8 @@ final class DiscoverViewModel: ObservableObject {
     @Published var isGlobalSearchActive: Bool = false
     /// True while the speech recogniser is listening for voice input.
     @Published var isListening: Bool = false
+    /// World-city autocomplete suggestions from MKLocalSearchCompleter.
+    @Published private(set) var worldCitySuggestions: [WorldCitySuggestion] = []
 
     let manifest: CityManifest
 
@@ -106,10 +130,55 @@ final class DiscoverViewModel: ObservableObject {
         pitch: 0
     )
 
+    private let searchCompleter = MKLocalSearchCompleter()
+    private let searchCompleterBridge = SearchCompleterBridge()
+    private var cancellables = Set<AnyCancellable>()
+
+    /// Display names of the 5 vitrine showcase cities — used for the "Vitrine disponible" badge.
+    static let vitrineCityNames: Set<String> = ["Paris", "Tokyo", "Vancouver", "Jakarta", "Canggu", "Bali", "Denpasar"]
+
     init(manifest: CityManifest = .shared) {
         self.manifest = manifest
         self.cameraPosition = .camera(DiscoverViewModel.europeCamera)
+        setupSearchCompleter(manifest: manifest)
         applyUITestOverrides(manifest: manifest)
+    }
+
+    private func setupSearchCompleter(manifest: CityManifest) {
+        searchCompleter.delegate = searchCompleterBridge
+        searchCompleter.resultTypes = .address
+        searchCompleterBridge.onResults = { [weak self] results in
+            guard let self else { return }
+            let allCities = manifest.allCities
+            self.worldCitySuggestions = results.prefix(6).compactMap { completion in
+                let title = completion.title
+                let subtitle = completion.subtitle
+                let matched = allCities.first {
+                    title.localizedCaseInsensitiveContains($0.displayName)
+                }
+                let isVitrine = Self.vitrineCityNames.contains(where: {
+                    title.localizedCaseInsensitiveContains($0)
+                }) || matched != nil
+                return WorldCitySuggestion(
+                    id: title + subtitle,
+                    title: title,
+                    subtitle: subtitle,
+                    isVitrine: isVitrine,
+                    matchedCity: matched
+                )
+            }
+        }
+        $globalSearchQuery
+            .debounce(for: .milliseconds(180), scheduler: RunLoop.main)
+            .sink { [weak self] query in
+                guard let self else { return }
+                if query.count >= 2 {
+                    self.searchCompleter.queryFragment = query
+                } else {
+                    self.worldCitySuggestions = []
+                }
+            }
+            .store(in: &cancellables)
     }
 
     /// Launch-flag overrides for `simctl launch` + `simctl io screenshot` visual verification
@@ -300,6 +369,17 @@ final class DiscoverViewModel: ObservableObject {
             }
         }
         return Array(results.prefix(10))
+    }
+
+    /// Called when the user taps a `WorldCitySuggestion` row.
+    /// Navigates to the matched city if it's in the manifest; clears search state regardless.
+    func selectWorldCitySuggestion(_ suggestion: WorldCitySuggestion) {
+        globalSearchQuery = ""
+        isGlobalSearchActive = false
+        worldCitySuggestions = []
+        if let city = suggestion.matchedCity {
+            selectCity(city)
+        }
     }
 
     func selectGlobalSearchResult(_ result: GlobalSearchResult) {

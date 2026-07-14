@@ -1,0 +1,9 @@
+{
+  "districtId": "CentroStorico",
+  "overrides": [
+    { "osmID": "8035487",   "style": "government", "heightMeters": 48.0, "roofType": "flat" },
+    { "osmID": "52333460",  "style": "religious",  "heightMeters": 55.0, "roofType": "flat" },
+    { "osmID": "128740194", "style": "religious",  "roofType": "flat" },
+    { "osmID": "25625603",  "style": "religious",  "heightMeters": 56.0, "roofType": "flat" }
+  ]
+}

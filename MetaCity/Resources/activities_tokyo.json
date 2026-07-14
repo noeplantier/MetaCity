@@ -1,0 +1,72 @@
+{
+  "cityId": "tokyo",
+  "activities": [
+    {
+      "id": "tokyo_scramble_panorama",
+      "name": "Panorama — Shibuya Crossing en direct",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "L'intersection la plus fréquentée de la planète vue en caméra haute : 3 000 piétons traversent simultanément à chaque feu. Le mode orbite révèle la logique chorégraphique de cet espace conçu par Hachiko-dori en 1964. Données de flux activées.",
+      "area": "Shibuya",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 35.6595,
+      "longitude": 139.7004,
+      "districtId": "Shibuya",
+      "fragmentAssetKey": "tokyo_shibuya.crossing_zebra"
+    },
+    {
+      "id": "tokyo_scramble_square_guide",
+      "name": "Visite guidée — Scramble Square",
+      "category": "visiteGuidee",
+      "tier": "premium",
+      "description": "230 mètres d'acier et de verre livré en 2019 : la tour perce la couche des nuages bas de novembre. Focus bâtiment progressif du socle commercial au belvédère SHIBUYA SKY. Comparaison des skylines 2000 vs 2025 superposée en transparence.",
+      "area": "Shibuya",
+      "priceRange": "$$",
+      "duration": "15 min",
+      "latitude": 35.6595,
+      "longitude": 139.7023,
+      "districtId": "Shibuya",
+      "fragmentAssetKey": "tokyo_shibuya.scramble_square"
+    },
+    {
+      "id": "tokyo_facades_lifestyle",
+      "name": "Shopping immersif — façades commerciales",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "La densité verticale de Shibuya à 1 mètre : enseigne lumineuse empilée sur enseigne, 7 niveaux de boutiques par immeuble, câblage aérien entre les poteaux. La caméra sol-level traverse Dogenzaka et Center-gai comme un piéton.",
+      "area": "Shibuya",
+      "priceRange": "Free",
+      "duration": "12 min",
+      "latitude": 35.6610,
+      "longitude": 139.6993,
+      "districtId": "Shibuya"
+    },
+    {
+      "id": "tokyo_data_overlay_ra",
+      "name": "Overlay data — densité urbaine RA",
+      "category": "experienceRA",
+      "tier": "premium",
+      "description": "Chaque bâtiment porte son FAR (Floor Area Ratio) en overlay : les tours de Shibuya atteignent FAR 13. Le mode couleur mappe la densité du bâti, du rouge sombre (>10) au jaune pâle (<2). Unique dans MetaCity : Tokyo est la ville la plus dense de l'app.",
+      "area": "Shibuya",
+      "priceRange": "Free",
+      "duration": "8 min",
+      "latitude": 35.6601,
+      "longitude": 139.7009,
+      "districtId": "Shibuya"
+    },
+    {
+      "id": "tokyo_night_immersion",
+      "name": "Shibuya by Night — immersion lumineuse",
+      "category": "immersionSensorielle",
+      "tier": "standard",
+      "description": "Mode nuit à Shibuya : l'émission des façades commerciales, les fenêtres de bureaux en veille, et le halo de Scramble Square créent une ambiance néon unique. Chaque bâtiment moderne révèle sa texture de vitres la nuit que le jour dissimule.",
+      "area": "Shibuya",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 35.6598,
+      "longitude": 139.7002,
+      "districtId": "Shibuya"
+    }
+  ]
+}

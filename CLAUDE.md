@@ -1480,11 +1480,56 @@ Supported fields per override: `osmID` (exact), `nameMatch` (case-insensitive su
   `applyUITestOverrides` which now opens Paris in `cityFocused` state if no `UITEST_OPEN_*` env var.
 - The `back()` function (cityFocused → worldMap) returns to `europeCamera` (not `indonesiaCamera`).
 
-### Planned authored overrides (not yet created)
+### Authored override files — complete set (as of 2026-07-13)
 
-- **`CityOfLondon_authored.json`**: 30 St Mary Axe → flat, Tower of London → flat, St Paul's → dome
-- **`CentroStorico_authored.json`**: Pantheon → dome, Sant'Agnese → dome, Sant'Ivo → conical
-- No authored file needed for Salamanca (flat azotea on all `madrileño` buildings by default)
+All authored overrides are created; no planned-but-missing files remain.
+
+| File | District | Count | Key overrides |
+|---|---|---|---|
+| `Canggu_authored.json` | Canggu | 10 | Temples → conical, mosque → dome, surf bars → thatched |
+| `Seminyak_authored.json` | Seminyak | 20 | Beach clubs → thatched, temples → conical, mosques → dome |
+| `Kuta_authored.json` | Kuta | 16 | Mega-venues → flat, beach bars → thatched, temples → conical |
+| `LeMarais_authored.json` | Le Marais | 4 | Tour Saint-Jacques, Pompidou, Institut du Monde arabe |
+| `Westminster_authored.json` | Westminster | 7 | Victoria Tower style, Westminster Abbey/Cathedral/Buckingham |
+| `Malasana_authored.json` | Malasaña | 4 | Espacio Telefónica 81m, Palacio de la Prensa 36m |
+| `Ancol_authored.json` | Ancol | 6 | Roller coasters + fast food → modernConcrete; Syahbandar → government |
+| `CityOfLondon_authored.json` | City of London | 2 | 30 St Mary Axe (osmID 4959489) → flat; St Paul's (369161987) → religious/flat |
+| `Sanur_authored.json` | Sanur | 8 | Beach club open-air venues → thatched; yoga → conical; hotel lobbies → flat |
+| `Uluwatu_authored.json` | Uluwatu | 7 | Temple entrance → conical; Single Fin surf bar → thatched; dome chapel |
+| `CentroStorico_authored.json` | Centro Storico | 4 | Castel Sant'Angelo 48m, Sant'Agnese 55m, Sant'Ivo 60m flat, Sant'Andrea 56m |
+| `MidtownManhattan_authored.json` | Midtown Manhattan | 34 | Empire State/Chrysler → nycBrick; glass towers → modernGlass; Saint Patrick → religious |
+| `LowerManhattan_authored.json` | Lower Manhattan | 24 | One WTC → modernGlass; Woolworth → government; Trinity Church → religious |
+
+No authored file needed for Salamanca (flat azotea on all `madrileño` buildings by default).
+
+### Area-bucketed height variation (`displayHeight`, 2026-07-13)
+
+`DistrictRealityKit.displayHeight(for:area:)` replaces the flat `±20% wobble` for estimated buildings
+in low-rise compound styles. Called at every site that uses building height for visual geometry:
+`makeBuildingMeshes`, `addHipRoof`, `addConicalRoof`, `addDomeRoof`, `makeFocusBeacon`,
+`makeFarTierEntity`. Guard: `building.isHeightEstimated == false` short-circuits to real height.
+
+**Motivation**: `fetch_district_data.py` assigns a fixed fallback height (7m for balinese, 16m for
+estimated modernConcrete, etc.) to all buildings that lack OSM `height`/`building:levels` tags. With
+99%+ of Bali buildings estimated, this produced flat-carpet scenes: Kuta = 560 buildings ALL at
+exactly 7.0m. `displayHeight` uses the building's footprint polygon area as a proxy for building
+mass, tiering estimated heights appropriately.
+
+**Area tiers (footprint polygon area in m²):**
+
+| Style | < 40 | < 100 | < 250 | < 600 | ≥ 600 |
+|---|---|---|---|---|---|
+| balinese / colonial / javanese / medieval | 3–5 m | 4–6.5 m | 5.5–8.5 m | 7–11 m | 9–15 m |
+| modernConcrete | 4–7 m | 6–10 m | 8.5–14 m | 11–18 m | 14–22 m |
+| all others | ±20% wobble of `building.heightMeters` baseline | | | | |
+
+**Seed**: `osmID + "_h"` (distinct from material bucket seed `osmID`) to prevent height↔material
+correlation — same building, same deterministic height, every launch, uncorrelated with color bucket.
+
+**Impact**:
+- Bali (Kuta/Seminyak/Canggu): range 3–15m from a flat 7m carpet → realistic compound fabric
+- La Défense: 1,511 estimated `modernConcrete` at 7m → range 4–22m, avg 8.1m, p90 14.5m
+- Hip roof eave Y, conical/dome base Y, LOD far-tier box heights all use the same `displayHeight` call
 
 ## Known Simulator/test gotchas
 

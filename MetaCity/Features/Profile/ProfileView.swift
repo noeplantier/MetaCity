@@ -25,14 +25,15 @@ struct ProfileView: View {
         .errorAlert($viewModel.presentedError)
     }
 
-    // MARK: - Travel passport
+    // MARK: - Main scroll content
 
     private var passport: some View {
         ScrollView {
             VStack(spacing: 0) {
-                heroSection
-                statsSection
-                stampGrid
+                identityCard
+                kpiRow
+                districtBadges
+                proLinks
                 if showSettings { settingsSection }
                 settingsToggle
                 logoutSection
@@ -41,40 +42,68 @@ struct ProfileView: View {
         .scrollIndicators(.hidden)
     }
 
-    // MARK: - Hero
+    // MARK: - HUD Identity card hero
 
-    private var heroSection: some View {
+    private var identityCard: some View {
         ZStack(alignment: .bottom) {
+            // Background gradient
             LinearGradient(
                 colors: [
-                    viewModel.preferences.avatarColorName.color.opacity(0.55),
+                    Color.metacityHUDBackground,
+                    Color.metacityHUDBackground.opacity(0.40),
                     Color.metacityBackground
                 ],
                 startPoint: .top, endPoint: .bottom
             )
-            .frame(height: 220)
+            .frame(height: 260)
 
+            // Scan grid overlay
+            HUDScanGridOverlay()
+                .frame(height: 260)
+                .clipped()
+
+            // Neon liseré accent line
+            VStack {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.clear, Color.metacityNeonCyan.opacity(0.55), Color.clear],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .frame(height: 1)
+                Spacer()
+            }
+            .frame(height: 260)
+
+            // Content
             VStack(spacing: Spacing.sm) {
                 Avatar(
-                    name: viewModel.currentUser?.displayName ?? "Explorer",
+                    name: viewModel.currentUser?.displayName ?? "Explorateur",
                     size: 76,
-                    backgroundColor: viewModel.preferences.avatarColorName.color.opacity(0.30),
+                    backgroundColor: Color.metacityNeonCyan.opacity(0.18),
                     systemImage: viewModel.preferences.avatarSymbol
                 )
-                .shadow(color: .black.opacity(0.25), radius: 8, y: 4)
+                .shadow(color: Color.metacityNeonCyan.opacity(0.35), radius: 12, y: 4)
+                .overlay(
+                    Circle()
+                        .strokeBorder(Color.metacityNeonCyan.opacity(0.45), lineWidth: 1.5)
+                )
 
                 VStack(spacing: 4) {
-                    Text(viewModel.currentUser?.displayName ?? "Explorer")
+                    Text(viewModel.currentUser?.displayName ?? "Explorateur")
                         .font(.metacityTitle3)
                         .foregroundStyle(Color.metacityTextPrimary)
 
-                    Label("Indonesia Explorer", systemImage: "checkmark.seal.fill")
-                        .font(.metacityCaption.weight(.semibold))
-                        .foregroundStyle(viewModel.preferences.avatarColorName.color)
+                    Text("EXPLORATEUR NUMÉRIQUE · TOURISME 3D & RA")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(Color.metacityNeonCyan)
+                        .tracking(1.4)
+                        .multilineTextAlignment(.center)
 
                     if !viewModel.preferences.bio.isEmpty {
                         Text(viewModel.preferences.bio)
-                            .font(.metacitySubheadline)
+                            .font(.metacityCaption)
                             .foregroundStyle(Color.metacityTextSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, Spacing.xl)
@@ -86,30 +115,43 @@ struct ProfileView: View {
         }
     }
 
-    // MARK: - Stats
+    // MARK: - 4 KPI chips
 
-    private var statsSection: some View {
-        HStack(spacing: Spacing.sm) {
-            PassportStat(
+    private var kpiRow: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: Spacing.sm),
+                GridItem(.flexible(), spacing: Spacing.sm)
+            ],
+            spacing: Spacing.sm
+        ) {
+            ProKPICard(
                 value: "\(viewModel.preferences.visitedDistrictIds.count)",
                 total: viewModel.districtCount,
-                label: "Districts",
+                label: "Quartiers explorés",
                 icon: "building.2.fill",
-                color: viewModel.preferences.avatarColorName.color
+                accent: Color.metacityNeonCyan
             )
-            PassportStat(
-                value: "\(viewModel.visitedCityCount)",
-                total: CityManifest.shared.allCities.count,
-                label: "Cities",
-                icon: "globe.asia.australia.fill",
-                color: viewModel.preferences.avatarColorName.color
+            ProKPICard(
+                value: "\(viewModel.preferences.visitedDistrictIds.count)",
+                total: nil,
+                label: "Sessions immersives",
+                icon: "arkit",
+                accent: Color(red: 0.35, green: 0.75, blue: 1.00)
             )
-            PassportStat(
+            ProKPICard(
+                value: "\(viewModel.virtualKm)",
+                total: nil,
+                label: "KM virtuels",
+                icon: "location.north.fill",
+                accent: Color.metacitySecondary
+            )
+            ProKPICard(
                 value: "\(viewModel.realBuildingCount)",
                 total: nil,
-                label: "Real bldgs",
-                icon: "building.2.crop.circle",
-                color: .metacityTextSecondary
+                label: "Bâtiments OSM",
+                icon: "square.3.layers.3d.down.right",
+                accent: Color.metacitySuccess
             )
         }
         .padding(.horizontal, Spacing.md)
@@ -117,15 +159,20 @@ struct ProfileView: View {
         .padding(.bottom, Spacing.sm)
     }
 
-    // MARK: - Passport stamps
+    // MARK: - District badges
 
-    private var stampGrid: some View {
+    private var districtBadges: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("PASSPORT STAMPS")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color.metacityTextTertiary)
-                .tracking(1.5)
-                .padding(.horizontal, Spacing.md)
+            HStack(spacing: 6) {
+                Rectangle()
+                    .fill(Color.metacityNeonCyan)
+                    .frame(width: 3, height: 14)
+                Text("DISTRICTS EXPLORÉS")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundStyle(Color.metacityTextTertiary)
+                    .tracking(1.5)
+            }
+            .padding(.horizontal, Spacing.md)
 
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(), spacing: Spacing.sm), count: 3),
@@ -133,14 +180,63 @@ struct ProfileView: View {
             ) {
                 ForEach(CityManifest.shared.allDistricts) { district in
                     let visited = viewModel.preferences.visitedDistrictIds.contains(district.id)
-                    DistrictStamp(district: district, visited: visited,
-                                  accentColor: viewModel.preferences.avatarColorName.color)
+                    DistrictBadge(district: district, visited: visited)
                 }
             }
             .padding(.horizontal, Spacing.md)
         }
         .padding(.top, Spacing.md)
         .padding(.bottom, Spacing.lg)
+    }
+
+    // MARK: - Pro links section
+
+    private var proLinks: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: 6) {
+                Rectangle()
+                    .fill(Color.metacityNeonCyan)
+                    .frame(width: 3, height: 14)
+                Text("LIENS PRO")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundStyle(Color.metacityTextTertiary)
+                    .tracking(1.5)
+            }
+            .padding(.horizontal, Spacing.md)
+
+            VStack(spacing: 0) {
+                proLinkRow(icon: "arkit", label: "MetaCity — App 3D & RA")
+                Divider().padding(.leading, 52)
+                proLinkRow(icon: "globe", label: "OpenStreetMap Data")
+                Divider().padding(.leading, 52)
+                proLinkRow(icon: "chart.bar.xaxis", label: "25 districts · 10 villes")
+            }
+            .background(Color.metacitySurface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+            .padding(.horizontal, Spacing.md)
+        }
+        .padding(.bottom, Spacing.lg)
+    }
+
+    private func proLinkRow(icon: String, label: String) -> some View {
+        HStack(spacing: Spacing.md) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.metacityNeonCyan.opacity(0.10))
+                    .frame(width: 34, height: 34)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.metacityNeonCyan)
+            }
+            Text(label)
+                .font(.metacityBody)
+                .foregroundStyle(Color.metacityTextPrimary)
+            Spacer()
+            Image(systemName: "arrow.up.right")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Color.metacityTextTertiary)
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, 10)
     }
 
     // MARK: - Settings (collapsible)
@@ -150,7 +246,10 @@ struct ProfileView: View {
             withAnimation(.easeInOut(duration: 0.25)) { showSettings.toggle() }
         } label: {
             HStack {
-                Text(showSettings ? "Hide Settings" : "Settings")
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.metacityTextTertiary)
+                Text(showSettings ? "Masquer les réglages" : "Réglages")
                     .font(.metacitySubheadline.weight(.medium))
                     .foregroundStyle(Color.metacityTextSecondary)
                 Spacer()
@@ -200,7 +299,7 @@ struct ProfileView: View {
             // Bio
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 settingsSectionHeader("Bio")
-                TextField("Add a short bio", text: bioBinding, axis: .vertical)
+                TextField("Ajoutez une courte bio", text: bioBinding, axis: .vertical)
                     .lineLimit(3, reservesSpace: true)
                     .font(.metacityBody)
                     .foregroundStyle(Color.metacityTextPrimary)
@@ -210,26 +309,26 @@ struct ProfileView: View {
 
             // Privacy
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                settingsSectionHeader("Privacy")
+                settingsSectionHeader("Confidentialité")
                 VStack(spacing: 0) {
-                    settingsRow { Toggle("Public profile", isOn: publicProfileBinding).tint(Color.metacityPrimary) }
+                    settingsRow { Toggle("Profil public", isOn: publicProfileBinding).tint(Color.metacityPrimary) }
                     Divider().padding(.leading, Spacing.md)
-                    settingsRow { Toggle("Share location", isOn: locationSharingBinding).tint(Color.metacityPrimary) }
+                    settingsRow { Toggle("Partager localisation", isOn: locationSharingBinding).tint(Color.metacityPrimary) }
                 }
                 .background(Color.metacitySurface, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
             }
 
             // Security
             VStack(alignment: .leading, spacing: Spacing.sm) {
-                settingsSectionHeader("Security")
+                settingsSectionHeader("Sécurité")
                 settingsRow {
                     if viewModel.isBiometricAvailable {
-                        Toggle("Require \(viewModel.biometryDisplayName)", isOn: biometricLockBinding).tint(Color.metacityPrimary)
+                        Toggle("Requérir \(viewModel.biometryDisplayName)", isOn: biometricLockBinding).tint(Color.metacityPrimary)
                     } else {
                         HStack {
-                            Text("Require \(viewModel.biometryDisplayName)").foregroundStyle(Color.metacityTextSecondary)
+                            Text("Requérir \(viewModel.biometryDisplayName)").foregroundStyle(Color.metacityTextSecondary)
                             Spacer()
-                            Text("Unavailable").font(.metacityCaption).foregroundStyle(Color.metacityTextTertiary)
+                            Text("Indisponible").font(.metacityCaption).foregroundStyle(Color.metacityTextTertiary)
                         }
                     }
                 }
@@ -241,7 +340,7 @@ struct ProfileView: View {
     }
 
     private var logoutSection: some View {
-        PrimaryButton(title: "Log Out", isLoading: isLoggingOut) {
+        PrimaryButton(title: "Se déconnecter", isLoading: isLoggingOut) {
             Task {
                 isLoggingOut = true
                 await viewModel.logout()
@@ -249,7 +348,7 @@ struct ProfileView: View {
             }
         }
         .padding(.horizontal, Spacing.md)
-        .padding(.bottom, Spacing.xl + 40)   // above tab bar
+        .padding(.bottom, Spacing.xl + 40)
     }
 
     // MARK: - Locked view
@@ -258,16 +357,16 @@ struct ProfileView: View {
         VStack(spacing: Spacing.lg) {
             Image(systemName: viewModel.biometryDisplayName == "Face ID" ? "faceid" : "touchid")
                 .font(.system(size: 48))
-                .foregroundStyle(Color.metacityPrimary)
-            Text("Profile Locked")
+                .foregroundStyle(Color.metacityNeonCyan)
+            Text("Profil verrouillé")
                 .font(.metacityTitle)
                 .foregroundStyle(Color.metacityTextPrimary)
-            Text("Unlock with \(viewModel.biometryDisplayName) to see your passport and settings.")
+            Text("Déverrouillez avec \(viewModel.biometryDisplayName) pour voir votre passeport et vos réglages.")
                 .font(.metacitySubheadline)
                 .foregroundStyle(Color.metacityTextSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Spacing.xl)
-            PrimaryButton(title: "Unlock with \(viewModel.biometryDisplayName)", isLoading: false) {
+            PrimaryButton(title: "Déverrouiller", isLoading: false) {
                 Task { await viewModel.unlock() }
             }
             .padding(.horizontal, Spacing.xl)
@@ -279,7 +378,7 @@ struct ProfileView: View {
 
     private func settingsSectionHeader(_ title: String) -> some View {
         Text(title.uppercased())
-            .font(.system(size: 11, weight: .semibold))
+            .font(.system(size: 10, weight: .bold, design: .monospaced))
             .foregroundStyle(Color.metacityTextTertiary)
             .tracking(1.5)
     }
@@ -315,54 +414,106 @@ struct ProfileView: View {
     }
 }
 
-// MARK: - Subviews
+// MARK: - HUD scan grid overlay
 
-private struct PassportStat: View {
+private struct HUDScanGridOverlay: View {
+    var body: some View {
+        Canvas { context, size in
+            let step: CGFloat = 24
+            var x: CGFloat = 0
+            while x < size.width {
+                var path = Path()
+                path.move(to: CGPoint(x: x, y: 0))
+                path.addLine(to: CGPoint(x: x, y: size.height))
+                context.stroke(path, with: .color(.white.opacity(0.035)), lineWidth: 0.5)
+                x += step
+            }
+            var y: CGFloat = 0
+            while y < size.height {
+                var path = Path()
+                path.move(to: CGPoint(x: 0, y: y))
+                path.addLine(to: CGPoint(x: size.width, y: y))
+                context.stroke(path, with: .color(.white.opacity(0.035)), lineWidth: 0.5)
+                y += step
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Pro KPI card
+
+private struct ProKPICard: View {
     let value: String
     let total: Int?
     let label: String
     let icon: String
-    let color: Color
+    let accent: Color
 
     var body: some View {
-        VStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(color)
-            HStack(alignment: .firstTextBaseline, spacing: 2) {
-                Text(value)
-                    .font(.metacityTitle3)
-                    .foregroundStyle(Color.metacityTextPrimary)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(accent)
+                Spacer()
                 if let total {
                     Text("/ \(total)")
-                        .font(.system(size: 11))
+                        .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(Color.metacityTextTertiary)
                 }
             }
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color.metacityTextPrimary)
+            }
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(Color.metacityTextSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, Spacing.md)
-        .background(Color.metacitySurfaceElevated, in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
+                .fill(Color.metacitySurfaceElevated)
+                .overlay(
+                    LinearGradient(
+                        colors: [accent.opacity(0.08), Color.clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: Radius.control, style: .continuous)
+                .strokeBorder(accent.opacity(0.20), lineWidth: 1)
+        )
     }
 }
 
-private struct DistrictStamp: View {
+// MARK: - District badge (refactored from DistrictStamp)
+
+private struct DistrictBadge: View {
     let district: DistrictEntry
     let visited: Bool
-    let accentColor: Color
 
     var body: some View {
         VStack(spacing: 4) {
             ZStack {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(visited ? accentColor.opacity(0.15) : Color.metacitySurface)
+                    .fill(visited
+                          ? Color.metacityNeonCyan.opacity(0.12)
+                          : Color.metacitySurface)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .strokeBorder(
-                                visited ? accentColor.opacity(0.5) : Color.metacityTextTertiary.opacity(0.2),
+                                visited
+                                    ? Color.metacityNeonCyan.opacity(0.45)
+                                    : Color.metacityBorder,
                                 lineWidth: 1
                             )
                     )
@@ -370,16 +521,16 @@ private struct DistrictStamp: View {
 
                 if visited {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(accentColor)
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color.metacityNeonCyan)
                 } else {
                     Image(systemName: "seal")
-                        .font(.system(size: 22))
-                        .foregroundStyle(Color.metacityTextTertiary.opacity(0.4))
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color.metacityTextTertiary.opacity(0.35))
                 }
             }
             Text(district.displayName)
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 9, weight: .medium, design: .monospaced))
                 .foregroundStyle(visited ? Color.metacityTextPrimary : Color.metacityTextTertiary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)
@@ -389,4 +540,5 @@ private struct DistrictStamp: View {
 
 #Preview {
     ProfileView(viewModel: AppEnvironment().makeProfileViewModel(session: SessionStore(authRepository: MockAuthRepository())))
+        .preferredColorScheme(.dark)
 }
