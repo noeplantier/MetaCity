@@ -22,6 +22,9 @@ extension DistrictEntry {
         case "londonSilver":      return .londonSilver
         case "madridAfternoon":   return .madridAfternoon
         case "romanGoldenHour":   return .romanGoldenHour
+        case "vancouverCoastal":  return .vancouverCoastal
+        case "sfMorning":         return .sfMorning
+        case "nycDusk":           return .nycDusk
         default:                  return .parkDaylight
         }
     }
@@ -52,6 +55,9 @@ enum DistrictRealityScene {
         case londonSilver        // City of London / London brick districts — cool overcast silver sky
         case madridAfternoon     // Madrid (Salamanca, Retiro) — warm golden afternoon, azotea rooftops
         case romanGoldenHour     // Rome (Centro Storico) — warm sienna-amber golden hour, sanpietrini cobbles
+        case vancouverCoastal    // Vancouver (Downtown + West End) — Pacific NW diffuse overcast, Coal Harbour blue-grey
+        case sfMorning           // San Francisco (Downtown + Fisherman's Wharf) — coastal morning, Karl the Fog
+        case nycDusk             // New York (Midtown + Lower Manhattan) — late-afternoon canyon golden light
 
         var sunColor: UIColor {
             switch self {
@@ -69,6 +75,9 @@ enum DistrictRealityScene {
             case .londonSilver:    UIColor(red: 0.88, green: 0.90, blue: 0.95, alpha: 1) // cool silver London overcast
             case .madridAfternoon: UIColor(red: 1.0,  green: 0.84, blue: 0.55, alpha: 1) // warm Madrid afternoon gold
             case .romanGoldenHour: UIColor(red: 1.0,  green: 0.82, blue: 0.52, alpha: 1) // warm amber Roman afternoon
+            case .vancouverCoastal: UIColor(red: 0.86, green: 0.92, blue: 0.98, alpha: 1) // cool Pacific NW diffuse — near-white sky through cloud cover
+            case .sfMorning:       UIColor(red: 0.94, green: 0.90, blue: 0.82, alpha: 1) // warm coastal morning through marine layer
+            case .nycDusk:         UIColor(red: 1.0,  green: 0.78, blue: 0.48, alpha: 1) // intense amber dusk — canyon light carving shadows between towers
             }
         }
 
@@ -97,6 +106,9 @@ enum DistrictRealityScene {
             case .londonSilver:    26000  // overcast but bright London sky — diffuse, moderate intensity
             case .madridAfternoon: 38000  // intense Iberian afternoon sun — strong enough for crisp azotea shadows
             case .romanGoldenHour: 32000  // warm afternoon Roman light — lower than Madrid, more diffuse
+            case .vancouverCoastal: 24000  // Pacific NW overcast — bright diffuse cloud layer, no harsh shadows
+            case .sfMorning:       28000  // coastal morning — sun cutting through marine layer, moderate contrast
+            case .nycDusk:         36000  // intense low-angle dusk — strong enough to carve canyon shadows
             }
         }
 
@@ -118,6 +130,9 @@ enum DistrictRealityScene {
             case .londonSilver:    0.45   // moderate overcast elevation — diffuse, no dramatic shadows
             case .madridAfternoon: 0.38   // classic Madrid late-afternoon angle — long warm shadows
             case .romanGoldenHour: 0.32   // low golden-hour angle — maximises cobblestone texture relief
+            case .vancouverCoastal: 0.42   // moderate Pacific NW elevation — cloud diffusion softens shadows
+            case .sfMorning:       0.40   // coastal morning angle — moderate elevation through fog
+            case .nycDusk:         0.28   // very low — maximises tower shadow depth between canyon streets
             }
         }
 
@@ -170,6 +185,21 @@ enum DistrictRealityScene {
             case .romanGoldenHour:
                 // Roman golden hour — deep blue zenith, amber-gold horizon (sundown over the Tiber), warm ochre earth
                 (UIColor(red: 0.38, green: 0.50, blue: 0.78, alpha: 1), UIColor(red: 0.92, green: 0.76, blue: 0.52, alpha: 1), UIColor(red: 0.38, green: 0.30, blue: 0.22, alpha: 1))
+            case .vancouverCoastal:
+                // Pacific NW overcast — muted blue-grey zenith, pale coastal haze horizon, dark concrete/glass ground.
+                // Cooler and more desaturated than London's silver — Pacific atmosphere has a slight blue-green cast
+                // from ocean spray and Douglas fir forests at the tree-line behind the glass towers.
+                (UIColor(red: 0.28, green: 0.42, blue: 0.64, alpha: 1), UIColor(red: 0.64, green: 0.74, blue: 0.84, alpha: 1), UIColor(red: 0.20, green: 0.22, blue: 0.24, alpha: 1))
+            case .sfMorning:
+                // Karl the Fog morning — deep coastal blue zenith, flat white-grey fog horizon that the sun
+                // hasn't yet burned off, warm medium-grey SF concrete ground. The flat horizon is the key
+                // visual signature: SF's morning sky terminates at an almost featureless grey-white band.
+                (UIColor(red: 0.26, green: 0.36, blue: 0.60, alpha: 1), UIColor(red: 0.70, green: 0.72, blue: 0.74, alpha: 1), UIColor(red: 0.32, green: 0.30, blue: 0.28, alpha: 1))
+            case .nycDusk:
+                // Manhattan dusk — deep navy-purple zenith (city sky before the last light drains),
+                // warm amber-orange horizon glow (the sun just past the horizon line over New Jersey),
+                // very dark asphalt ground.
+                (UIColor(red: 0.16, green: 0.22, blue: 0.48, alpha: 1), UIColor(red: 0.72, green: 0.54, blue: 0.32, alpha: 1), UIColor(red: 0.20, green: 0.18, blue: 0.16, alpha: 1))
             }
         }
 
@@ -193,6 +223,9 @@ enum DistrictRealityScene {
             case .londonSilver:    0.18  // City of London — mix of medieval lanes and glass towers, slightly looser framing
             case .madridAfternoon: 0.18  // Ensanche grid — regular blocks, standard pull-back
             case .romanGoldenHour: 0.18  // Centro Storico irregular fabric — needs slight breathing room
+            case .vancouverCoastal: 0.16  // Vancouver Downtown glass towers are dense — tight like Paris
+            case .sfMorning:       0.16  // SF Financial District — similar density to Vancouver
+            case .nycDusk:         0.18  // NYC Midtown/Lower Manhattan — slight extra breathing room for skyline silhouette
             }
         }
 
@@ -212,12 +245,19 @@ enum DistrictRealityScene {
             case .londonSilver:    0.13  // moderate elevation — reads both Victorian rooflines and glass tower tops
             case .madridAfternoon: 0.12  // flatter azotea roofs — lower elevation to read the facade rhythm
             case .romanGoldenHour: 0.13  // slightly elevated — reads orange canal-tile rooftops across the Forum area
+            case .vancouverCoastal: 0.14  // moderate elevation — reads Coal Harbour glass towers from above the waterline
+            case .sfMorning:       0.16  // elevated — reads SF's varied terrain (Nob Hill silhouette behind FiDi towers)
+            case .nycDusk:         0.16  // elevated — reads the setback skyscraper silhouette from outside the street canyon
             }
         }
 
         var fieldOfViewDegrees: Float {
             switch self {
-            case .skyscraperCorridor: 50
+            // Dense high-rise skylines: wider FOV maximises vertical tower impact
+            case .skyscraperCorridor, .nycDusk: 50
+            // European dense fabric: 45° gives better depth perception of packed street canyons
+            // while keeping the "looking into a city block" feel vs. the flat 42° overview.
+            case .parisianCore, .bordeauxWaterfront, .londonSilver, .madridAfternoon, .romanGoldenHour: 45
             default: 42
             }
         }

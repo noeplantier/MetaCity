@@ -297,11 +297,17 @@ struct DistrictRealityView: UIViewRepresentable {
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
             guard let arView else { return }
 
-            // Pause auto-orbit when the user starts dragging so there's no jitter from
-            // two systems writing camera position simultaneously. Resume on lift.
+            // Cancel any in-flight camera animation when the user starts dragging.
+            // Both orbitSubscription AND flySubscription/cinematicSubscription can be active
+            // simultaneously — without cancelling all three, the fly animation and the pan
+            // handler both write camera.position on the same frame, producing visible jitter.
             if gesture.state == .began {
                 orbitSubscription?.cancel()
                 orbitSubscription = nil
+                flySubscription?.cancel()
+                flySubscription = nil
+                cinematicSubscription?.cancel()
+                cinematicSubscription = nil
             }
 
             let delta = gesture.translation(in: arView)
@@ -333,22 +339,32 @@ struct DistrictRealityView: UIViewRepresentable {
         }
 
         @objc func handlePinch(_ gesture: UIPinchGestureRecognizer) {
-            let scale = Float(gesture.scale)
+            let rawScale = Float(gesture.scale)
             gesture.scale = 1.0
-            guard scale > 0 else { return }
+            guard rawScale > 0, rawScale != 1.0 else { return }
 
-            // Allow zooming in to ~1% of extent (floor 6 m) so window grids, hip roofs,
-            // and palm fronds are visually resolvable at close range.
             let minDist = max(6.0, districtExtent * 0.010)
             let maxDist = districtExtent * 5.0
-            currentDistance = min(max(currentDistance / scale, minDist), maxDist)
+
+            // Rubber-band resistance near zoom limits:
+            // tMin approaches 0 as currentDistance approaches minDist (zooming in).
+            // tMax approaches 0 as currentDistance approaches maxDist (zooming out).
+            // Beyond the soft-zone (15% of each limit) full response applies (t = 1).
+            let tMin = min((currentDistance - minDist) / max(minDist * 0.15, 1), 1.0)
+            let tMax = min((maxDist - currentDistance) / max(maxDist * 0.08, 1), 1.0)
+            let t: Float = rawScale < 1.0 ? tMin : tMax
+            let easedScale = 1.0 + (rawScale - 1.0) * max(t, 0.12)   // ≥12% response at boundary
+            currentDistance = min(max(currentDistance / easedScale, minDist), maxDist)
 
             updateCameraPosition()
 
-            // At 98% of maximum zoom-out, fire the map transition callback.
-            if currentDistance >= maxDist * 0.98 {
-                onZoomBack?()
-            }
+            // Dynamic FOV: narrow slightly (telephoto effect) when zoomed in close.
+            // Gives better spatial depth and a more architectural "prime lens" feel.
+            // 0 = far/overview, 1 = minimum distance / maximum detail.
+            let normZoom = 1.0 - (currentDistance - minDist) / max(maxDist - minDist, 1)
+            updateFOV(normalizedZoom: normZoom)
+
+            if currentDistance >= maxDist * 0.98 { onZoomBack?() }
         }
 
         @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
@@ -409,18 +425,10 @@ struct DistrictRealityView: UIViewRepresentable {
 
             onBuildingSelected?(building)
 
-            let n       = Float(building.polygon.count)
-            let cx      = building.polygon.map(\.x).reduce(0,+) / n
-            let cz      = building.polygon.map(\.z).reduce(0,+) / n
-            let midH    = building.heightMeters * 0.5
-            let eyeDist = max(building.heightMeters * 2.2, districtExtent * 0.08)
-            let orbitH  = midH + building.heightMeters * 0.2
-
-            // Record the inspected building so buildingOrbitToken and post-pan resume both
-            // orbit around the selected building, not the district centre.
-            inspectedBuildingCentroid = SIMD3(cx, center.y, cz)
-            inspectedOrbitDist = eyeDist
-            inspectedOrbitH    = orbitH
+            // Compute footprint centroid once — used by scanner ring and framing.
+            let n  = Float(building.polygon.count)
+            let cx = building.polygon.map(\.x).reduce(0, +) / n
+            let cz = building.polygon.map(\.z).reduce(0, +) / n
 
             // Holographic amber scanner rings — two counter-rotating arc-segment rings + halo.
             selectionRingSubscription?.cancel()
@@ -447,40 +455,30 @@ struct DistrictRealityView: UIViewRepresentable {
                 self.selectionRingSubscription = av.scene.subscribe(to: SceneEvents.Update.self) {
                     [weak scanner, weak outerArcs, weak innerArcs] _ in
                     guard let root = scanner else { return }
-                    outerAngle  += 0.018                            // CW ~62°/s at 60fps
-                    innerAngle  -= 0.013                            // CCW ~45°/s
+                    outerAngle  += 0.018
+                    innerAngle  -= 0.013
                     outerArcs?.transform.rotation = simd_quatf(angle: outerAngle, axis: SIMD3(0, 1, 0))
                     innerArcs?.transform.rotation = simd_quatf(angle: innerAngle, axis: SIMD3(0, 1, 0))
-                    breathPhase += 0.042                            // breathing period ~2.5 s
+                    breathPhase += 0.042
                     let s = 1.0 + 0.045 * sin(breathPhase)
                     root.scale = SIMD3(s, 1, s)
                 }
             }
 
-            // Shift orbit center to this building so subsequent pan gestures orbit around it.
-            let lookY = center.y
-            center = SIMD3(cx, lookY, cz)
-            currentDistance = eyeDist
+            // Cinematic bounding-box framing — replaces the old scalar-height-only approach.
+            // Sets inspectedBuildingCentroid, inspectedOrbitDist, inspectedOrbitH,
+            // center, currentDistance, currentElevation as side effects.
+            flyToBuildingWithFraming(building, scene: arView.scene)
 
-            // Approach from the current azimuth direction so the view preserves the user's
-            // current vantage angle rather than always snapping to front-facing +Z.
-            let approachX = cx + sin(azimuth) * eyeDist
-            let approachZ = cz + cos(azimuth) * eyeDist
-            flyCamera(
-                to:     SIMD3(approachX, orbitH, approachZ),
-                lookAt: SIMD3(cx, midH, cz),
-                scene:  arView.scene
-            )
-
-            // If auto-rotate is on, start orbiting around the building after the fly lands.
+            // If auto-rotate is on, resume orbit around the building after the fly settles.
             if currentIsAutoRotating {
-                let bc = SIMD3<Float>(cx, center.y, cz)
-                let d  = eyeDist
-                let h  = orbitH
+                let orbitCenter = SIMD3<Float>(cx, center.y, cz)
+                let d = inspectedOrbitDist
+                let h = inspectedOrbitH
                 Task { @MainActor [weak self] in
-                    try? await Task.sleep(nanoseconds: 1_250_000_000)   // ~fly duration + margin
+                    try? await Task.sleep(nanoseconds: 1_400_000_000)
                     guard let self else { return }
-                    self.startBuildingOrbit360(center: bc, orbDist: d, orbH: h, scene: arView.scene)
+                    self.startBuildingOrbit360(center: orbitCenter, orbDist: d, orbH: h, scene: arView.scene)
                 }
             }
         }
@@ -499,6 +497,8 @@ struct DistrictRealityView: UIViewRepresentable {
             currentDistance = districtDistance
             azimuth = 0
             currentElevation = height
+            // Restore base FOV (building-focus may have narrowed it)
+            updateFOV(normalizedZoom: 0)
             guard let arView else { return }
             flyCamera(to: SIMD3(center.x, height, center.z + districtDistance),
                       lookAt: center, scene: arView.scene)
@@ -696,13 +696,16 @@ struct DistrictRealityView: UIViewRepresentable {
         }
 
         /// Smoothly flies the camera from its current position to `target`, looking at `lookAt`,
-        /// over 1.0s with a cubic-Hermite ease. Self-cancels when t ≥ 1.
+        /// with a cubic-Hermite ease. Duration scales with travel distance (0.6–1.4s) so close
+        /// taps feel snappy and long cross-district flies feel deliberate.
         private func flyCamera(to target: SIMD3<Float>, lookAt: SIMD3<Float>, scene: RealityKit.Scene) {
             cinematicSubscription?.cancel()
             cinematicSubscription = nil
             guard let camera = cameraEntity else { return }
             let startPos = camera.position
-            let duration: Float = 1.0
+            // 0.6s for a 0-distance no-op; scales linearly with travel until capped at 1.4s.
+            let travelDist = simd_length(target - startPos)
+            let duration = min(max(0.6 + travelDist / max(districtExtent, 100) * 0.5, 0.6), 1.4)
             var elapsed: Float  = 0
             var lastTime: TimeInterval = 0
 
@@ -713,7 +716,7 @@ struct DistrictRealityView: UIViewRepresentable {
                 lastTime  = event.deltaTime
 
                 let t = min(elapsed / duration, 1.0)
-                let s = t * t * (3 - 2 * t)
+                let s = t * t * (3 - 2 * t)   // cubic Hermite smoothstep
                 let pos = startPos + (target - startPos) * s
                 camera.position = pos
 
@@ -727,6 +730,102 @@ struct DistrictRealityView: UIViewRepresentable {
                     self.flySubscription = nil
                 }
             }
+        }
+
+        // MARK: - Camera framing helpers
+
+        /// Narrows FOV slightly as the user zooms in — telephoto effect that reduces wide-angle
+        /// distortion at close range and gives a more architectural, "prime lens" spatial quality.
+        /// `normalizedZoom` is 0 at maximum distance (overview) and 1 at minimum distance (close-up).
+        private func updateFOV(normalizedZoom: Float) {
+            // Up to 16% narrower than the base FOV at full zoom-in.
+            // Example: parisianCore 45° → 37.8° at closest approach (walls fill the frame correctly).
+            let baseFOV = mood.fieldOfViewDegrees
+            let targetFOV = baseFOV * (1.0 - max(normalizedZoom, 0) * 0.16)
+            if var camComp = cameraEntity?.components[PerspectiveCameraComponent.self] {
+                camComp.fieldOfViewInDegrees = targetFOV
+                cameraEntity?.components[PerspectiveCameraComponent.self] = camComp
+            }
+        }
+
+        /// Cinematic building-focus fly — replaces the scalar `height × 2.2` heuristic with a
+        /// proper 3D bounding-sphere calculation so the entire building volume fits in frame.
+        ///
+        /// **Algorithm**:
+        /// 1. Compute XZ bounding box from footprint polygon → `halfW`, `halfD`.
+        /// 2. Bounding sphere radius = diagonal from volume centre to corner: √(halfW² + halfD² + halfH²).
+        /// 3. Camera distance = sphere_radius / tan(halfFOV) × 1.30 (30% margin).
+        /// 4. Clamp: never closer than footprint diagonal, never farther than 38–52% of district extent
+        ///    (tall-building threshold: > 60m switches to looser cap + steeper elevation angle).
+        /// 5. Look-at height = 35–40% of building height so both base and crown are in frame.
+        /// 6. Camera elevation = look-at + dist × sin(15°–20°) — oblique angle reads depth well.
+        ///
+        /// Sets `inspectedBuildingCentroid`, `inspectedOrbitDist`, `inspectedOrbitH`, `center`,
+        /// `currentDistance`, and `currentElevation` as side effects so post-fly pan/orbit resume
+        /// from the landed position.
+        private func flyToBuildingWithFraming(_ building: BuildingFootprint, scene: RealityKit.Scene) {
+            let pts = building.polygon
+            guard !pts.isEmpty else { return }
+
+            let n  = Float(pts.count)
+            let cx = pts.map(\.x).reduce(0, +) / n
+            let cz = pts.map(\.z).reduce(0, +) / n
+
+            // 3D bounding box of the building volume
+            let minX = pts.map(\.x).min()!, maxX = pts.map(\.x).max()!
+            let minZ = pts.map(\.z).min()!, maxZ = pts.map(\.z).max()!
+            let halfW = (maxX - minX) * 0.5
+            let halfD = (maxZ - minZ) * 0.5
+            let halfH = building.heightMeters * 0.5
+            let footprintR = sqrt(halfW * halfW + halfD * halfD)
+
+            // Bounding sphere from the volumetric centre (cx, halfH, cz)
+            let sphereR = sqrt(halfW * halfW + halfD * halfD + halfH * halfH)
+
+            // FOV-based fitting distance: sphere must fit inside the camera frustum with margin
+            let halfFovRad = (mood.fieldOfViewDegrees * 0.5) * (Float.pi / 180)
+            let fovFitDist = sphereR / tan(halfFovRad) * 1.30
+
+            // Tall buildings (> 60 m) get a looser distance cap and steeper elevation so the
+            // camera rises above the mid-point and the full height remains in frame.
+            let isTall = building.heightMeters > 60
+            let maxRelDist: Float = isTall ? 0.52 : 0.38
+            let eyeDist = min(max(fovFitDist, footprintR * 1.2, 12.0), districtExtent * maxRelDist)
+
+            // Elevation angle: 20° for tall buildings (wider vertical frame), 15° for low-rise
+            let elevSin: Float = isTall ? 0.342 : 0.259   // sin(20°) / sin(15°)
+            let elevCos: Float = isTall ? 0.940 : 0.966   // cos(20°) / cos(15°)
+
+            // Look-at Y: lower 1/3–2/5 of building height for a balanced full-building frame
+            let lookH = building.heightMeters * (isTall ? 0.40 : 0.35)
+            let lookTarget = SIMD3<Float>(cx, lookH, cz)
+
+            // Camera position: approach from current azimuth, elevated above look-at
+            let camY       = lookH + eyeDist * elevSin
+            let groundDist = eyeDist * elevCos
+            let camPos = SIMD3<Float>(
+                cx + sin(azimuth) * groundDist,
+                camY,
+                cz + cos(azimuth) * groundDist
+            )
+
+            // Update gesture state so post-fly pan/pinch resume from the landed position
+            center           = SIMD3(cx, lookH, cz)
+            currentDistance  = eyeDist
+            currentElevation = camY
+
+            // Orbit resume state
+            inspectedBuildingCentroid = SIMD3(cx, districtCenter.y, cz)
+            inspectedOrbitDist = eyeDist
+            inspectedOrbitH    = camY
+
+            // Sync FOV to match the new zoom level
+            let minDist = max(6.0, districtExtent * 0.010)
+            let maxDist = districtExtent * 5.0
+            let normZoom = 1.0 - (eyeDist - minDist) / max(maxDist - minDist, 1)
+            updateFOV(normalizedZoom: max(normZoom, 0))
+
+            flyCamera(to: camPos, lookAt: lookTarget, scene: scene)
         }
     }
 }

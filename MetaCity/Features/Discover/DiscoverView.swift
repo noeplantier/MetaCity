@@ -145,9 +145,12 @@ struct DiscoverView: View {
 
             let results = viewModel.globalSearchResults()
             if viewModel.isGlobalSearchActive && !viewModel.globalSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
-                GlobalSearchDropdown(results: results) { result in
-                    viewModel.selectGlobalSearchResult(result)
-                }
+                GlobalSearchDropdown(
+                    results: results,
+                    worldSuggestions: viewModel.worldCitySuggestions,
+                    onSelect: { viewModel.selectGlobalSearchResult($0) },
+                    onSelectSuggestion: { viewModel.selectWorldCitySuggestion($0) }
+                )
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, 4)
             }
@@ -173,9 +176,12 @@ struct DiscoverView: View {
 
             let results = viewModel.globalSearchResults()
             if viewModel.isGlobalSearchActive && !viewModel.globalSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
-                GlobalSearchDropdown(results: results) { result in
-                    viewModel.selectGlobalSearchResult(result)
-                }
+                GlobalSearchDropdown(
+                    results: results,
+                    worldSuggestions: viewModel.worldCitySuggestions,
+                    onSelect: { viewModel.selectGlobalSearchResult($0) },
+                    onSelectSuggestion: { viewModel.selectWorldCitySuggestion($0) }
+                )
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, 4)
             }
@@ -828,6 +834,7 @@ private struct HUDBuildingCard: View {
         case .londonBrick:         return Color(red: 0.76, green: 0.60, blue: 0.42)  // warm buff London stock brick
         case .madrileño:           return Color(red: 0.88, green: 0.78, blue: 0.42)  // warm Madrid golden-beige
         case .romanOchre:          return Color(red: 0.78, green: 0.58, blue: 0.32)  // Roman sienna-amber ochre
+        case .nycBrick:            return Color(red: 0.72, green: 0.38, blue: 0.28)  // NYC red-brown fired brick
         }
     }
 
@@ -1131,20 +1138,20 @@ private struct ScanLineView: View {
 
 private struct GlobalSearchDropdown: View {
     let results: [GlobalSearchResult]
+    let worldSuggestions: [WorldCitySuggestion]
     let onSelect: (GlobalSearchResult) -> Void
+    let onSelectSuggestion: (WorldCitySuggestion) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
+            // In-app results (cities/districts/buildings already in the manifest)
             ForEach(results) { result in
-                Button {
-                    onSelect(result)
-                } label: {
+                Button { onSelect(result) } label: {
                     HStack(spacing: 10) {
                         Image(systemName: result.icon)
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(iconColor(for: result))
                             .frame(width: 22)
-
                         VStack(alignment: .leading, spacing: 1) {
                             Text(result.name)
                                 .font(.system(size: 13, weight: .medium))
@@ -1162,8 +1169,41 @@ private struct GlobalSearchDropdown: View {
                 }
                 .buttonStyle(.plain)
 
-                if result.id != results.last?.id {
+                if result.id != results.last?.id || !worldSuggestions.isEmpty {
                     Divider().padding(.horizontal, 14)
+                }
+            }
+
+            // World-city suggestions from MKLocalSearchCompleter
+            if !worldSuggestions.isEmpty {
+                HStack(spacing: 6) {
+                    Image(systemName: "globe")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(Color.metacityTextTertiary)
+                    Text("VILLES DU MONDE")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(Color.metacityTextTertiary)
+                        .tracking(1.0)
+                    Spacer()
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(Color.metacityBackground.opacity(0.35))
+
+                ForEach(worldSuggestions) { suggestion in
+                    if suggestion.isVitrine {
+                        Button { onSelectSuggestion(suggestion) } label: {
+                            worldSuggestionRow(suggestion)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        worldSuggestionRow(suggestion)
+                            .opacity(0.65)
+                    }
+
+                    if suggestion.id != worldSuggestions.last?.id {
+                        Divider().padding(.horizontal, 14)
+                    }
                 }
             }
         }
@@ -1175,6 +1215,39 @@ private struct GlobalSearchDropdown: View {
         )
         .shadow(color: .black.opacity(0.22), radius: 14, y: 4)
         .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    @ViewBuilder
+    private func worldSuggestionRow(_ suggestion: WorldCitySuggestion) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "mappin.and.ellipse")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(suggestion.isVitrine ? Color.metacityNeonCyan : Color.metacityTextTertiary)
+                .frame(width: 22)
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 5) {
+                    Text(suggestion.title)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.metacityTextPrimary)
+                        .lineLimit(1)
+                    if suggestion.isVitrine {
+                        Text("Vitrine 3D")
+                            .font(.system(size: 8, weight: .bold, design: .monospaced))
+                            .foregroundStyle(Color.metacityNeonCyan)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Color.metacityNeonCyan.opacity(0.12), in: Capsule())
+                    }
+                }
+                Text(suggestion.isVitrine ? suggestion.subtitle : "Bientôt disponible en 3D")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.metacityTextTertiary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
     }
 
     private func iconColor(for result: GlobalSearchResult) -> Color {

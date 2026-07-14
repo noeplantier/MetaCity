@@ -2,12 +2,22 @@ import Foundation
 
 @MainActor
 final class ActivitiesViewModel: ObservableObject {
-    // Available cities come from the manifest — only those with activity data are shown.
+
+    // MARK: - City selection
+
+    /// The 5 vitrine showcase cities — always shown as chips regardless of the focused Discover city.
+    static let vitrineCityIDs: [String] = ["paris", "tokyo", "vancouver", "jakarta", "denpasar"]
+
     let availableCities: [CityEntry]
 
     @Published var selectedCity: CityEntry
     @Published var selectedCategory: ActivityCategory?
     @Published var searchText: String = ""
+
+    /// Set by `requestNavigation(to:)` when the user taps "Voir en 3D".
+    /// `HomeTabView` observes this and routes to the Discover tab with the right district.
+    /// Cleared by `clearPendingNavigation()` after the route is executed.
+    @Published private(set) var pendingDistrictId: String? = nil
 
     private var allActivities: [ActivityEntry] = []
 
@@ -24,7 +34,6 @@ final class ActivitiesViewModel: ObservableObject {
                     || $0.area.lowercased().contains(q)
             }
         }
-        // Premium activities surface first within each category grouping.
         return result.sorted { lhs, rhs in
             if lhs.tier == .premium, rhs.tier != .premium { return true }
             if lhs.tier != .premium, rhs.tier == .premium { return false }
@@ -38,22 +47,29 @@ final class ActivitiesViewModel: ObservableObject {
         return ActivityCategory.allCases.filter { used.contains($0) }
     }
 
+    // MARK: - Init
+
     init(preselectedCity: CityEntry? = nil) {
         let manifest = CityManifest.shared
-        let activityCityIDs: Set<String> = ["jakarta", "bandung", "denpasar", "yogyakarta", "canggu"]
-        availableCities = manifest.allCities.filter { activityCityIDs.contains($0.id) }
-        let fallback = availableCities.first ?? manifest.allCities[0]
-        // If the caller passes a city that has activity data, jump straight to it —
-        // used by HomeTabView to pre-select whichever city the user was viewing in Discover.
-        let start: CityEntry
-        if let city = preselectedCity, availableCities.contains(where: { $0.id == city.id }) {
-            start = city
-        } else {
-            start = fallback
+        let vitrineIDs = Set(Self.vitrineCityIDs)
+        // Preserve ordering: vitrine cities first, then any other cities with activity data.
+        let vitrine = Self.vitrineCityIDs.compactMap { manifest.city(id: $0) }
+        let others = manifest.allCities.filter {
+            !vitrineIDs.contains($0.id)
+            && ["bandung", "yogyakarta"].contains($0.id)
         }
-        selectedCity = start
-        loadActivities(for: start)
+        availableCities = vitrine + others
+
+        let fallback = availableCities.first ?? manifest.allCities[0]
+        if let city = preselectedCity, availableCities.contains(where: { $0.id == city.id }) {
+            selectedCity = city
+        } else {
+            selectedCity = fallback
+        }
+        loadActivities(for: selectedCity)
     }
+
+    // MARK: - Selection
 
     func selectCity(_ city: CityEntry) {
         guard city.id != selectedCity.id else { return }
@@ -67,15 +83,24 @@ final class ActivitiesViewModel: ObservableObject {
         selectedCategory = (selectedCategory == category) ? nil : category
     }
 
+    // MARK: - 3D Navigation
+
+    /// Called when user taps "Voir en 3D" on an activity card.
+    func requestNavigation(to districtId: String) {
+        pendingDistrictId = districtId
+    }
+
+    /// Called by `HomeTabView` after it has acted on `pendingDistrictId`.
+    func clearPendingNavigation() {
+        pendingDistrictId = nil
+    }
+
+    // MARK: - Data loading
+
     private func loadActivities(for city: CityEntry) {
-        // City-level file first (e.g. activities_denpasar.json for Bali)
         var combined = CityActivities.load(for: city.id)
-        // Then append district-level overrides (e.g. activities_canggu.json, activities_kuta.json).
-        // District IDs in the manifest are PascalCase ("Canggu"); the file lookup lowercases them
-        // to match the filename convention ("activities_canggu.json").
         for district in city.districts {
             let districtActivities = CityActivities.load(for: district.id.lowercased())
-            // Avoid duplicates: only add if no existing activity shares the same id.
             let existingIds = Set(combined.map(\.id))
             combined += districtActivities.filter { !existingIds.contains($0.id) }
         }

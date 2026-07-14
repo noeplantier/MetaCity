@@ -1,4 +1,5 @@
 {
+  "districtId": "Uluwatu",
   "overrides": [
     { "nameMatch": "Entrance to Uluwatu temple", "roofType": "conical"  },
     { "nameMatch": "Single Fin",                 "roofType": "thatched" },

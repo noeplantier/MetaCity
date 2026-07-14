@@ -233,7 +233,8 @@ enum DistrictRealityKit {
                 //   (duplicate vertices from Douglas-Peucker simplification are common and
                 //   already skipped by the wall-quad loop's `guard len > 0.01` — including them
                 //   in the min() would incorrectly flag every building as a degenerate sliver).
-                guard polygonArea(pts) >= 4.0 else { continue }
+                let area = polygonArea(pts)
+                guard area >= 4.0 else { continue }
                 let minNonZeroEdge = (0..<pts.count).compactMap { i -> Float? in
                     let a = pts[i], b = pts[(i + 1) % pts.count]
                     let dx = b.x - a.x, dz = b.z - a.z
@@ -242,12 +243,7 @@ enum DistrictRealityKit {
                 }.min() ?? 0
                 guard minNonZeroEdge >= 0.5 else { continue }
 
-                // Height variation for estimated buildings: ±20% deterministic wobble so a
-                // dense residential block reads as individually varied rather than a flat grid.
-                let variation = deterministicVariation(seed: building.osmID)
-                let h: Float = building.isHeightEstimated
-                    ? building.heightMeters * (0.80 + variation * 0.40)
-                    : building.heightMeters
+                let h = displayHeight(for: building, area: area)
 
                 let n = pts.count
 
@@ -513,6 +509,52 @@ enum DistrictRealityKit {
             default:
                 mat.baseColor = .init(tint: UIColor(red: 0.38, green: 0.34, blue: 0.29, alpha: 1))
             }
+        case .vancouverCoastal:
+            // Vancouver — dark wet asphalt (Pacific North Coast — perpetually damp like London) +
+            // light concrete pedestrian zones. Similar to londonSilver but slightly cooler/greener tint.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.62, green: 0.62, blue: 0.60, alpha: 1))  // cool concrete
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.16, green: 0.17, blue: 0.18, alpha: 1))  // dark wet tarmac
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.20, green: 0.21, blue: 0.22, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.24, green: 0.25, blue: 0.26, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.28, green: 0.29, blue: 0.30, alpha: 1))
+            }
+        case .sfMorning:
+            // SF: warm cool-grey concrete (the city's dominant street surface) +
+            // cream sidewalks (concrete slabs, not stone). Tinted slightly warmer than Vancouver.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.68, green: 0.65, blue: 0.60, alpha: 1))  // warm concrete sidewalk
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.20, green: 0.19, blue: 0.18, alpha: 1))  // dark asphalt
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.26, green: 0.25, blue: 0.23, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.32, green: 0.30, blue: 0.28, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.36, green: 0.34, blue: 0.32, alpha: 1))
+            }
+        case .nycDusk:
+            // NYC dusk: dark near-black asphalt under dusk orange sky. Crosswalk / pedestrian
+            // zones slightly lighter warm concrete. The contrast between warm sky and near-black
+            // streets is the definitive Manhattan night-falls visual.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.42, green: 0.40, blue: 0.36, alpha: 1))  // warm concrete sidewalk
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.10, green: 0.10, blue: 0.11, alpha: 1))  // near-black NYC asphalt
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.14, green: 0.13, blue: 0.14, alpha: 1))
+            case "tertiary", "tertiary_link", "unclassified", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.18, green: 0.17, blue: 0.18, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.22, green: 0.21, blue: 0.22, alpha: 1))
+            }
         default:
             // Jakarta / Bandung / Yogya: dark asphalt, graded by road class.
             switch kind {
@@ -645,6 +687,9 @@ enum DistrictRealityKit {
             case .londonSilver:       fallback = UIColor(red: 0.22, green: 0.22, blue: 0.25, alpha: 1)  // dark wet London tarmac
             case .madridAfternoon:    fallback = UIColor(red: 0.62, green: 0.56, blue: 0.44, alpha: 1)  // warm Madrid granite
             case .romanGoldenHour:    fallback = UIColor(red: 0.32, green: 0.26, blue: 0.20, alpha: 1)  // dark Roman sanpietrini basalt
+            case .vancouverCoastal:   fallback = UIColor(red: 0.22, green: 0.23, blue: 0.25, alpha: 1)  // dark wet Pacific Northwest concrete
+            case .sfMorning:          fallback = UIColor(red: 0.30, green: 0.28, blue: 0.26, alpha: 1)  // warm SF concrete sidewalk
+            case .nycDusk:            fallback = UIColor(red: 0.12, green: 0.11, blue: 0.12, alpha: 1)  // near-black NYC asphalt at dusk
             }
             umat.color = .init(tint: fallback)
         }
@@ -664,7 +709,7 @@ enum DistrictRealityKit {
     /// artifacts at oblique sun angles. Water at horizon reads as ambient colour — unlit is correct.
     @MainActor
     private static func makeWaterPlane(mood: DistrictRealityScene.Mood, extent: Float, center: (x: Float, z: Float), isNight: Bool) -> ModelEntity? {
-        guard mood == .beachResort || mood == .coastalPark else { return nil }
+        guard mood == .beachResort || mood == .coastalPark || mood == .vancouverCoastal || mood == .sfMorning else { return nil }
 
         let waterExt = extent * 5.0   // large enough to fill the sky-dome horizon visually
         let cx = center.x, cz = center.z
@@ -699,6 +744,18 @@ enum DistrictRealityKit {
             mat.color = .init(tint: isNight
                 ? UIColor(red: 0.04, green: 0.08, blue: 0.14, alpha: 1)
                 : UIColor(red: 0.14, green: 0.28, blue: 0.38, alpha: 1))
+        case .vancouverCoastal:
+            // Burrard Inlet / English Bay — cold Pacific deep blue-grey. Much cooler and deeper
+            // than Bali turquoise; the overcast Pacific light removes tropical brightness.
+            mat.color = .init(tint: isNight
+                ? UIColor(red: 0.04, green: 0.08, blue: 0.18, alpha: 1)
+                : UIColor(red: 0.10, green: 0.22, blue: 0.38, alpha: 1))
+        case .sfMorning:
+            // San Francisco Bay — cool medium blue-grey. Slightly lighter/warmer than Vancouver
+            // (morning sun on the Bay creates a silvery glint), but clearly cold-water Pacific.
+            mat.color = .init(tint: isNight
+                ? UIColor(red: 0.04, green: 0.09, blue: 0.20, alpha: 1)
+                : UIColor(red: 0.12, green: 0.28, blue: 0.44, alpha: 1))
         default:
             return nil
         }
@@ -970,6 +1027,40 @@ enum DistrictRealityKit {
                         g = UInt8(clamping: base - 2 + noise / 4)
                         b = UInt8(clamping: base - 6 + noise / 5)  // dark warm-grey basalt
                     }
+
+                case .vancouverCoastal:
+                    // Vancouver Downtown — dark cool wet concrete, Pacific Northwest character.
+                    // No stone paving grid here — Vancouver's streets are standard North American
+                    // poured concrete and asphalt. Subtle cool-blue tint from overcast sky reflection.
+                    let base = blockParity ? 64 : 54
+                    r = UInt8(clamping: base + noise / 5)
+                    g = UInt8(clamping: base + 1 + noise / 5)
+                    b = UInt8(clamping: base + 6 + noise / 3)  // cool Pacific sky reflection
+
+                case .sfMorning:
+                    // San Francisco Downtown / FiDi — warm medium concrete sidewalks.
+                    // SF has concrete paving typical of North American cities, but the morning
+                    // light gives it a warm cast (vs Vancouver's cool overcast). Slightly lighter.
+                    if isJoint {
+                        r = 76; g = 72; b = 66
+                    } else {
+                        let br = blockParity ? 112 : 98
+                        let bg = blockParity ? 106 : 93
+                        let bb = blockParity ? 94 : 82
+                        r = UInt8(clamping: br + noise / 3)
+                        g = UInt8(clamping: bg + noise / 4)
+                        b = UInt8(clamping: bb + noise / 5)
+                    }
+
+                case .nycDusk:
+                    // New York City — near-black asphalt at dusk. Manhattan streets are the
+                    // darkest ground in the app — thick layers of resurfaced blacktop absorb the
+                    // orange dusk sky completely. Almost featureless, like londonSilver but warmer
+                    // (slightly less blue-grey, slightly more warm dark from the dusk sky).
+                    let base = blockParity ? 36 : 28
+                    r = UInt8(clamping: base + 2 + noise / 6)  // faint warm tint from dusk orange
+                    g = UInt8(clamping: base + noise / 7)
+                    b = UInt8(clamping: base + noise / 8)
                 }
 
                 let i = (y * size + x) * 4
@@ -1326,7 +1417,8 @@ enum DistrictRealityKit {
         let z0 = z0r - overhang, z1 = z1r + overhang
         let W = x1 - x0, D = z1 - z0
         // 5 cm above the flat roof polygon already in the wall+roof entity.
-        let eaveY = building.heightMeters + 0.05
+        let bboxArea = (x1r - x0r) * (z1r - z0r)
+        let eaveY = displayHeight(for: building, area: bboxArea) + 0.05
 
         let E0 = SIMD3<Float>(x0, eaveY, z0)   // front-left
         let E1 = SIMD3<Float>(x1, eaveY, z0)   // front-right
@@ -1484,7 +1576,7 @@ enum DistrictRealityKit {
         let cx = (x0r + x1r) / 2
         let cz = (z0r + z1r) / 2
         let radius = min(x1r - x0r, z1r - z0r) / 2.0 + overhang
-        let eaveY  = building.heightMeters + 0.05
+        let eaveY  = displayHeight(for: building, area: (x1r - x0r) * (z1r - z0r)) + 0.05
         let apex   = SIMD3<Float>(cx, eaveY + radius * pitchTan, cz)
         let N = 8
         let eaveVerts: [SIMD3<Float>] = (0..<N).map { i in
@@ -1507,7 +1599,7 @@ enum DistrictRealityKit {
         let cx     = (x0r + x1r) / 2
         let cz     = (z0r + z1r) / 2
         let radius = min(x1r - x0r, z1r - z0r) / 2.0 + overhang
-        let baseY  = building.heightMeters + 0.05
+        let baseY  = displayHeight(for: building, area: (x1r - x0r) * (z1r - z0r)) + 0.05
         let slices = 8
         // 3 latitude rings from the pole at φ = 30°, 60°, 90°
         let stackPhis: [Float] = [.pi / 6, .pi / 3, .pi / 2]
@@ -1584,7 +1676,8 @@ enum DistrictRealityKit {
         let centroidX = xs.reduce(0, +) / Float(xs.count)
         let centroidZ = zs.reduce(0, +) / Float(zs.count)
 
-        let beaconHeight = max(building.heightMeters * 0.6, districtExtent * 0.03)
+        let dh = displayHeight(for: building, area: polygonArea(building.polygon))
+        let beaconHeight = max(dh * 0.6, districtExtent * 0.03)
         let beaconWidth  = districtExtent * 0.008
         var beaconMat    = PhysicallyBasedMaterial()
         beaconMat.baseColor       = .init(tint: .white)
@@ -1592,7 +1685,7 @@ enum DistrictRealityKit {
         beaconMat.emissiveIntensity = 4
         let beaconMesh = MeshResource.generateBox(width: beaconWidth, height: beaconHeight, depth: beaconWidth)
         let beacon = ModelEntity(mesh: beaconMesh, materials: [beaconMat])
-        beacon.position = SIMD3(centroidX, building.heightMeters + beaconHeight / 2 + districtExtent * 0.015, centroidZ)
+        beacon.position = SIMD3(centroidX, dh + beaconHeight / 2 + districtExtent * 0.015, centroidZ)
         group.addChild(beacon)
 
         let textMesh = MeshResource.generateText(
@@ -1601,7 +1694,7 @@ enum DistrictRealityKit {
             font: .systemFont(ofSize: 3, weight: .semibold)
         )
         let textEntity = ModelEntity(mesh: textMesh, materials: [UnlitMaterial(color: .white)])
-        textEntity.position = SIMD3(centroidX, building.heightMeters + beaconHeight + districtExtent * 0.02, centroidZ)
+        textEntity.position = SIMD3(centroidX, dh + beaconHeight + districtExtent * 0.02, centroidZ)
         textEntity.look(at: textEntity.position + facing, from: textEntity.position, relativeTo: nil)
         group.addChild(textEntity)
 
@@ -1614,16 +1707,24 @@ enum DistrictRealityKit {
     /// orbit camera (mostly looking down) reads the scene as architecturally rich rather than
     /// a sea of same-material boxes.
     private static func roofMaterialPreset(for style: BuildingStyle, isNight: Bool) -> any RealityKit.Material {
-        // modernGlass rooftops use UnlitMaterial for the same reason green zones do:
-        // ARView's non-removable studio IBL floods upward-facing PBR surfaces (normal=(0,1,0))
-        // with its full overhead ambient even at metallic=0.10 + roughness=0.70, rendering a
-        // grey (0.13) base as bright teal. UnlitMaterial sidesteps the IBL entirely.
-        // Architecturally correct — HVAC/gravel penthouse is not a specular surface.
+        // modernGlass + nycBrick rooftops use UnlitMaterial: ARView's non-removable studio IBL floods
+        // upward-facing PBR surfaces (normal=(0,1,0)) with overhead ambient even at low metallic,
+        // rendering near-black bases as bright teal. UnlitMaterial sidesteps the IBL entirely.
+        // Architecturally correct — HVAC/gravel/tar roof is not a specular surface.
         if style == .modernGlass {
             var m = UnlitMaterial()
             m.color = .init(tint: isNight
                 ? UIColor(red: 0.06, green: 0.08, blue: 0.15, alpha: 1) // dark cool-blue equipment glow
                 : UIColor(white: 0.10, alpha: 1))                         // dark charcoal HVAC deck
+            return m
+        }
+        if style == .nycBrick {
+            // NYC flat tar/EPDM roof — near-black membrane from orbit camera.
+            // UnlitMaterial: even metallic=0 PBR reads as teal on a flat black face under the studio IBL.
+            var m = UnlitMaterial()
+            m.color = .init(tint: isNight
+                ? UIColor(red: 0.05, green: 0.04, blue: 0.04, alpha: 1)  // near-black night roof
+                : UIColor(red: 0.12, green: 0.11, blue: 0.11, alpha: 1)) // very dark warm-grey tar membrane
             return m
         }
 
@@ -1639,8 +1740,8 @@ enum DistrictRealityKit {
             mat.metallic    = .init(floatLiteral: 0.0)
             mat.clearcoat   = .init(floatLiteral: 0.05)   // faint glaze from rain
             mat.clearcoatRoughness = .init(floatLiteral: 0.80)
-        case .modernGlass:
-            break   // handled above — unreachable
+        case .modernGlass, .nycBrick:
+            break   // both handled above by early UnlitMaterial return — unreachable
         case .modernConcrete:
             // Light grey concrete rooftop — typical of modern Jakarta residential/commercial.
             mat.baseColor   = .init(tint: UIColor(white: isNight ? 0.30 : 0.62, alpha: 1))
@@ -1794,6 +1895,7 @@ enum DistrictRealityKit {
         case .londonBrick:        (cols, rows, winW, winH, density) = (4,  7, 3, 4, 0.32)  // Victorian sash windows — tall, narrow panes, moderate density
         case .madrileño:          (cols, rows, winW, winH, density) = (5,  8, 3, 5, 0.38)  // Madrid balcony doors — tall French-door proportions, denser grid
         case .romanOchre:         (cols, rows, winW, winH, density) = (3,  5, 4, 5, 0.22)  // Roman palazzo windows — large tall arched openings, sparse
+        case .nycBrick:           (cols, rows, winW, winH, density) = (4,  6, 3, 4, 0.30)  // NYC double-hung sash — rectangular 4×6 grid, moderate density (~30% lit at night)
         }
         let cellW = size / cols, cellH = size / rows
         var seed: UInt32 = 2166136261
@@ -2015,6 +2117,23 @@ enum DistrictRealityKit {
             material.roughness = .init(floatLiteral: 0.78 + 0.08 * abs(wobble))  // rough tuff/render plaster
             material.clearcoat = .init(floatLiteral: 0.07)   // warm-rain sheen on ancient plaster
             material.clearcoatRoughness = .init(floatLiteral: 0.72)
+        case .nycBrick:
+            // New York City red-brown fired brick — the defining wall material of Manhattan's pre-war
+            // fabric: tenements, brownstones, and the limestone-clad office buildings of the 1900–1940s.
+            // Distinctly redder than London stock brick (yellow-buff, B≈0.38) and darker/more saturated
+            // than Roman ochre (sienna, B≈0.30). Low B channel (B≈0.20) + low G (G≈0.30) locks the
+            // warm red-brown identity across all three variation buckets.
+            // Three buckets: muted pale red / standard warm red-brown / deep terracotta-red.
+            let dayR = 0.56 + 0.06 * cgWobble  // 0.50–0.62 warm red-brown range
+            let dayG = 0.30 + 0.04 * cgWobble  // 0.26–0.34 — clearly lower than londonBrick (0.62)
+            let dayB = 0.20 + 0.04 * cgWobble  // 0.16–0.24 — lower than romanOchre (0.30)
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: dayR * 0.24, green: dayG * 0.24, blue: dayB * 0.24, alpha: 1)
+                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.0)
+            material.roughness = .init(floatLiteral: 0.88 + 0.05 * abs(wobble))  // rough fired common brick
+            material.clearcoat = .init(floatLiteral: 0.04)   // minimal — just a hint of rain-wet brick sheen
+            material.clearcoatRoughness = .init(floatLiteral: 0.86)
         }
 
         if isNight {
@@ -2047,6 +2166,7 @@ enum DistrictRealityKit {
                 case .londonBrick:         0.30  // London terrace — warm yellow-orange sodium streetlight glow
                 case .madrileño:           0.35  // Madrid terrace — warm incandescent balcony glow, moderate density
                 case .romanOchre:          0.22  // Rome historic core — intimate, lower electric density than Madrid
+                case .nycBrick:            0.34  // NYC tenements / brownstones — dense amber glow from apartment windows
                 default:                   0.35
                 }
                 material.emissiveColor     = .init(color: UIColor(red: 1.0, green: 0.84, blue: 0.55, alpha: 1))
@@ -2096,8 +2216,7 @@ enum DistrictRealityKit {
             guard let x0 = xs.min(), let x1 = xs.max(), let z0 = zs.min(), let z1 = zs.max() else { continue }
             guard x1 - x0 >= 0.5, z1 - z0 >= 0.5 else { continue }
 
-            let v = deterministicVariation(seed: b.osmID)
-            let h: Float = b.isHeightEstimated ? b.heightMeters * (0.80 + v * 0.40) : b.heightMeters
+            let h = displayHeight(for: b, area: polygonArea(b.polygon))
 
             let base = UInt32(positions.count)
             positions += [
@@ -2410,6 +2529,132 @@ enum DistrictRealityKit {
     }
 
     // MARK: - Utilities
+
+    /// Deterministic display height for a building.
+    ///
+    /// For `isHeightEstimated` buildings of low-rise compound styles (`balinese`, `colonial`,
+    /// `javanese`, `medieval`), applies area-bucketed height scaling: small footprints become
+    /// gate pavilions / single rooms (3–5 m), large resort footprints become multi-story blocks
+    /// (9–15 m). This eliminates the "flat carpet" effect in Bali districts where the
+    /// `balinese` default of 7 m produced 560 Kuta buildings all at exactly the same height.
+    ///
+    /// All other styles retain the existing ±20 % wobble from the style default.
+    /// A separate seed suffix `"_h"` keeps height variation uncorrelated with material bucket.
+    // swiftlint:disable function_body_length
+    private static func displayHeight(for building: BuildingFootprint, area: Float) -> Float {
+        guard building.isHeightEstimated else { return building.heightMeters }
+        let v = deterministicVariation(seed: building.osmID + "_h")
+        let baseH: Float; let rangeH: Float
+        switch building.style {
+
+        // MARK: Tropical compound (3–15 m) — gate pavilions to resort wings
+        case .balinese, .colonial, .javanese, .medieval:
+            switch area {
+            case ..<40:    (baseH, rangeH) = (3.0, 2.0)
+            case ..<100:   (baseH, rangeH) = (4.0, 2.5)
+            case ..<250:   (baseH, rangeH) = (5.5, 3.0)
+            case ..<600:   (baseH, rangeH) = (7.0, 4.0)
+            default:       (baseH, rangeH) = (9.0, 6.0)
+            }
+
+        // MARK: Urban concrete infill (4–22 m) — service rooms to major commercial blocks
+        case .modernConcrete:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (4.0, 3.0)
+            case ..<150:   (baseH, rangeH) = (6.0, 4.0)
+            case ..<400:   (baseH, rangeH) = (8.5, 5.5)
+            case ..<900:   (baseH, rangeH) = (11.0, 7.0)
+            default:       (baseH, rangeH) = (14.0, 8.0)
+            }
+
+        // MARK: Haussmannien limestone (12–27 m) — 4-8 floors, street-width regulated
+        // Small footprints are courtyard wings / narrow lots (4 floors); large footprints
+        // sit on wide boulevards or are institutional buildings (7-8 floors).
+        case .haussmannien:
+            switch area {
+            case ..<80:    (baseH, rangeH) = (12.0, 6.0)   // narrow lot / courtyard wing
+            case ..<250:   (baseH, rangeH) = (15.0, 6.0)   // standard 5-floor
+            case ..<600:   (baseH, rangeH) = (18.0, 6.0)   // corner / boulevard block
+            default:       (baseH, rangeH) = (20.0, 7.0)   // institutional / grand hôtel
+            }
+
+        // MARK: Bordeaux classical (10–22 m) — 3-5 floors, Atlantic limestone
+        case .bordelaisClassical:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (10.0, 4.0)
+            case ..<150:   (baseH, rangeH) = (12.0, 6.0)
+            case ..<400:   (baseH, rangeH) = (14.0, 6.0)
+            default:       (baseH, rangeH) = (16.0, 6.0)
+            }
+
+        // MARK: London Victorian brick (7–22 m) — mews cottages to mansion blocks
+        case .londonBrick:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (7.0, 4.0)    // mews cottage
+            case ..<150:   (baseH, rangeH) = (9.0, 5.0)    // standard terrace
+            case ..<400:   (baseH, rangeH) = (11.0, 7.0)   // corner / commercial
+            default:       (baseH, rangeH) = (14.0, 8.0)   // mansion block / warehouse
+            }
+
+        // MARK: Madrid Ensanche (12–28 m) — 4-7 floors, Bourbon height regulation
+        case .madrileño:
+            switch area {
+            case ..<80:    (baseH, rangeH) = (12.0, 6.0)
+            case ..<200:   (baseH, rangeH) = (16.0, 6.0)   // standard 5-floor Ensanche
+            case ..<600:   (baseH, rangeH) = (18.0, 6.0)
+            default:       (baseH, rangeH) = (20.0, 8.0)
+            }
+
+        // MARK: Roman ochre fabric (8–22 m) — vicolo lots to grand palazzi
+        case .romanOchre:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (8.0, 4.0)    // narrow vicolo plot
+            case ..<150:   (baseH, rangeH) = (10.0, 6.0)   // standard 3-4 floor
+            case ..<400:   (baseH, rangeH) = (13.0, 6.0)   // palazzo facade
+            default:       (baseH, rangeH) = (15.0, 7.0)   // large palazzo block
+            }
+
+        // MARK: NYC pre-war brick (8–40 m) — brownstones to pre-war loft buildings
+        // Named supertalls (Empire State, Chrysler) have real heights via authored overrides
+        // and bypass this path (isHeightEstimated == false). This covers the fabric buildings
+        // which span 2-story brownstones to 12-story 1920s apartment houses.
+        case .nycBrick:
+            switch area {
+            case ..<80:    (baseH, rangeH) = (8.0, 6.0)    // brownstone / row house: 8-14 m
+            case ..<200:   (baseH, rangeH) = (10.0, 10.0)  // tenement block: 10-20 m
+            case ..<500:   (baseH, rangeH) = (14.0, 16.0)  // apartment house: 14-30 m
+            default:       (baseH, rangeH) = (18.0, 22.0)  // commercial loft: 18-40 m
+            }
+
+        // MARK: Civic buildings (5–25 m) — scales with footprint mass
+        case .government:
+            switch area {
+            case ..<80:    (baseH, rangeH) = (5.0, 5.0)    // small district office
+            case ..<200:   (baseH, rangeH) = (7.0, 7.0)    // municipal building
+            case ..<500:   (baseH, rangeH) = (10.0, 10.0)  // ministry / prefecture
+            default:       (baseH, rangeH) = (12.0, 13.0)  // large civic complex
+            }
+
+        // MARK: Religious (4–24 m) — small shrines to major church naves
+        // Towers / spires get real heights via KNOWN_HEIGHTS or authored overrides
+        // and bypass this path. This covers the nave body and ancillary structures.
+        case .religious:
+            switch area {
+            case ..<60:    (baseH, rangeH) = (4.0, 4.0)    // small shrine / chapel
+            case ..<150:   (baseH, rangeH) = (6.0, 6.0)    // parish church
+            case ..<400:   (baseH, rangeH) = (8.0, 10.0)   // significant church
+            default:       (baseH, rangeH) = (10.0, 14.0)  // major church / cathedral nave
+            }
+
+        // MARK: modernGlass — estimated height is already well-calibrated by the fetch script
+        // (auto-promoted at ≥30 m via height-based classification, or KNOWN_HEIGHTS matched).
+        // ±20 % wobble gives sufficient tower-to-tower variety without distorting height bands.
+        default:
+            return building.heightMeters * (0.80 + v * 0.40)
+        }
+        return baseH + v * rangeH
+    }
+    // swiftlint:enable function_body_length
 
     private static func deterministicVariation(seed: String) -> Float {
         var hash: UInt32 = 2166136261

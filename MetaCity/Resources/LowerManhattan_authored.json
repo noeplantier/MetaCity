@@ -1,0 +1,29 @@
+{
+  "districtId": "LowerManhattan",
+  "overrides": [
+    { "osmID": "713565776",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "166839381",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "278033587",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "277890516",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "279530782",  "style": "modernConcrete", "roofType": "flat" },
+    { "osmID": "75363809",   "style": "government",     "roofType": "flat" },
+    { "osmID": "278042250",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "278053520",  "style": "government",     "roofType": "flat" },
+    { "osmID": "75309476",   "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "278078943",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "375340304",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "278039445",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "278039446",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "278203280",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "157001066",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "278078945",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "169362506",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "278053505",  "style": "modernGlass",    "roofType": "flat" },
+    { "osmID": "369862694",  "style": "modernGlass",    "roofType": "flat" },
+    { "nameMatch": "Brooklyn Bridge",  "style": "government", "roofType": "flat" },
+    { "nameMatch": "Federal Hall",     "style": "government", "roofType": "flat" },
+    { "nameMatch": "Trinity Church",   "style": "religious",  "roofType": "flat" },
+    { "nameMatch": "St. Paul",         "style": "religious",  "roofType": "flat" },
+    { "nameMatch": "Oculus",           "style": "government", "roofType": "flat" }
+  ]
+}

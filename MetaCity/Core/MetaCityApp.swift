@@ -55,7 +55,11 @@ struct MetaCityApp: App {
                                                         "Montmartre", "LeMarais", "SaintGermain", "LaDefense",
                                                         "VieuxBordeaux", "LesChartrons",
                                                         "CityOfLondon", "Westminster", "Salamanca", "CentroStorico",
-                                                        "Malasana"]
+                                                        "Malasana",
+                                                        // North America — all 6 will be heavy (dense city grids)
+                                                        "VancouverDowntown", "WestEnd",
+                                                        "SFDowntown", "FishermansWharf",
+                                                        "MidtownManhattan", "LowerManhattan"]
                     for district in CityManifest.shared.allDistricts
                         where district.dataBundled && !heavyDistricts.contains(district.id) {
                         _ = try? await DistrictRealityKit.loadDistrictEntity(

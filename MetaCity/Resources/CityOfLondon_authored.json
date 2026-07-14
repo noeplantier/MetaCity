@@ -1,0 +1,7 @@
+{
+  "districtId": "CityOfLondon",
+  "overrides": [
+    { "osmID": "4959489",   "style": "modernGlass", "roofType": "flat" },
+    { "osmID": "369161987", "style": "religious",   "roofType": "flat" }
+  ]
+}

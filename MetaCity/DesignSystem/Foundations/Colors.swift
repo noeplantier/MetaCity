@@ -80,4 +80,21 @@ extension Color {
         light: UIColor(red: 1.000, green: 0.584, blue: 0.000, alpha: 1),
         dark: UIColor(red: 1.000, green: 0.624, blue: 0.039, alpha: 1)
     )
+
+    // Futuristic HUD palette — electric cyan primary, neon magenta for CTAs.
+    // Used only in Activities cards, Profile HUD badge, and HUD overlays; not applied
+    // to the global design system to avoid clashing with the anthracite brand tokens above.
+    static let metacityNeonCyan = Color(
+        light: UIColor(red: 0.000, green: 0.820, blue: 0.960, alpha: 1),
+        dark:  UIColor(red: 0.000, green: 0.875, blue: 1.000, alpha: 1)
+    )
+    static let metacityNeonMagenta = Color(
+        light: UIColor(red: 0.920, green: 0.118, blue: 0.549, alpha: 1),
+        dark:  UIColor(red: 0.950, green: 0.149, blue: 0.588, alpha: 1)
+    )
+    /// Deep space blue-black — used as background for HUD cards and futuristic overlays.
+    static let metacityHUDBackground = Color(
+        light: UIColor(red: 0.020, green: 0.035, blue: 0.075, alpha: 0.92),
+        dark:  UIColor(red: 0.008, green: 0.016, blue: 0.055, alpha: 0.95)
+    )
 }

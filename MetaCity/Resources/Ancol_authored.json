@@ -1,0 +1,11 @@
+{
+  "districtId": "Ancol",
+  "overrides": [
+    { "nameMatch": "Halilintar",         "style": "modernConcrete", "roofType": "flat" },
+    { "nameMatch": "Turangga-Rangga",    "style": "modernConcrete", "roofType": "flat" },
+    { "nameMatch": "Arung Jerang",       "style": "modernConcrete", "roofType": "flat" },
+    { "nameMatch": "A&W",                "style": "modernConcrete", "roofType": "flat" },
+    { "nameMatch": "Indomaret",          "style": "modernConcrete", "roofType": "flat" },
+    { "nameMatch": "Kantor Syahbandar",  "style": "government",     "roofType": "flat" }
+  ]
+}

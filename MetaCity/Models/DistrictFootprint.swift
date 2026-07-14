@@ -56,6 +56,16 @@ enum BuildingStyle: String, Codable {
     /// Do NOT raise B channel above 0.40 — the low blue (B≈0.32) distinguishes Rome ochre from
     /// bordelaisClassical amber and madrileño golden-beige.
     case romanOchre
+    /// New York City red-brown fired brick — the defining material of Manhattan's pre-war fabric:
+    /// tenements (Lower East Side, Harlem), brownstones (Upper West Side, Brooklyn Heights),
+    /// and the 1900–1940s limestone-clad office towers that still frame Midtown's street level.
+    /// Wall: warm red-brown (R≈0.50–0.62, G≈0.26–0.34, B≈0.16–0.24) distinctly redder than London
+    /// stock brick (yellow-buff) and darker/less saturated than Roman ochre (sienna-amber).
+    /// Roof: **flat** dark tar/EPDM membrane — NYC rooftops are almost universally flat, often black
+    /// from the orbit camera. **NOT in capStyles**. **IN HEIGHT_PROMOTION_BYPASS** — 20-floor
+    /// pre-war limestone office buildings (70m) must stay nycBrick, not auto-promote to modernGlass.
+    /// Apply authored overrides for glass supertalls (WTC, modern towers) that should be modernGlass.
+    case nycBrick
 }
 
 /// A real OpenStreetMap building footprint, simplified and classified by
@@ -138,6 +148,7 @@ extension BuildingStyle {
         case .londonBrick:         return "London Brick"
         case .madrileño:           return "Madrileño"
         case .romanOchre:          return "Roman Ochre"
+        case .nycBrick:            return "NYC Brick"
         }
     }
 
@@ -156,6 +167,7 @@ extension BuildingStyle {
         case .londonBrick:        return "house.fill"
         case .madrileño:          return "building.2.fill"
         case .romanOchre:         return "building.columns.circle.fill"
+        case .nycBrick:           return "building.2.crop.circle.fill"
         }
     }
 }
