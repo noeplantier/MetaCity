@@ -1531,6 +1531,66 @@ correlation — same building, same deterministic height, every launch, uncorrel
 - La Défense: 1,511 estimated `modernConcrete` at 7m → range 4–22m, avg 8.1m, p90 14.5m
 - Hip roof eave Y, conical/dome base Y, LOD far-tier box heights all use the same `displayHeight` call
 
+### Facade articulation bands (2026-07-14)
+
+A third `ModelEntity` per style bucket (`buildings_\(key)_bands`) adds horizontal 3D surface relief to
+building facades: floor ledge strips at fixed floor intervals, a top cornice, and a base plinth. All
+three elements use `addBandStrip` which generates a front face (outward) + top face (upward) quad per
+polygon edge — both faces share the same edge-normal `(nx, 0, nz)` computed from the polygon edge
+direction. Bands are merged per bucket into one `MeshDescriptor` (same approach as wall/roof entities)
+so draw call count increases by at most 1 entity per bucket (≤3 per style, ≤12 for a 4-bucket
+haussmannien district).
+
+**`FacadeProfile` struct** controls per-style geometry:
+```swift
+struct FacadeProfile {
+    let floorInterval: Float   // metres between floor ledge bands
+    let bandDepth: Float       // outward projection of each ledge
+    let bandThick: Float       // vertical thickness of each ledge
+    let corniceDepth: Float    // top cornice outward projection
+    let corniceHeight: Float   // top cornice height (0 = no cornice)
+    let plinthDepth: Float     // base plinth projection
+    let plinthHeight: Float    // base plinth height (0 = no plinth)
+}
+```
+
+**Per-style parameters (2026-07-14):**
+
+| Style | bandDepth | bandThick | corniceDepth | corniceH | plinthH |
+|---|---|---|---|---|---|
+| haussmannien | 0.38 m | 0.22 m | 0.50 m | 0.55 m | 0.80 m |
+| bordelaisClassical | 0.32 | 0.20 | 0.42 | 0.50 | 0.70 |
+| madrileño | 0.30 | 0.18 | 0.38 | 0.50 | 0.65 |
+| colonial | 0.22 | 0.16 | 0.28 | 0.35 | 0.50 |
+| romanOchre | 0.28 | 0.18 | 0.38 | 0.48 | 0.60 |
+| londonBrick | 0.14 | 0.12 | 0.20 | 0.32 | 0.35 |
+| medieval | 0.12 | 0.10 | 0.30 | 0.40 | 0 (no plinth) |
+| modernGlass | 0.06 | 0.08 | 0 | 0 | 0 (spandrel only) |
+| nycBrick | 0.20 | 0.15 | 0.35 | 0.50 | 0.55 |
+| balinese / javanese / government / religious | — | — | — | — | `FacadeProfile.none` |
+
+**Winding invariant** for `addBandStrip` top face: `[tBase+3, tBase+1, tBase+2, tBase+3, tBase+0, tBase+1]`
+produces n.y > 0 for CW polygon winding in X-Z. The reversed fan `[3,1,2]+[3,0,1]` was verified
+symbolically via cross-product to give upward normal. Do not change this winding without re-running the
+cross-product verification — the analogous `[0,1,3]+[1,2,3]` winding gives n.y < 0.
+
+**`bandMaterialPreset`** provides lighter/cooler materials than the wall:
+- `modernGlass`: dark metallic spandrel `(0.05,0.06,0.09)`, metallic 0.88, roughness 0.24
+- `haussmannien`: cut limestone, slightly cooler/lighter than wall, roughness 0.66, clearcoat 0.20
+- `bordelaisClassical`: amber limestone, roughness 0.68
+- `romanOchre`: travertine band, roughness 0.70, clearcoat 0.08
+- `londonBrick`/`medieval`: Portland stone / Breton granite, roughness 0.80/0.86
+- Other styles: delegates to `roofMaterialPreset`
+
+Cached in `bandMaterialCache` keyed `"\(style.rawValue)_band_\(isNight)"` — 30 instances max.
+Declared `@MainActor` (same constraint as `makeBuildingMeshes` and `pooledMaterial`).
+
+**Visual effect scale**: floor ledge bands (0.38m for haussmannien) are sub-pixel at full orbit
+distance — they register as surface texture/shadow differentiation at mid-zoom and become clearly
+readable as 3D horizontal relief in the close-up street-view camera. Spandrel panels on
+`modernGlass` (0.06m) show as subtle horizontal ridges at camera distances ≤50m.
+Screenshot-verified 2026-07-14: Le Marais (haussmannien fabric), SudirmanThamrin (glass spandrel).
+
 ## Known Simulator/test gotchas
 
 See `~/.claude/projects/-Users-noeplantier-Orbital/memory/project_ios_simulator_quirks.md` (Claude
