@@ -1541,7 +1541,8 @@ direction. Bands are merged per bucket into one `MeshDescriptor` (same approach 
 so draw call count increases by at most 1 entity per bucket (≤3 per style, ≤12 for a 4-bucket
 haussmannien district).
 
-**`FacadeProfile` struct** controls per-style geometry (updated 2026-07-14 with ground-floor fields):
+**`FacadeProfile` struct** controls per-style geometry (updated 2026-07-14 with ground-floor fields;
+balcony/pilaster fields added same session — see balcony undersides section below):
 ```swift
 struct FacadeProfile {
     let floorInterval: Float     // metres between floor ledge bands
@@ -1553,6 +1554,13 @@ struct FacadeProfile {
     let plinthHeight: Float      // base plinth height (0 = no plinth)
     let groundFloorH: Float      // height of ground-floor cladding panel (0 = none)
     let groundFloorDepth: Float  // outward projection of ground-floor cladding (0 = none)
+    let balconyDepth: Float      // balcony slab outward projection (0 = none)
+    let balconyThick: Float      // balcony slab thickness
+    let balconyFirstFloor: Int   // 1-based floor index of first balcony
+    let balconyFloorStep: Int    // every N floors has a balcony
+    let pilasterWidth: Float     // pilaster front-strip width (0 = none)
+    let pilasterDepth: Float     // pilaster outward projection
+    let pilasterSpacing: Float   // horizontal bay interval
 }
 ```
 
@@ -1569,7 +1577,14 @@ struct FacadeProfile {
 | medieval | 0.12 | 0.10 | 0.30 | 0.40 | 0 | 3.5 | 0.05 |
 | modernGlass | 0.06 | 0.08 | 0 | 0 | 0 | 8.0 | 0.10 |
 | nycBrick | 0.20 | 0.15 | 0.35 | 0.50 | 0.55 | 5.5 | 0.08 |
-| balinese / javanese / government / religious | — | — | — | — | — | 0 (none) | 0 |
+| **balinese** | 0 | 0 | **0.22** | **0.28** | 0 | 0 | 0 |
+| javanese / government / religious | — | — | — | — | — | 0 (none) | 0 |
+
+**Balinese parapet case (added 2026-07-14)**: `balinese` previously fell through to `default: return .none`
+(no facade articulation). It now has a cornice cap (`corniceDepth: 0.22m`, `corniceHeight: 0.28m`) —
+the carved volcanic stone parapet that defines the top edge of Balinese compound walls. No floor bands,
+no balconies, no pilasters — architecturally correct for single-storey compound vernacular.
+Screenshot-verified on Canggu (9,402 buildings): distinct parapet silhouette on all compound walls.
 
 **Ground-floor cladding system (added 2026-07-14):**
 `addGroundFloorPanel` emits a fourth `ModelEntity` per bucket (`buildings_\(key)_ground`) with a
@@ -1612,6 +1627,29 @@ cross-product verification — the analogous `[0,1,3]+[1,2,3]` winding gives n.y
 
 Cached in `bandMaterialCache` keyed `"\(style.rawValue)_band_\(isNight)"` — 30 instances max.
 Declared `@MainActor` (same constraint as `makeBuildingMeshes` and `pooledMaterial`).
+
+**Balcony underside faces (added 2026-07-14):** `addBalconies` now emits a fourth quad per polygon
+edge per floor level: a downward-facing (-Y normal) underside of the slab at `balkY`. Winding
+`[uBase+2, uBase+1, uBase+3, uBase+1, uBase+0, uBase+3]` produces n.y < 0 (reversed from the
+top-face winding, cross-verified via example: edge (0,0)→(10,0), depth 0.5m → n=(0,−5,0)).
+The orbit camera at 15–30° elevation sees the underside as a dark shadow band directly below each
+balcony slab — creates strong horizontal depth cues on haussmannien/bordelais/madrileño/romanOchre/
+londonBrick/nycBrick facades. `addBandStrip` itself still only emits front + top face; undersides
+are caller-opt-in (`addBalconies` only — floor ledge bands are only 0.12–0.38m deep and the
+underside area is not worth the extra triangles at orbit scale).
+Do NOT add `includeUnderside` to `addBandStrip` globally — the base plinth sits at y=0 and its
+underside would be underground, and floor-band undersides at 0.38m depth are sub-pixel at orbit
+distance. The pattern is explicit in `addBalconies` for legibility.
+
+**POI overview-only zoom (2026-07-14):** `flyToVenue` in `DistrictRealityView.Coordinator` was
+changed from an eye-level walk-up (`camY = 8m`, `lookAt.y = 5m`) to an elevated orbit zoom
+(`orbitDist = districtExtent × 0.20`, elevation 15° from current `azimuth`). Eye-level mode is
+now permanently removed — all camera animations (building tap, POI selection, search fly) stay in
+the elevated ensemble overview. The `approachBearing`/`approachDistance` POI fields are no longer
+used for camera positioning (they were only needed for the eye-level approach angle); the venue
+framing approach is always from the current azimuth at 15° elevation.
+`center`, `currentDistance`, `currentElevation` are updated so post-fly pan/orbit resume from the
+landed position, consistent with `flyToBuildingWithFraming`.
 
 **Visual effect scale**: floor ledge bands (0.38m for haussmannien) are sub-pixel at full orbit
 distance — they register as surface texture/shadow differentiation at mid-zoom and become clearly
