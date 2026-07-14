@@ -1541,33 +1541,61 @@ direction. Bands are merged per bucket into one `MeshDescriptor` (same approach 
 so draw call count increases by at most 1 entity per bucket (≤3 per style, ≤12 for a 4-bucket
 haussmannien district).
 
-**`FacadeProfile` struct** controls per-style geometry:
+**`FacadeProfile` struct** controls per-style geometry (updated 2026-07-14 with ground-floor fields):
 ```swift
 struct FacadeProfile {
-    let floorInterval: Float   // metres between floor ledge bands
-    let bandDepth: Float       // outward projection of each ledge
-    let bandThick: Float       // vertical thickness of each ledge
-    let corniceDepth: Float    // top cornice outward projection
-    let corniceHeight: Float   // top cornice height (0 = no cornice)
-    let plinthDepth: Float     // base plinth projection
-    let plinthHeight: Float    // base plinth height (0 = no plinth)
+    let floorInterval: Float     // metres between floor ledge bands
+    let bandDepth: Float         // outward projection of each floor ledge
+    let bandThick: Float         // vertical thickness of each floor ledge
+    let corniceDepth: Float      // top cornice outward projection
+    let corniceHeight: Float     // top cornice height (0 = no cornice)
+    let plinthDepth: Float       // base plinth projection
+    let plinthHeight: Float      // base plinth height (0 = no plinth)
+    let groundFloorH: Float      // height of ground-floor cladding panel (0 = none)
+    let groundFloorDepth: Float  // outward projection of ground-floor cladding (0 = none)
 }
 ```
 
 **Per-style parameters (2026-07-14):**
 
-| Style | bandDepth | bandThick | corniceDepth | corniceH | plinthH |
-|---|---|---|---|---|---|
-| haussmannien | 0.38 m | 0.22 m | 0.50 m | 0.55 m | 0.80 m |
-| bordelaisClassical | 0.32 | 0.20 | 0.42 | 0.50 | 0.70 |
-| madrileño | 0.30 | 0.18 | 0.38 | 0.50 | 0.65 |
-| colonial | 0.22 | 0.16 | 0.28 | 0.35 | 0.50 |
-| romanOchre | 0.28 | 0.18 | 0.38 | 0.48 | 0.60 |
-| londonBrick | 0.14 | 0.12 | 0.20 | 0.32 | 0.35 |
-| medieval | 0.12 | 0.10 | 0.30 | 0.40 | 0 (no plinth) |
-| modernGlass | 0.06 | 0.08 | 0 | 0 | 0 (spandrel only) |
-| nycBrick | 0.20 | 0.15 | 0.35 | 0.50 | 0.55 |
-| balinese / javanese / government / religious | — | — | — | — | `FacadeProfile.none` |
+| Style | bandDepth | bandThick | corniceDepth | corniceH | plinthH | groundFloorH | groundFloorDepth |
+|---|---|---|---|---|---|---|---|
+| haussmannien | 0.38 m | 0.22 m | 0.50 m | 0.55 m | 0.80 m | 5.0 m | 0.08 m |
+| bordelaisClassical | 0.32 | 0.20 | 0.42 | 0.50 | 0.70 | 5.0 | 0.08 |
+| madrileño | 0.30 | 0.18 | 0.38 | 0.50 | 0.65 | 5.5 | 0.06 |
+| colonial | 0.22 | 0.16 | 0.28 | 0.35 | 0.50 | 4.5 | 0.06 |
+| romanOchre | 0.28 | 0.18 | 0.38 | 0.48 | 0.60 | 5.5 | 0.08 |
+| londonBrick | 0.14 | 0.12 | 0.20 | 0.32 | 0.35 | 5.0 | 0.06 |
+| medieval | 0.12 | 0.10 | 0.30 | 0.40 | 0 | 3.5 | 0.05 |
+| modernGlass | 0.06 | 0.08 | 0 | 0 | 0 | 8.0 | 0.10 |
+| nycBrick | 0.20 | 0.15 | 0.35 | 0.50 | 0.55 | 5.5 | 0.08 |
+| balinese / javanese / government / religious | — | — | — | — | — | 0 (none) | 0 |
+
+**Ground-floor cladding system (added 2026-07-14):**
+`addGroundFloorPanel` emits a fourth `ModelEntity` per bucket (`buildings_\(key)_ground`) with a
+distinct `groundFloorMaterialPreset` for each applicable style. Uses `addBandStrip` (same front +
+top face geometry) so the horizontal cap of the cladding slab is visible from the orbit camera.
+`guard gH > 1.0` skips short buildings where the ground-floor zone would consume the whole height.
+
+Per-style ground materials (`groundFloorMaterialPreset`, cached in `groundFloorMaterialCache`):
+- `modernGlass`: dark polished granite lobby `(0.08,0.09,0.12)` — metallic 0.22, roughness 0.30, clearcoat 0.72
+- `haussmannien`: bossed rusticated Lutetian limestone `(0.72,0.68,0.58)` — roughness 0.84, clearcoat 0.05
+- `colonial`: ochre lime-wash arcade facing `(0.58,0.40,0.24)` — roughness 0.82
+- `londonBrick`: Portland stone / stucco `(0.70,0.70,0.68)` — roughness 0.76, clearcoat 0.06
+- `romanOchre`: travertine base `(0.88,0.80,0.64)` — roughness 0.70, clearcoat 0.12
+- `bordelaisClassical`: rusticated Gironde limestone `(0.70,0.56,0.32)` — roughness 0.82
+- `madrileño`: Sierra granite plinth `(0.44,0.42,0.40)` — roughness 0.65, clearcoat 0.15
+- `medieval`: Breton granite soubassement `(0.38,0.36,0.34)` — roughness 0.90
+- `nycBrick`: brownstone entry `(0.38,0.28,0.20)` — roughness 0.80
+
+Draw call cost: adds ≤9 ground entities per district (one per bucket per applicable style, 3 buckets × 9 styles). 
+Still within 200 draw-call budget for all districts.
+
+**Water PBR (added 2026-07-14):** `natural=water` green zones now use `PhysicallyBasedMaterial` via
+`waterMaterial(isNight:)` instead of `UnlitMaterial`. clearcoat 0.80 + roughness 0.16 produces a
+directional-light specular streak reading as sun glinting on river/harbour water. Garonne (Bordeaux),
+Jakarta bay, Vancouver harbor all benefit. Non-water zone kinds remain `UnlitMaterial` (shadow-map
+aliasing on large horizontal surfaces — unchanged from before).
 
 **Winding invariant** for `addBandStrip` top face: `[tBase+3, tBase+1, tBase+2, tBase+3, tBase+0, tBase+1]`
 produces n.y > 0 for CW polygon winding in X-Z. The reversed fan `[3,1,2]+[3,0,1]` was verified
@@ -1587,9 +1615,14 @@ Declared `@MainActor` (same constraint as `makeBuildingMeshes` and `pooledMateri
 
 **Visual effect scale**: floor ledge bands (0.38m for haussmannien) are sub-pixel at full orbit
 distance — they register as surface texture/shadow differentiation at mid-zoom and become clearly
-readable as 3D horizontal relief in the close-up street-view camera. Spandrel panels on
+readable as 3D horizontal relief in the close-up street-view camera. Ground-floor cladding (8m for
+`modernGlass`) is visible from orbit as a darker base zone on tall towers. Spandrel panels on
 `modernGlass` (0.06m) show as subtle horizontal ridges at camera distances ≤50m.
-Screenshot-verified 2026-07-14: Le Marais (haussmannien fabric), SudirmanThamrin (glass spandrel).
+Screenshot-verified 2026-07-14: Le Marais (haussmannien fabric + mansard caps), SudirmanThamrin
+(dark granite ground-floor podium zone visible on glass towers, spandrel bands on facades),
+VieuxBordeaux (facade bands clearly visible as horizontal white ledges on amber bordelaisClassical
+fabric, terracotta canal-tile rooftops). Water PBR (`natural=water` green zones: clearcoat 0.80,
+roughness 0.16) applies to Garonne in both Bordeaux districts and Jakarta bay zones.
 
 ## Known Simulator/test gotchas
 
