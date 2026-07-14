@@ -25,6 +25,7 @@ extension DistrictEntry {
         case "vancouverCoastal":  return .vancouverCoastal
         case "sfMorning":         return .sfMorning
         case "nycDusk":           return .nycDusk
+        case "shibuyaNeon":       return .shibuyaNeon
         default:                  return .parkDaylight
         }
     }
@@ -58,6 +59,7 @@ enum DistrictRealityScene {
         case vancouverCoastal    // Vancouver (Downtown + West End) — Pacific NW diffuse overcast, Coal Harbour blue-grey
         case sfMorning           // San Francisco (Downtown + Fisherman's Wharf) — coastal morning, Karl the Fog
         case nycDusk             // New York (Midtown + Lower Manhattan) — late-afternoon canyon golden light
+        case shibuyaNeon         // Tokyo (Shibuya) — dense commercial evening, neon-lit indigo sky
 
         var sunColor: UIColor {
             switch self {
@@ -78,6 +80,7 @@ enum DistrictRealityScene {
             case .vancouverCoastal: UIColor(red: 0.86, green: 0.92, blue: 0.98, alpha: 1) // cool Pacific NW diffuse — near-white sky through cloud cover
             case .sfMorning:       UIColor(red: 0.94, green: 0.90, blue: 0.82, alpha: 1) // warm coastal morning through marine layer
             case .nycDusk:         UIColor(red: 1.0,  green: 0.78, blue: 0.48, alpha: 1) // intense amber dusk — canyon light carving shadows between towers
+            case .shibuyaNeon:     UIColor(red: 0.88, green: 0.82, blue: 0.70, alpha: 1) // warm amber Japanese afternoon — commercial commercial golden hour before neon kicks in
             }
         }
 
@@ -109,6 +112,7 @@ enum DistrictRealityScene {
             case .vancouverCoastal: 24000  // Pacific NW overcast — bright diffuse cloud layer, no harsh shadows
             case .sfMorning:       28000  // coastal morning — sun cutting through marine layer, moderate contrast
             case .nycDusk:         36000  // intense low-angle dusk — strong enough to carve canyon shadows
+            case .shibuyaNeon:     30000  // late-afternoon Tokyo — strong directional sun before neon takes over
             }
         }
 
@@ -133,6 +137,7 @@ enum DistrictRealityScene {
             case .vancouverCoastal: 0.42   // moderate Pacific NW elevation — cloud diffusion softens shadows
             case .sfMorning:       0.40   // coastal morning angle — moderate elevation through fog
             case .nycDusk:         0.28   // very low — maximises tower shadow depth between canyon streets
+            case .shibuyaNeon:     0.22   // lowest elevation in the app — long dramatic shadows across Shibuya commercial density
             }
         }
 
@@ -200,6 +205,10 @@ enum DistrictRealityScene {
                 // warm amber-orange horizon glow (the sun just past the horizon line over New Jersey),
                 // very dark asphalt ground.
                 (UIColor(red: 0.16, green: 0.22, blue: 0.48, alpha: 1), UIColor(red: 0.72, green: 0.54, blue: 0.32, alpha: 1), UIColor(red: 0.20, green: 0.18, blue: 0.16, alpha: 1))
+            case .shibuyaNeon:
+                // Tokyo commercial evening — deep indigo zenith (city light haze), electric magenta-pink
+                // horizon glow from neon signage and building illumination, very dark wet asphalt ground.
+                (UIColor(red: 0.14, green: 0.18, blue: 0.44, alpha: 1), UIColor(red: 0.62, green: 0.28, blue: 0.58, alpha: 1), UIColor(red: 0.10, green: 0.10, blue: 0.14, alpha: 1))
             }
         }
 
@@ -226,6 +235,7 @@ enum DistrictRealityScene {
             case .vancouverCoastal: 0.16  // Vancouver Downtown glass towers are dense — tight like Paris
             case .sfMorning:       0.16  // SF Financial District — similar density to Vancouver
             case .nycDusk:         0.18  // NYC Midtown/Lower Manhattan — slight extra breathing room for skyline silhouette
+            case .shibuyaNeon:     0.16  // Shibuya — extremely dense commercial fabric, very tight framing
             }
         }
 
@@ -248,13 +258,14 @@ enum DistrictRealityScene {
             case .vancouverCoastal: 0.14  // moderate elevation — reads Coal Harbour glass towers from above the waterline
             case .sfMorning:       0.16  // elevated — reads SF's varied terrain (Nob Hill silhouette behind FiDi towers)
             case .nycDusk:         0.16  // elevated — reads the setback skyscraper silhouette from outside the street canyon
+            case .shibuyaNeon:     0.18  // slightly elevated — reads layered commercial signage canopy across dense Shibuya block
             }
         }
 
         var fieldOfViewDegrees: Float {
             switch self {
             // Dense high-rise skylines: wider FOV maximises vertical tower impact
-            case .skyscraperCorridor, .nycDusk: 50
+            case .skyscraperCorridor, .nycDusk, .shibuyaNeon: 50
             // European dense fabric: 45° gives better depth perception of packed street canyons
             // while keeping the "looking into a city block" feel vs. the flat 42° overview.
             case .parisianCore, .bordeauxWaterfront, .londonSilver, .madridAfternoon, .romanGoldenHour: 45
