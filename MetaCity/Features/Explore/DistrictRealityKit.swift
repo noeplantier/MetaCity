@@ -532,6 +532,16 @@ enum DistrictRealityKit {
                                  balconyDepth: 0, balconyThick: 0,
                                  balconyFirstFloor: 2, balconyFloorStep: 1,
                                  pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
+        case .balinese:
+            // Balinese compound: low single-storey walls with carved volcanic stone parapet cap.
+            // No balconies, no pilasters — organic vernacular, not a classical order.
+            return FacadeProfile(floorInterval: 3.5, bandDepth: 0, bandThick: 0,
+                                 corniceDepth: 0.22, corniceHeight: 0.28,
+                                 plinthDepth: 0, plinthHeight: 0,
+                                 groundFloorH: 0, groundFloorDepth: 0,
+                                 balconyDepth: 0, balconyThick: 0,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
         case .modernGlass:
             // Curtain-wall: thin metallic spandrel panels, dark granite lobby ~8m.
             // No balconies, no pilasters.
@@ -608,7 +618,7 @@ enum DistrictRealityKit {
     }
 
     /// Appends the outward front face + upward top face of one projecting ledge strip.
-    /// The underside is omitted (not visible from orbit camera).
+    /// Callers that need a downward-facing underside (e.g. addBalconies) emit it separately.
     /// Winding verified: front face normal = (nx,0,nz), top face normal = (0,+1,0),
     /// both confirmed via cross-product for CW building polygon winding in X-Z.
     private static func addBandStrip(
@@ -692,6 +702,7 @@ enum DistrictRealityKit {
         let n = pts.count
         let stopY = h - profile.balconyThick - max(profile.corniceHeight, 0.5)
         var balkY = Float(profile.balconyFirstFloor - 1) * profile.floorInterval
+        let depth = profile.balconyDepth
         while balkY <= stopY {
             for i in 0..<n {
                 let a = pts[i], b = pts[(i + 1) % n]
@@ -700,8 +711,19 @@ enum DistrictRealityKit {
                 guard len > 0.01 else { continue }
                 let nx = -dz / len, nz = dx / len
                 addBandStrip(a: a, b: b, nx: nx, nz: nz,
-                             yBase: balkY, thick: profile.balconyThick, depth: profile.balconyDepth,
+                             yBase: balkY, thick: profile.balconyThick, depth: depth,
                              positions: &positions, normals: &normals, uvs: &uvs, indices: &indices)
+                // Underside face at balkY — visible from orbit camera at 15-30° elevation.
+                // Reversed winding of top face [3,1,2,3,0,1] → [2,1,3,1,0,3] gives n.y < 0.
+                let axO = a.x + nx * depth, azO = a.z + nz * depth
+                let bxO = b.x + nx * depth, bzO = b.z + nz * depth
+                let downN = SIMD3<Float>(0, -1, 0)
+                let uBase = UInt32(positions.count)
+                positions += [SIMD3(a.x, balkY, a.z), SIMD3(axO, balkY, azO),
+                              SIMD3(bxO, balkY, bzO), SIMD3(b.x, balkY, b.z)]
+                normals   += [downN, downN, downN, downN]
+                uvs       += [SIMD2(0, 0), SIMD2(1, 0), SIMD2(1, 1), SIMD2(0, 1)]
+                indices   += [uBase+2, uBase+1, uBase+3,   uBase+1, uBase+0, uBase+3]
             }
             balkY += Float(profile.balconyFloorStep) * profile.floorInterval
         }
