@@ -227,6 +227,16 @@ enum DistrictRealityKit {
             var groundUV:   [SIMD2<Float>] = []
             var groundIdx:  [UInt32]       = []
 
+            var balkPos:  [SIMD3<Float>] = []
+            var balkNorm: [SIMD3<Float>] = []
+            var balkUV:   [SIMD2<Float>] = []
+            var balkIdx:  [UInt32]       = []
+
+            var pilasterPos:  [SIMD3<Float>] = []
+            var pilasterNorm: [SIMD3<Float>] = []
+            var pilasterUV:   [SIMD2<Float>] = []
+            var pilasterIdx:  [UInt32]       = []
+
             let profile = facadeProfile(for: style)
 
             // UV tile sizes in world metres — 1 texture repeat per tile.
@@ -320,6 +330,16 @@ enum DistrictRealityKit {
                                         positions: &groundPos, normals: &groundNorm,
                                         uvs: &groundUV, indices: &groundIdx)
                 }
+
+                // Balcony slabs: deep projecting ledge at select floor levels (wrought-iron material)
+                addBalconies(building: building, profile: profile, h: h,
+                             positions: &balkPos, normals: &balkNorm,
+                             uvs: &balkUV, indices: &balkIdx)
+
+                // Pilasters: vertical relief strips at equal bay spacing along each polygon edge
+                addPilasters(building: building, profile: profile, h: h,
+                             positions: &pilasterPos, normals: &pilasterNorm,
+                             uvs: &pilasterUV, indices: &pilasterIdx)
             }
 
             guard !wallPos.isEmpty else { return [] }
@@ -380,6 +400,32 @@ enum DistrictRealityKit {
                 entities.append(groundEntity)
             }
 
+            if !balkIdx.isEmpty {
+                var balkDesc = MeshDescriptor(name: "buildings_\(key)_balkony")
+                balkDesc.positions          = MeshBuffer(balkPos)
+                balkDesc.normals            = MeshBuffer(balkNorm)
+                balkDesc.textureCoordinates = MeshBuffer(balkUV)
+                balkDesc.primitives         = .triangles(balkIdx)
+                let balkMat    = balconyMaterialPreset(for: style, isNight: isNight)
+                let balkMesh   = try MeshResource.generate(from: [balkDesc])
+                let balkEntity = ModelEntity(mesh: balkMesh, materials: [balkMat])
+                balkEntity.name = "buildings_\(key)_balkony"
+                entities.append(balkEntity)
+            }
+
+            if !pilasterIdx.isEmpty {
+                var pilasterDesc = MeshDescriptor(name: "buildings_\(key)_pilasters")
+                pilasterDesc.positions          = MeshBuffer(pilasterPos)
+                pilasterDesc.normals            = MeshBuffer(pilasterNorm)
+                pilasterDesc.textureCoordinates = MeshBuffer(pilasterUV)
+                pilasterDesc.primitives         = .triangles(pilasterIdx)
+                let pilasterMat    = bandMaterialPreset(for: style, isNight: isNight)
+                let pilasterMesh   = try MeshResource.generate(from: [pilasterDesc])
+                let pilasterEntity = ModelEntity(mesh: pilasterMesh, materials: [pilasterMat])
+                pilasterEntity.name = "buildings_\(key)_pilasters"
+                entities.append(pilasterEntity)
+            }
+
             return entities
         }
     }
@@ -396,76 +442,116 @@ enum DistrictRealityKit {
         let plinthHeight: Float      // base plinth height (0 = no plinth)
         let groundFloorH: Float      // height of ground-floor cladding panel (0 = none)
         let groundFloorDepth: Float  // outward projection of ground-floor cladding (0 = none)
+        // Balcony slabs — deep projecting ledge at select floors with wrought-iron/cast-iron material
+        let balconyDepth: Float      // projection depth (0 = no balconies)
+        let balconyThick: Float      // slab thickness
+        let balconyFirstFloor: Int   // 1-based floor index of first balcony (1 = ground, 2 = 1st étage)
+        let balconyFloorStep: Int    // every N floors: 1 = every floor, 2 = every other floor
+        // Pilasters — vertical relief strips at equal bay spacing along polygon edges
+        let pilasterWidth: Float     // strip width (0 = no pilasters)
+        let pilasterDepth: Float     // outward projection
+        let pilasterSpacing: Float   // horizontal interval between strips (0 = none)
         static let none = FacadeProfile(floorInterval: 3.5, bandDepth: 0, bandThick: 0,
                                         corniceDepth: 0, corniceHeight: 0,
                                         plinthDepth: 0, plinthHeight: 0,
-                                        groundFloorH: 0, groundFloorDepth: 0)
+                                        groundFloorH: 0, groundFloorDepth: 0,
+                                        balconyDepth: 0, balconyThick: 0,
+                                        balconyFirstFloor: 2, balconyFloorStep: 1,
+                                        pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
     }
 
     private static func facadeProfile(for style: BuildingStyle) -> FacadeProfile {
         switch style {
         case .haussmannien:
-            // Second-Empire rhythm: cast-iron balcony slabs at every floor, heavy zinc cornice,
-            // rusticated ashlar soubassement from ground to 1st-floor windowsill (~5m).
+            // Second-Empire: cast-iron balcony at every floor from 1st étage, heavy zinc cornice,
+            // rusticated ashlar soubassement ~5m; Corinthian pilasters at 2.5m bay rhythm.
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.38, bandThick: 0.22,
                                  corniceDepth: 0.50, corniceHeight: 0.55,
                                  plinthDepth: 0.12, plinthHeight: 0.80,
-                                 groundFloorH: 5.0, groundFloorDepth: 0.08)
+                                 groundFloorH: 5.0, groundFloorDepth: 0.08,
+                                 balconyDepth: 0.80, balconyThick: 0.15,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0.22, pilasterDepth: 0.12, pilasterSpacing: 2.5)
         case .bordelaisClassical:
-            // Bordeaux bourgeois blocks: Gironde limestone balconies, moulded cornice,
-            // rusticated limestone base from ground to arcade level (~5m).
+            // Bordeaux bourgeois: Gironde limestone balconies every floor from 1st, moulded cornice,
+            // rusticated limestone base ~5m; Ionic pilasters at 3.0m bay rhythm.
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.32, bandThick: 0.20,
                                  corniceDepth: 0.42, corniceHeight: 0.50,
                                  plinthDepth: 0.10, plinthHeight: 0.70,
-                                 groundFloorH: 5.0, groundFloorDepth: 0.08)
+                                 groundFloorH: 5.0, groundFloorDepth: 0.08,
+                                 balconyDepth: 0.70, balconyThick: 0.14,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0.20, pilasterDepth: 0.10, pilasterSpacing: 3.0)
         case .madrileño:
-            // Ensanche cast-iron miradors, cornice, dark Sierra granite plinth (~5.5m).
+            // Ensanche: cast-iron miradors every floor from 1st, cornice, Sierra granite plinth ~5.5m;
+            // Corinthian engaged-column strips at 2.8m rhythm.
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.30, bandThick: 0.18,
                                  corniceDepth: 0.38, corniceHeight: 0.50,
                                  plinthDepth: 0.10, plinthHeight: 0.65,
-                                 groundFloorH: 5.5, groundFloorDepth: 0.06)
+                                 groundFloorH: 5.5, groundFloorDepth: 0.06,
+                                 balconyDepth: 0.65, balconyThick: 0.14,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0.18, pilasterDepth: 0.09, pilasterSpacing: 2.8)
         case .colonial:
-            // Dutch colonial shophouses: verandah arcade, narrow floor ledges, slim cornice,
-            // ochre lime-wash arcade facing at ground level (~4.5m = one shophouse bay).
+            // Dutch colonial shophouses: verandah arcade facing ground ~4.5m, narrow floor ledges;
+            // slim Doric colonnette strips at 4.0m bay rhythm. No upper balconies.
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.22, bandThick: 0.16,
                                  corniceDepth: 0.28, corniceHeight: 0.35,
                                  plinthDepth: 0.10, plinthHeight: 0.50,
-                                 groundFloorH: 4.5, groundFloorDepth: 0.06)
+                                 groundFloorH: 4.5, groundFloorDepth: 0.06,
+                                 balconyDepth: 0, balconyThick: 0,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0.14, pilasterDepth: 0.07, pilasterSpacing: 4.0)
         case .romanOchre:
-            // Palazzo romano: travertine string courses, projecting cornice,
-            // travertine base from ground to piano nobile sill (~5.5m = 2 Roman bays).
+            // Palazzo romano: travertine string courses, projecting cornice, travertine base ~5.5m;
+            // giant order pilasters at 4.0m. Balconies on piano nobile and belvedere (every 2 floors).
             return FacadeProfile(floorInterval: 3.2, bandDepth: 0.28, bandThick: 0.18,
                                  corniceDepth: 0.38, corniceHeight: 0.48,
                                  plinthDepth: 0.12, plinthHeight: 0.60,
-                                 groundFloorH: 5.5, groundFloorDepth: 0.08)
+                                 groundFloorH: 5.5, groundFloorDepth: 0.08,
+                                 balconyDepth: 0.55, balconyThick: 0.14,
+                                 balconyFirstFloor: 2, balconyFloorStep: 2,
+                                 pilasterWidth: 0.28, pilasterDepth: 0.14, pilasterSpacing: 4.0)
         case .londonBrick:
-            // Victorian terrace: subtle stock-brick string courses, narrow parapet,
-            // Portland stone / painted stucco ground storey (~5m) — lighter than upper brick.
+            // Victorian terrace: subtle string courses, narrow parapet, Portland stone ground ~5m;
+            // slim brick piers at 4.5m. Juliet balconies only at floors 2 and 5 (step 3).
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.14, bandThick: 0.12,
                                  corniceDepth: 0.20, corniceHeight: 0.32,
                                  plinthDepth: 0.06, plinthHeight: 0.35,
-                                 groundFloorH: 5.0, groundFloorDepth: 0.06)
+                                 groundFloorH: 5.0, groundFloorDepth: 0.06,
+                                 balconyDepth: 0.45, balconyThick: 0.12,
+                                 balconyFirstFloor: 2, balconyFloorStep: 3,
+                                 pilasterWidth: 0.14, pilasterDepth: 0.07, pilasterSpacing: 4.5)
         case .medieval:
-            // Half-timber Breton: heavy eave overhang at top, no rigid floor bands,
-            // dark Breton granite soubassement from ground to floor-beam (~3.5m).
+            // Half-timber Breton: heavy eave at top, Breton granite soubassement ~3.5m.
+            // No balconies, no pilasters — organic half-timber rhythm has no classical order.
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.12, bandThick: 0.10,
                                  corniceDepth: 0.30, corniceHeight: 0.40,
                                  plinthDepth: 0, plinthHeight: 0,
-                                 groundFloorH: 3.5, groundFloorDepth: 0.05)
+                                 groundFloorH: 3.5, groundFloorDepth: 0.05,
+                                 balconyDepth: 0, balconyThick: 0,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
         case .modernGlass:
-            // Floor-plate spandrel panels: thin metallic horizontal stripe at each structural level;
-            // polished dark-granite lobby cladding from ground to 2nd-floor slab (~8m).
+            // Curtain-wall: thin metallic spandrel panels, dark granite lobby ~8m.
+            // No balconies, no pilasters.
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.06, bandThick: 0.08,
                                  corniceDepth: 0, corniceHeight: 0,
                                  plinthDepth: 0, plinthHeight: 0,
-                                 groundFloorH: 8.0, groundFloorDepth: 0.10)
+                                 groundFloorH: 8.0, groundFloorDepth: 0.10,
+                                 balconyDepth: 0, balconyThick: 0,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
         case .nycBrick:
-            // NYC pre-war brick: terracotta string courses, heavy projecting cornice,
-            // brownstone entry storey (~5.5m = commercial ground floor).
+            // Pre-war brick: terracotta string courses, heavy projecting cornice, brownstone ground ~5.5m;
+            // limestone piers at 3.0m. Fire-escape balconies every 2 floors from 1st.
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.20, bandThick: 0.15,
                                  corniceDepth: 0.35, corniceHeight: 0.50,
                                  plinthDepth: 0.10, plinthHeight: 0.55,
-                                 groundFloorH: 5.5, groundFloorDepth: 0.08)
+                                 groundFloorH: 5.5, groundFloorDepth: 0.08,
+                                 balconyDepth: 0.65, balconyThick: 0.13,
+                                 balconyFirstFloor: 2, balconyFloorStep: 2,
+                                 pilasterWidth: 0.22, pilasterDepth: 0.10, pilasterSpacing: 3.0)
         default:
             return .none
         }
@@ -586,6 +672,84 @@ enum DistrictRealityKit {
             addBandStrip(a: a, b: b, nx: nx, nz: nz,
                          yBase: 0, thick: gH, depth: depth,
                          positions: &positions, normals: &normals, uvs: &uvs, indices: &indices)
+        }
+    }
+
+    /// Adds balcony slab geometry for each applicable floor level of the building.
+    /// Uses `addBandStrip` — balconies are identical in geometry to floor bands, just
+    /// much deeper (0.55–0.80m vs 0.12–0.38m) and rendered with a distinct wrought-iron material.
+    private static func addBalconies(
+        building: BuildingFootprint,
+        profile: FacadeProfile,
+        h: Float,
+        positions: inout [SIMD3<Float>],
+        normals:   inout [SIMD3<Float>],
+        uvs:       inout [SIMD2<Float>],
+        indices:   inout [UInt32]
+    ) {
+        guard profile.balconyDepth > 0, profile.balconyThick > 0 else { return }
+        let pts = building.polygon
+        let n = pts.count
+        let stopY = h - profile.balconyThick - max(profile.corniceHeight, 0.5)
+        var balkY = Float(profile.balconyFirstFloor - 1) * profile.floorInterval
+        while balkY <= stopY {
+            for i in 0..<n {
+                let a = pts[i], b = pts[(i + 1) % n]
+                let dx = b.x - a.x, dz = b.z - a.z
+                let len = sqrt(dx*dx + dz*dz)
+                guard len > 0.01 else { continue }
+                let nx = -dz / len, nz = dx / len
+                addBandStrip(a: a, b: b, nx: nx, nz: nz,
+                             yBase: balkY, thick: profile.balconyThick, depth: profile.balconyDepth,
+                             positions: &positions, normals: &normals, uvs: &uvs, indices: &indices)
+            }
+            balkY += Float(profile.balconyFloorStep) * profile.floorInterval
+        }
+    }
+
+    /// Adds pilaster front-face geometry at equal bay spacing along each polygon edge.
+    /// A pilaster is a vertical relief strip (full building height) projecting `pilasterDepth` outward,
+    /// width `pilasterWidth` along the edge. Only the front face is emitted — sides are hidden by the
+    /// adjacent wall surface and are not visible from orbit or street-view cameras.
+    private static func addPilasters(
+        building: BuildingFootprint,
+        profile: FacadeProfile,
+        h: Float,
+        positions: inout [SIMD3<Float>],
+        normals:   inout [SIMD3<Float>],
+        uvs:       inout [SIMD2<Float>],
+        indices:   inout [UInt32]
+    ) {
+        guard profile.pilasterWidth > 0, profile.pilasterDepth > 0, profile.pilasterSpacing > 0 else { return }
+        let pts = building.polygon
+        let n = pts.count
+        let hw = profile.pilasterWidth * 0.5
+        let pd = profile.pilasterDepth
+        for i in 0..<n {
+            let a = pts[i], b = pts[(i + 1) % n]
+            let dx = b.x - a.x, dz = b.z - a.z
+            let len = sqrt(dx*dx + dz*dz)
+            guard len > profile.pilasterSpacing else { continue }
+            let ex = dx / len, ez = dz / len
+            let nx = -dz / len, nz = dx / len
+            let outN = SIMD3<Float>(nx, 0, nz)
+            var t = profile.pilasterSpacing * 0.5
+            while t <= len - profile.pilasterSpacing * 0.2 {
+                let cx = a.x + ex * t, cz = a.z + ez * t
+                let fBase = UInt32(positions.count)
+                // Front face: outward normal, full height strip
+                // Winding [0,1,3, 1,2,3] = same as wall quads → outward-facing for CW polygon
+                positions += [
+                    SIMD3(cx - hw*ex + pd*nx,  0, cz - hw*ez + pd*nz),   // BL
+                    SIMD3(cx + hw*ex + pd*nx,  0, cz + hw*ez + pd*nz),   // BR
+                    SIMD3(cx + hw*ex + pd*nx,  h, cz + hw*ez + pd*nz),   // TR
+                    SIMD3(cx - hw*ex + pd*nx,  h, cz - hw*ez + pd*nz)    // TL
+                ]
+                normals += [outN, outN, outN, outN]
+                uvs     += [SIMD2(0, 0), SIMD2(1, 0), SIMD2(1, h / 3.5), SIMD2(0, h / 3.5)]
+                indices += [fBase, fBase+1, fBase+3,  fBase+1, fBase+2, fBase+3]
+                t += profile.pilasterSpacing
+            }
         }
     }
 
@@ -724,6 +888,62 @@ enum DistrictRealityKit {
             m.roughness  = .init(floatLiteral: 0.80)
         }
         groundFloorMaterialCache[key] = m
+        return m
+    }
+
+    // MARK: - Balcony material
+
+    private static var balconyMaterialCache: [String: PhysicallyBasedMaterial] = [:]
+
+    /// Per-style balcony slab material — primarily wrought/cast iron for European styles.
+    /// Significantly more metallic than the band/pilaster stone material to read as iron
+    /// under the directional sun even at small scale (0.55–0.80m projection).
+    @MainActor
+    private static func balconyMaterialPreset(for style: BuildingStyle, isNight: Bool) -> PhysicallyBasedMaterial {
+        let key = "\(style.rawValue)_balk_\(isNight)"
+        if let cached = balconyMaterialCache[key] { return cached }
+        var m = PhysicallyBasedMaterial()
+        let n: CGFloat = isNight ? 0.40 : 1.0
+
+        switch style {
+        case .haussmannien, .bordelaisClassical:
+            // Classic Haussmann/Bordeaux cast-iron balcony with zinc paint — near-black metallic
+            m.baseColor = .init(tint: UIColor(red: n*0.04, green: n*0.04, blue: n*0.06, alpha: 1))
+            m.metallic  = .init(floatLiteral: 0.72)
+            m.roughness = .init(floatLiteral: 0.38)
+            m.clearcoat = .init(floatLiteral: 0.18)
+            m.clearcoatRoughness = .init(floatLiteral: 0.45)
+        case .madrileño:
+            // Madrid wrought-iron mirador rail — slightly warmer dark iron with paint oxidation
+            m.baseColor = .init(tint: UIColor(red: n*0.06, green: n*0.05, blue: n*0.05, alpha: 1))
+            m.metallic  = .init(floatLiteral: 0.68)
+            m.roughness = .init(floatLiteral: 0.44)
+            m.clearcoat = .init(floatLiteral: 0.14)
+            m.clearcoatRoughness = .init(floatLiteral: 0.55)
+        case .romanOchre:
+            // Roman travertine balustrade — warm cream stone, not iron
+            m.baseColor = .init(tint: UIColor(red: n*0.86, green: n*0.78, blue: n*0.62, alpha: 1))
+            m.roughness = .init(floatLiteral: 0.72)
+            m.clearcoat = .init(floatLiteral: 0.06)
+            m.clearcoatRoughness = .init(floatLiteral: 0.65)
+        case .londonBrick:
+            // Victorian wrought-iron Juliet balcony — dark painted iron, London black
+            m.baseColor = .init(tint: UIColor(red: n*0.05, green: n*0.05, blue: n*0.06, alpha: 1))
+            m.metallic  = .init(floatLiteral: 0.65)
+            m.roughness = .init(floatLiteral: 0.42)
+            m.clearcoat = .init(floatLiteral: 0.16)
+            m.clearcoatRoughness = .init(floatLiteral: 0.50)
+        case .nycBrick:
+            // NYC fire-escape platform — raw galvanised/rusty steel, more matte than iron
+            m.baseColor = .init(tint: UIColor(red: n*0.22, green: n*0.18, blue: n*0.14, alpha: 1))
+            m.metallic  = .init(floatLiteral: 0.55)
+            m.roughness = .init(floatLiteral: 0.62)
+        default:
+            // Generic dark stone ledge for any other style with balconies
+            m.baseColor = .init(tint: UIColor(red: n*0.12, green: n*0.10, blue: n*0.08, alpha: 1))
+            m.roughness = .init(floatLiteral: 0.55)
+        }
+        balconyMaterialCache[key] = m
         return m
     }
 
@@ -2305,7 +2525,10 @@ enum DistrictRealityKit {
 
     @MainActor
     private static func makeWindowTexture(for style: BuildingStyle) -> TextureResource? {
-        let size = 128
+        // 256×256 for higher resolution window grid — 2× improvement on 128×128 predecessor.
+        // Each window cell gets a 1px dark frame border so windows read as distinct panes
+        // rather than a solid amber rectangle, even at moderate zoom.
+        let size = 256
         var pixels = [UInt8](repeating: 0, count: size * size * 4)
         // density = fraction of window cells that are lit.  modernGlass uses 0.25 (not 0.70)
         // so at-distance the facade reads as scattered bright spots on dark glass, not a
@@ -2313,20 +2536,20 @@ enum DistrictRealityKit {
         // windows (emissiveIntensity 2.5) only works when the dark area dominates the texture.
         let (cols, rows, winW, winH, density): (Int, Int, Int, Int, Float)
         switch style {
-        case .modernGlass:    (cols, rows, winW, winH, density) = (8, 16, 3, 4, 0.25)
-        case .modernConcrete: (cols, rows, winW, winH, density) = (6, 12, 2, 3, 0.28)
-        case .colonial:       (cols, rows, winW, winH, density) = (4,  6, 3, 3, 0.25)
-        case .government:     (cols, rows, winW, winH, density) = (5,  8, 2, 4, 0.30)
-        case .religious:      (cols, rows, winW, winH, density) = (3,  4, 5, 6, 0.15)
-        case .balinese:       (cols, rows, winW, winH, density) = (3,  4, 4, 3, 0.10)
-        case .javanese:       (cols, rows, winW, winH, density) = (4,  5, 3, 3, 0.18)
-        case .haussmannien:       (cols, rows, winW, winH, density) = (5,  8, 3, 4, 0.35)  // tall French windows, moderate shuttered density
-        case .medieval:           (cols, rows, winW, winH, density) = (3,  5, 4, 4, 0.20)  // small medieval casements, sparse
-        case .bordelaisClassical: (cols, rows, winW, winH, density) = (4,  6, 3, 4, 0.30)  // Bordeaux tall sash windows, moderate density
-        case .londonBrick:        (cols, rows, winW, winH, density) = (4,  7, 3, 4, 0.32)  // Victorian sash windows — tall, narrow panes, moderate density
-        case .madrileño:          (cols, rows, winW, winH, density) = (5,  8, 3, 5, 0.38)  // Madrid balcony doors — tall French-door proportions, denser grid
-        case .romanOchre:         (cols, rows, winW, winH, density) = (3,  5, 4, 5, 0.22)  // Roman palazzo windows — large tall arched openings, sparse
-        case .nycBrick:           (cols, rows, winW, winH, density) = (4,  6, 3, 4, 0.30)  // NYC double-hung sash — rectangular 4×6 grid, moderate density (~30% lit at night)
+        case .modernGlass:    (cols, rows, winW, winH, density) = (8, 16, 6, 8, 0.25)
+        case .modernConcrete: (cols, rows, winW, winH, density) = (6, 12, 5, 6, 0.28)
+        case .colonial:       (cols, rows, winW, winH, density) = (4,  6, 7, 7, 0.25)
+        case .government:     (cols, rows, winW, winH, density) = (5,  8, 5, 8, 0.30)
+        case .religious:      (cols, rows, winW, winH, density) = (3,  4, 10, 12, 0.15)
+        case .balinese:       (cols, rows, winW, winH, density) = (3,  4, 8, 6, 0.10)
+        case .javanese:       (cols, rows, winW, winH, density) = (4,  5, 7, 7, 0.18)
+        case .haussmannien:       (cols, rows, winW, winH, density) = (5,  8, 7, 9, 0.35)
+        case .medieval:           (cols, rows, winW, winH, density) = (3,  5, 9, 9, 0.20)
+        case .bordelaisClassical: (cols, rows, winW, winH, density) = (4,  6, 7, 9, 0.30)
+        case .londonBrick:        (cols, rows, winW, winH, density) = (4,  7, 7, 9, 0.32)
+        case .madrileño:          (cols, rows, winW, winH, density) = (5,  8, 7, 11, 0.38)
+        case .romanOchre:         (cols, rows, winW, winH, density) = (3,  5, 9, 11, 0.22)
+        case .nycBrick:           (cols, rows, winW, winH, density) = (4,  6, 7, 9, 0.30)
         }
         let cellW = size / cols, cellH = size / rows
         var seed: UInt32 = 2166136261
@@ -2335,14 +2558,25 @@ enum DistrictRealityKit {
             for col in 0..<cols {
                 seed = seed &* 1664525 &+ 1013904223
                 guard Float(seed & 0xFF) / 255.0 < density else { continue }
-                let startX = col * cellW + max(0, (cellW - winW) / 2)
-                let startY = row * cellH + max(0, (cellH - winH) / 2)
-                for wy in 0..<min(winH, cellH) {
-                    for wx in 0..<min(winW, cellW) {
-                        let px = startX + wx, py = startY + wy
+                // Window pane: centred in cell, 1px dark frame border leaves frame visible
+                let startX = col * cellW + max(1, (cellW - winW) / 2)
+                let startY = row * cellH + max(1, (cellH - winH) / 2)
+                let endX   = min(startX + winW, col * cellW + cellW - 1)
+                let endY   = min(startY + winH, row * cellH + cellH - 1)
+                for py in startY..<endY {
+                    for px in startX..<endX {
                         guard px < size, py < size else { continue }
+                        // 1px dark frame: skip outermost ring of each pane
+                        let isFrameX = (px == startX || px == endX - 1)
+                        let isFrameY = (py == startY || py == endY - 1)
                         let i = (py * size + px) * 4
-                        pixels[i] = 255; pixels[i+1] = 220; pixels[i+2] = 140; pixels[i+3] = 255
+                        if isFrameX || isFrameY {
+                            // Dark window frame — near-black so individual panes read clearly
+                            pixels[i] = 8; pixels[i+1] = 8; pixels[i+2] = 10; pixels[i+3] = 255
+                        } else {
+                            // Amber warm light fill
+                            pixels[i] = 255; pixels[i+1] = 220; pixels[i+2] = 140; pixels[i+3] = 255
+                        }
                     }
                 }
             }

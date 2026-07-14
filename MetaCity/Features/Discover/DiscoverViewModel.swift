@@ -120,6 +120,39 @@ final class DiscoverViewModel: ObservableObject {
     /// World-city autocomplete suggestions from MKLocalSearchCompleter.
     @Published private(set) var worldCitySuggestions: [WorldCitySuggestion] = []
 
+    /// Cities with bundled 3D data that match `globalSearchQuery` from the very first character.
+    /// Purely local — zero network, zero debounce. Used as the top "VILLES 3D" section of
+    /// GlobalSearchDropdown so existing cities surface before MKLocalSearchCompleter fires.
+    var instantCityResults: [GlobalSearchResult] {
+        let q = globalSearchQuery.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !q.isEmpty else { return [] }
+        let allCities = manifest.allCities
+        return allCities
+            .filter { city in
+                city.displayName.lowercased().contains(q) &&
+                city.districts.contains(where: \.dataBundled)
+            }
+            .sorted { a, b in
+                let aP = a.displayName.lowercased().hasPrefix(q)
+                let bP = b.displayName.lowercased().hasPrefix(q)
+                if aP != bP { return aP }
+                return a.displayName < b.displayName
+            }
+            .map { city in
+                let count = city.districts.filter(\.dataBundled).count
+                let regionName = manifest.islands
+                    .first(where: { $0.cities.contains(where: { $0.id == city.id }) })?
+                    .displayName ?? ""
+                return GlobalSearchResult(
+                    id: "city_\(city.id)",
+                    name: city.displayName,
+                    subtitle: "\(regionName) · \(count) quartier\(count > 1 ? "s" : "") 3D",
+                    icon: "building.2.fill",
+                    kind: .city(city)
+                )
+            }
+    }
+
     let manifest: CityManifest
 
     // Western-Europe overview: 47°N/7°E at 3 000 km — Paris, London, Madrid, Rome all in frame.
