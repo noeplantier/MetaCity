@@ -6,12 +6,12 @@ architecture: `Repositories/` protocols, `Services/` implementations (mock + rea
 automatically based on whether `GoogleService-Info.plist` is present), `@MainActor` ViewModels,
 DI via the plain `AppEnvironment` container — no DI framework.
 
-## Scope: Indonesia (14 districts) + France (6) + London/Madrid/Rome (5) with real OSM data
+## Scope: Indonesia (14 districts) + France (6) + London/Madrid/Rome (5) + Tokyo (1) with real OSM data
 
-As of 2026-07-09, MetaCity covers **10 cities with real OSM-derived 3D district data** — Jakarta (5
+As of 2026-07-15, MetaCity covers **11 cities with real OSM-derived 3D district data** — Jakarta (5
 districts), Bandung (2), Yogyakarta (2), Bali/Denpasar (5), Paris (4), Bordeaux (2), London (2),
-Madrid (2), Rome (1) — plus placeholder cities with no district data yet (Indonesian tier-2 cities,
-Rennes). All 25 data districts live in `MetaCity/Resources/Districts/<id>.json`.
+Madrid (2), Rome (1), Tokyo (1) — plus placeholder cities with no district data yet (Indonesian tier-2 cities,
+Rennes). All 26 data districts live in `MetaCity/Resources/Districts/<id>.json`.
 `CityManifest.json` (decoded into `CityManifest.shared`) is the single source of truth for what's
 live; it drives the world map, district picker, and 3D inspector routing.
 
@@ -37,7 +37,7 @@ per an explicit instruction to focus exclusively on real OSM-derived content. If
 reintroduces a pre-OSM artistic tier, that's a deliberate regression; don't resurrect those files
 from git history without a fresh reason.
 
-**Districts currently bundled (25 total):**
+**Districts currently bundled (26 total):**
 - Jakarta: `SudirmanThamrin`, `KotaTua`, `Kemang`, `Menteng`, `Ancol`
 - Bandung: `Dago`, `Braga`
 - Yogyakarta: `Malioboro`, `Kraton`
@@ -47,9 +47,10 @@ from git history without a fresh reason.
 - London: `CityOfLondon`, `Westminster`
 - Madrid: `Salamanca`, `Malasana`
 - Rome: `CentroStorico`
+- Tokyo: `Shibuya`
 
 `MockMapRepository` serves the 5 Jakarta landmarks (the Map tab still shows only Jakarta pins);
-the Discover tab uses `CityManifest.allCities` which includes all 10 city pins from the world map.
+the Discover tab uses `CityManifest.allCities` which includes all 11 city pins from the world map.
 `LandmarkInspectorView` no longer has (or needs) a fallback path for landmarks without curated 3D
 data.
 
@@ -1661,6 +1662,62 @@ Screenshot-verified 2026-07-14: Le Marais (haussmannien fabric + mansard caps), 
 VieuxBordeaux (facade bands clearly visible as horizontal white ledges on amber bordelaisClassical
 fabric, terracotta canal-tile rooftops). Water PBR (`natural=water` green zones: clearcoat 0.80,
 roughness 0.16) applies to Garonne in both Bordeaux districts and Jakarta bay zones.
+
+## Tokyo / Shibuya district (added 2026-07-15)
+
+**Shibuya: 2,615 buildings** (2,241 with estimated height), 1,767 roads, 38 green zones.
+20 point-mapped landmarks matched from OSM. Fetched and screenshot-verified 2026-07-15.
+
+```
+python3 fetch_district_data.py \
+  --name Shibuya --bbox 35.655 139.694 35.665 139.708 \
+  --anchor 35.6601 139.7009 --default-style modernConcrete \
+  --out ../MetaCity/Resources/Districts/Shibuya.json \
+  --cache /tmp/shibuya_raw.json
+```
+
+Style distribution: 2,411 modernConcrete (92%), 169 modernGlass (6%), 23 government (1%),
+12 religious (<1%). `modernConcrete` is NOT in `HEIGHT_PROMOTION_BYPASS` so towers auto-promote
+correctly to `modernGlass` at ≥30m.
+
+**Key verified buildings:**
+- `渋谷スクランブルスクエア` (Shibuya Scramble Square): 230m, modernGlass, non-estimated ✓
+- `セルリアンタワー` (Cerulean Tower): 188m, modernGlass ✓
+- `渋谷ストリーム` (Shibuya Stream): 180m, modernGlass ✓
+- `パークコート渋谷ザ・タワー`: 156m, modernGlass ✓
+- `Shibuya Sakura Stage SHIBUYA Tower`: 156m, modernGlass ✓
+
+`focusBuildingName` in CityManifest is "Scramble Square" — display-only (subtitle in DiscoverView
+district list). Camera targets `district.buildingCentroid` not a named building, so the English vs.
+Japanese name mismatch (`渋谷スクランブルスクエア`) does not affect rendering.
+
+**moodKey**: `shibuyaNeon` — warm amber late-afternoon sun, 30,000 lux, elevation 0.22 (lowest in the app
+after `romanGoldenHour`), near-black indigo-tinted asphalt road material. Mood fully implemented
+in `DistrictRealityScene.swift` before this district was fetched.
+
+Shibuya is in `heavyDistricts` in `MetaCityApp.swift` (2,615 buildings → on-demand load, not
+startup prefetch). No authored override file needed — all tall buildings correctly classify via
+height promotion. `dataBundled: true` in CityManifest as of 2026-07-15.
+
+**Visual identity** (screenshot-verified 2026-07-15): The curved JR Yamanote/Saikyo elevated rail
+loop structure at Shibuya station is unmistakably visible in the road network topology. Dense
+modernConcrete commercial fabric (the dominant Shibuya block character) contrasts with dark
+modernGlass towers (Scramble Square, Cerulean Tower) at the station periphery. Near-black
+shibuyaNeon asphalt clearly differentiates road network from building footprints. Road network
+is the most complex in the app — the Scramble intersection area generates extremely dense
+road geometry with multiple grade-separated paths. This is architecturally accurate.
+
+**KNOWN_HEIGHTS additions** (in `tools/fetch_district_data.py`):
+```python
+"Scramble Square": 230, "渋谷スクランブルスクエア": 230, "Shibuya Scramble Square": 230,
+"Shibuya Hikarie": 182, "渋谷ヒカリエ": 182, "Hikarie": 182,
+"Shibuya Stream": 180, "渋谷ストリーム": 180,
+"Cerulean Tower": 184, "Cerulean Tower Tokyo Hotel": 184, "セルリアンタワー東急ホテル": 184,
+"Mark City": 56, "渋谷マークシティ": 56, "Shibuya Mark City": 56,
+"NHK Broadcasting Center": 48, "NHK放送センター": 48,
+"SHIBUYA109": 35, "渋谷109": 35,
+"Bunkamura": 22, "QFront": 32, "Shibuya Excel Hotel Tokyu": 46, "Prime": 88,
+```
 
 ## Known Simulator/test gotchas
 

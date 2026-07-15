@@ -54,6 +54,7 @@
 		44EE874222D91562FEA0DCC3 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B938C78F51CD23D57FEA9E9C /* DiscoverView.swift */; };
 		45F9F4640296ABE0E29F0E97 /* Uluwatu.json in Resources */ = {isa = PBXBuildFile; fileRef = 06DDE4440B2EA85213F6AFD3 /* Uluwatu.json */; };
 		48453B830F852470090A885E /* places_bandung.json in Resources */ = {isa = PBXBuildFile; fileRef = 8458A4A10B5596C9FDFA4F06 /* places_bandung.json */; };
+		49ADD6557A795D339ABBFD49 /* Shibuya.json in Resources */ = {isa = PBXBuildFile; fileRef = 645D8B637A80F8ABCEB46D63 /* Shibuya.json */; };
 		4AB57EA37B98038283DF7653 /* ActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374CC239948B8B17F44543B3 /* ActivitiesViewModel.swift */; };
 		4DC625E3C5289590DE4EA0FB /* activities_paris.json in Resources */ = {isa = PBXBuildFile; fileRef = 049FF9C138BCDB5E360419E2 /* activities_paris.json */; };
 		500D7EBA83131C11597C31A1 /* JoinCallUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE767EA6DEE62E5EB4B2C017 /* JoinCallUseCase.swift */; };
@@ -243,6 +244,7 @@
 		551946CCC4CF156D9CB19812 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		57EF896D40047DA173FD37B7 /* contacts_bandung.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = contacts_bandung.json; sourceTree = "<group>"; };
 		5A6D135C46594362C54C74A0 /* activities_kuta.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = activities_kuta.json; sourceTree = "<group>"; };
+		645D8B637A80F8ABCEB46D63 /* Shibuya.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Shibuya.json; sourceTree = "<group>"; };
 		659ED1362E9EC00D6660B67F /* Elevation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Elevation.swift; sourceTree = "<group>"; };
 		665400164743B7B91D83D477 /* CoreLocationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreLocationProvider.swift; sourceTree = "<group>"; };
 		667518CEDAF585BB3EF03FA9 /* Menteng.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Menteng.json; sourceTree = "<group>"; };
@@ -680,6 +682,7 @@
 				80068023A25BEE4E37B69315 /* Sanur.json */,
 				3B11AB5FBE298C8253A39968 /* Seminyak.json */,
 				84ED0AA5FE85AE9F478C8926 /* SFDowntown.json */,
+				645D8B637A80F8ABCEB46D63 /* Shibuya.json */,
 				DF1BFF1397B7CAC805B7036D /* SudirmanThamrin.json */,
 				06DDE4440B2EA85213F6AFD3 /* Uluwatu.json */,
 				01A151083E85C11F7CC31145 /* VancouverDowntown.json */,
@@ -876,6 +879,7 @@
 				824547D9FD3528143DC7C065 /* Sanur_authored.json in Resources */,
 				889425E7B08AB94632BC597D /* Seminyak.json in Resources */,
 				D361E9CA8C67F3A7D5EB9213 /* Seminyak_authored.json in Resources */,
+				49ADD6557A795D339ABBFD49 /* Shibuya.json in Resources */,
 				78F3214C9ADE2CE676BE955C /* SudirmanThamrin.json in Resources */,
 				45F9F4640296ABE0E29F0E97 /* Uluwatu.json in Resources */,
 				E3D2088A190BC630A3898EEF /* Uluwatu_authored.json in Resources */,
