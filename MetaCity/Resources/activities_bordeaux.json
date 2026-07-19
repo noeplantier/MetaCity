@@ -1,0 +1,87 @@
+{
+  "cityId": "bordeaux",
+  "activities": [
+    {
+      "id": "bordeaux_miroir_eau",
+      "name": "Immersion — Miroir d'Eau au crépuscule",
+      "category": "immersionSensorielle",
+      "tier": "premium",
+      "description": "La simulation bordeauxWaterfront reconstruit le Miroir d'Eau à l'heure dorée : 3 450 m² d'eau sur 2 cm d'épaisseur réfléchissent la façade classiciste des Chartrons et la flèche de Saint-Michel. La caméra orbitale adopte l'angle rasant à 30 cm de hauteur — la perspective des photographes professionnels.",
+      "area": "Place de la Bourse",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 44.842,
+      "longitude": -0.571,
+      "districtId": "VieuxBordeaux",
+      "fragmentAssetKey": "bordeaux_vieux.miroir_eau"
+    },
+    {
+      "id": "bordeaux_grand_theatre_orbit",
+      "name": "Vol orbital — Grand Théâtre 32 m",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "La caméra orbitale entoure les 12 colonnes corinthiennes du Grand Théâtre de Victor Louis (1780) — modèle de l'Opéra Garnier. Les 32 mètres de facade en calcaire astéries permettent de lire chaque statue allégorique (les 9 Muses + les 3 Grâces) invisible depuis la rue dans l'alignement haussmannien.",
+      "area": "Vieux-Bordeaux",
+      "priceRange": "Free",
+      "duration": "8 min",
+      "latitude": 44.8415,
+      "longitude": -0.5739,
+      "districtId": "VieuxBordeaux",
+      "fragmentAssetKey": "bordeaux_vieux.grand_theatre"
+    },
+    {
+      "id": "bordeaux_garonne_ra",
+      "name": "Expérience RA — Ports de la Lune",
+      "category": "experienceRA",
+      "tier": "premium",
+      "description": "Les quais de la Garonne listés UNESCO reconstituent le port du XVIIIe siècle via la couche RA : gréements, entrepôts coloniaux (indigo, café, sucre), grues à vapeur victorienne. L'application superpose le flux économique en temps réel — 4e port fluvial de France — sur la promenade piétonne actuelle.",
+      "area": "Quais Garonne",
+      "priceRange": "Free",
+      "duration": "15 min",
+      "latitude": 44.8479,
+      "longitude": -0.5627,
+      "districtId": "LesChartrons",
+      "fragmentAssetKey": "bordeaux_chartrons.quais"
+    },
+    {
+      "id": "bordeaux_chartrons_wine",
+      "name": "Lifestyle — Rue du Palais-Gallien",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "Les Chartrons abritent le marché antique le plus dense de France avec 87 marchands dans 4 rues. La 3D identifie les chais de négoce reconvertis du XVIIIe — Calvet, Barton & Guestier, Cruse & Fils — devenus galeries et cavistes. Chaque cave signale ses millésimes Crus Classés en vitrine numérique.",
+      "area": "Les Chartrons",
+      "priceRange": "$",
+      "duration": "25 min",
+      "latitude": 44.853,
+      "longitude": -0.568,
+      "districtId": "LesChartrons"
+    },
+    {
+      "id": "bordeaux_tour_pey_berland",
+      "name": "Vertige — Tour Pey-Berland 66 m",
+      "category": "visiteGuidee",
+      "tier": "standard",
+      "description": "La flèche gothique Pey-Berland (1440–1485) domine les 66 mètres de calcaire gothique flamboyant — la statue de Notre-Dame d'Aquitaine à son sommet est identifiée par l'algorithme à 300 m de distance. Vue aérienne directe sur l'absidiole romane de Saint-André adossée à la tour.",
+      "area": "Place Jean-Paul II",
+      "priceRange": "Free",
+      "duration": "6 min",
+      "latitude": 44.8376,
+      "longitude": -0.5756,
+      "districtId": "VieuxBordeaux"
+    },
+    {
+      "id": "bordeaux_cite_vin_scan",
+      "name": "Scan architectural — Cité du Vin",
+      "category": "experienceRA",
+      "tier": "standard",
+      "description": "La Cité du Vin (2016, XTU Architects) est le bâtiment le plus complexe de Bordeaux : sa facade en verre feuilleté brun-doré simule les reflets d'un décanteur en rotation. Le scan architectural décompose les 14 000 m² de panneaux ventilés, les lames aluminium et la structure exosquelette visible depuis la Garonne.",
+      "area": "Bassins à Flot",
+      "priceRange": "$$",
+      "duration": "10 min",
+      "latitude": 44.8629,
+      "longitude": -0.5535,
+      "districtId": "LesChartrons",
+      "officialURL": "https://www.laciteduvin.com/"
+    }
+  ]
+}

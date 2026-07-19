@@ -1,0 +1,55 @@
+{
+  "districtId": "SaintGermain",
+  "pois": [
+    {
+      "id": "eglise_saint_sulpice",
+      "name": "Église Saint-Sulpice",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8512,
+      "longitude": 2.3340,
+      "description": "Paris's second-largest church (73m twin towers), with Delacroix murals and a gnomon meridian line immortalised in The Da Vinci Code.",
+      "partnerURL": null
+    },
+    {
+      "id": "palais_luxembourg",
+      "name": "Palais du Luxembourg",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8480,
+      "longitude": 2.3372,
+      "description": "Marie de Médici's 1625 palace, now the French Senate. Its garden — 23 hectares — is Paris's favourite green lung, with the famous Medici Fountain.",
+      "partnerURL": null
+    },
+    {
+      "id": "musee_orsay",
+      "name": "Musée d'Orsay",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8600,
+      "longitude": 2.3266,
+      "description": "The world's largest Impressionist collection inside a converted 1900 Beaux-Arts railway station. Monet, Renoir, Van Gogh, Cézanne.",
+      "partnerURL": null
+    },
+    {
+      "id": "cafe_de_flore",
+      "name": "Café de Flore",
+      "category": "cafe",
+      "tier": "standard",
+      "latitude": 48.8539,
+      "longitude": 2.3327,
+      "description": "Founded 1887. Sartre and de Beauvoir wrote here every morning for a decade. Still serves the best hot chocolate in Paris on the terrace.",
+      "partnerURL": null
+    },
+    {
+      "id": "musee_delacroix",
+      "name": "Musée Delacroix",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 48.8547,
+      "longitude": 2.3349,
+      "description": "Eugène Delacroix's last atelier in a small garden off the Place Furstenberg — the most intimate museum in Paris.",
+      "partnerURL": null
+    }
+  ]
+}

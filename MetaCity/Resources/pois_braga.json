@@ -1,0 +1,55 @@
+{
+  "districtId": "Braga",
+  "pois": [
+    {
+      "id": "jalan_braga",
+      "name": "Jalan Braga",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -6.9204,
+      "longitude": 107.6073,
+      "description": "Bandung's most elegant colonial boulevard — the 'Champs-Élysées of the Dutch East Indies'. Art Deco buildings with decorated facades house a mix of galleries, bookshops, cafés, and boutique hotels. The city's heritage soul.",
+      "partnerURL": null
+    },
+    {
+      "id": "gedung_merdeka",
+      "name": "Gedung Merdeka",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.9173,
+      "longitude": 107.6082,
+      "description": "Site of the 1955 Asian-African Conference — the historic gathering where 29 newly-independent nations declared solidarity against colonialism. The Art Deco building (1895) is now a museum of the Bandung Conference with original furnishings preserved.",
+      "partnerURL": null
+    },
+    {
+      "id": "gedung_sate",
+      "name": "Gedung Sate",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.9023,
+      "longitude": 107.6194,
+      "description": "Bandung's most iconic building and the symbol of West Java province. The 1920 Dutch colonial headquarters features an ornamental central spire resembling satay skewers — the origin of its nickname. Home to the West Java Governor's office.",
+      "partnerURL": null
+    },
+    {
+      "id": "braga_permai",
+      "name": "Braga Permai Restaurant",
+      "category": "eat",
+      "tier": "standard",
+      "latitude": -6.9200,
+      "longitude": 107.6071,
+      "description": "Bandung's most historic café, in a 1920s Art Deco building — once the Dutch colonial-era Maison Bogerijen. The wood-panelled interior and period photographs evoke old Bandoeng. Famous for its es krim (traditional ice cream).",
+      "partnerURL": null
+    },
+    {
+      "id": "bank_indonesia_museum_bandung",
+      "name": "Museum Bank Indonesia Bandung",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -6.9190,
+      "longitude": 107.6080,
+      "description": "The Bandung branch of Bank Indonesia's monetary history museum, housed in a 1920s Dutch bank building on Braga. Fine Art Deco interior with the original bank vault and colonial-era furniture.",
+      "partnerURL": null
+    }
+  ]
+}

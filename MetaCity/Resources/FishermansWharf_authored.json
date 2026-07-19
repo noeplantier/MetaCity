@@ -1,0 +1,31 @@
+{
+  "overrides": [
+    {
+      "nameMatch": "Ghirardelli Chocolate Experience",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 14.0
+    },
+    {
+      "nameMatch": "The Cannery",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 14.0
+    },
+    {
+      "nameMatch": "National Maritime Museum",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "San Francisco Maritime Visitor Center",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Aquarium of the Bay",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

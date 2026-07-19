@@ -1,0 +1,55 @@
+{
+  "districtId": "Kraton",
+  "pois": [
+    {
+      "id": "kraton_palace",
+      "name": "Kraton Yogyakarta",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -7.8053,
+      "longitude": 110.3641,
+      "description": "The royal palace of the Sultan of Yogyakarta, built in 1755 by Sultan Hamengkubuwono I. A living palace — the current Sultan and his family still reside here. The complex of Javanese pavilions, courts, and gardens is the finest example of traditional Javanese palace architecture.",
+      "partnerURL": null
+    },
+    {
+      "id": "taman_sari",
+      "name": "Taman Sari Water Castle",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -7.8097,
+      "longitude": 110.3594,
+      "description": "A 18th-century royal pleasure garden and bathing complex, originally surrounded by a man-made lake. The subterranean mosque, bathing pools, and ornamental towers make this one of Java's most atmospheric heritage sites.",
+      "partnerURL": null
+    },
+    {
+      "id": "alun_alun_kidul",
+      "name": "Alun-Alun Kidul",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -7.8123,
+      "longitude": 110.3635,
+      "description": "The South Royal Square — home to the famous 'Masangin' ritual where visitors attempt to walk blindfolded between two sacred banyan trees. The square is packed nightly with families, street food carts, and lit-up bicycle taxis.",
+      "partnerURL": null
+    },
+    {
+      "id": "museum_sonobudoyo",
+      "name": "Museum Sonobudoyo",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -7.8012,
+      "longitude": 110.3636,
+      "description": "Yogyakarta's principal museum of Javanese culture, in a beautiful traditional Javanese building facing the North Square. Houses one of Java's finest collections of batik, kris daggers, masks, and Hindu-Buddhist bronzes.",
+      "partnerURL": null
+    },
+    {
+      "id": "pasar_ngasem",
+      "name": "Kampung Wisata Taman Sari",
+      "category": "shopping",
+      "tier": "standard",
+      "latitude": -7.8090,
+      "longitude": 106.3588,
+      "description": "The village immediately surrounding Taman Sari — a maze of narrow lanes filled with batik workshops, silver shops, and wayang puppet studios. One of Yogyakarta's most authentic craft neighbourhoods.",
+      "partnerURL": null
+    }
+  ]
+}

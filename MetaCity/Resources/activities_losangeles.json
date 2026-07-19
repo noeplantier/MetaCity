@@ -1,0 +1,83 @@
+{
+  "cityId": "losangeles",
+  "activities": [
+    {
+      "id": "la_wilshire_grand_obs",
+      "name": "OUE Skyspace LA — Panorama au 70e étage",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "Vue à 360° sur le basin de Los Angeles depuis le 70e étage de l'US Bank Tower. En soirée, le coucher de soleil Pacifique illumine la skyline de DTLA en orange et or.",
+      "area": "Downtown LA",
+      "priceRange": "$$",
+      "duration": "1–2h",
+      "latitude": 34.0499,
+      "longitude": -118.2548,
+      "districtId": "DowntownLA"
+    },
+    {
+      "id": "la_broad_museum",
+      "name": "The Broad — Art contemporain immersif",
+      "category": "explore",
+      "tier": "premium",
+      "description": "Collection de Koons, Basquiat, Cindy Sherman et Jeff Wall dans l'architecture en voile perforée de Diller Scofidio. L'Infinity Mirrored Room de Yayoi Kusama est sur réservation.",
+      "area": "Downtown LA / Grand Ave",
+      "priceRange": "Gratuit (billet Kusama en supplément)",
+      "duration": "2–3h",
+      "latitude": 34.0543,
+      "longitude": -118.2504,
+      "districtId": "DowntownLA"
+    },
+    {
+      "id": "la_disney_concert_hall",
+      "name": "Walt Disney Concert Hall — Architecture Gehry",
+      "category": "explore",
+      "tier": "standard",
+      "description": "L'édifice en acier inoxydable de Frank Gehry (2003) est la référence de l'architecture déconstructiviste sur la côte Ouest. Visite libre des jardins ou concert du LA Phil.",
+      "area": "Downtown LA / Grand Ave",
+      "priceRange": "Gratuit / $$$ concert",
+      "duration": "30min–3h",
+      "latitude": 34.0553,
+      "longitude": -118.2499,
+      "districtId": "DowntownLA"
+    },
+    {
+      "id": "la_grand_central_market",
+      "name": "Grand Central Market — Food Hall historique",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "Marché gastronomique ouvert depuis 1917, maintenant vitrine de la scène culinaire de LA. Tacos Birrieria, ramen, huîtres — tout le spectre de la cuisine californienne sous un même toit.",
+      "area": "Downtown LA / Broadway",
+      "priceRange": "$–$$",
+      "duration": "1–2h",
+      "latitude": 34.0504,
+      "longitude": -118.2491,
+      "districtId": "DowntownLA"
+    },
+    {
+      "id": "la_bradbury_building",
+      "name": "Bradbury Building — Atrium Belle Époque",
+      "category": "explore",
+      "tier": "standard",
+      "description": "Atrium en fonte orné de 1893 — l'un des intérieurs architecturaux les plus photographiés des États-Unis. Visible dans Blade Runner (1982). Accessible en semaine dans le hall du rez-de-chaussée.",
+      "area": "Downtown LA / Broadway",
+      "priceRange": "Gratuit",
+      "duration": "30min",
+      "latitude": 34.0505,
+      "longitude": -118.2474,
+      "districtId": "DowntownLA"
+    },
+    {
+      "id": "la_arts_district_walk",
+      "name": "Arts District — Murals et galeries",
+      "category": "explore",
+      "tier": "standard",
+      "description": "Quartier d'entrepôts reconvertis à l'est de DTLA. Fresques murales XXL, galeries indépendantes, coffee roasters. La Taqueria El Chato et Bestia pour manger après la visite.",
+      "area": "Arts District",
+      "priceRange": "Gratuit",
+      "duration": "2–4h",
+      "latitude": 34.0405,
+      "longitude": -118.2330,
+      "districtId": "DowntownLA"
+    }
+  ]
+}

@@ -392,6 +392,36 @@ KNOWN_HEIGHTS_METERS = {
     "Tokyu Department Store": 28,          # 東急百貨店東横店 — 1956 flagship
     "東急百貨店": 28,
     "Prime": 88,                           # Shibuya Prime — commercial tower near station
+
+    # ── Los Angeles (Downtown LA / DTLA) ──────────────────────────────────────────────────────────
+    "Wilshire Grand Center": 335,          # tallest building in LA (2017), 73 floors
+    "Wilshire Grand": 335,
+    "Wilshire Grand Building": 335,        # OSM name variant used in the dataset
+    "US Bank Tower": 310,                  # formerly Library Tower (1989), 73 floors, iconic tapered crown
+    "Library Tower": 310,
+    "Aon Center": 262,                     # formerly First Interstate World Center (1973), 62 floors
+    "First Interstate World Center": 262,
+    "Two California Plaza": 221,           # CalPERS HQ, 52 floors
+    "777 Tower": 218,                      # Ellerbe Becket modernist tower (1991)
+    "Paul Hastings Tower": 215,            # formerly SunAmerica Center, 54 floors
+    "Wells Fargo Center": 209,             # tallest pair in Bunker Hill, north tower
+    "Ernst & Young Plaza": 189,            # aka 725 S Figueroa, 41 floors (1985)
+    "Figueroa at Wilshire": 183,           # mixed-use tower, 52 floors
+    "Gas Company Tower": 167,             # curved crown, 52 floors Bunker Hill
+    "City National Tower": 165,            # formerly Citicorp Center, 52 floors
+    "One California Plaza": 163,
+    "Walt Disney Concert Hall": 55,        # Frank Gehry stainless steel landmark (2003)
+    "Disney Concert Hall": 55,
+    "Union Station": 35,                   # historic Mission Revival terminal (1939)
+    "Los Angeles Union Station": 35,
+    "Bradbury Building": 18,               # cast-iron skylit atrium, 5 floors (1893)
+    "City Hall": 138,                      # LADWP classical tower with beacon (1928)
+    "Los Angeles City Hall": 138,
+    "Staples Center": 30,                  # now Crypto.com Arena, arena pavilion
+    "Crypto.com Arena": 30,
+    "Broad Museum": 20,                    # Diller Scofidio veil facade (2015), DTLA cultural anchor
+    "The Broad": 20,
+    "MOCA Grand Avenue": 16,              # Arata Isozaki low-rise contemporary art museum (1986)
 }
 
 STYLE_BY_BUILDING_TAG = {
@@ -619,7 +649,7 @@ def preliminary_height(tags, name):
 # romanOchre, and a 20m Haussmann block is still haussmannien.
 # londonBrick is NOT in this set: City of London's real glass towers (Gherkin 180m,
 # Cheesegrater 224m, 22 Bishopsgate 278m) should auto-promote to modernGlass.
-HEIGHT_PROMOTION_BYPASS = {"haussmannien", "medieval", "bordelaisClassical", "madrileño", "romanOchre", "nycBrick"}
+HEIGHT_PROMOTION_BYPASS = {"haussmannien", "medieval", "bordelaisClassical", "madrileño", "romanOchre", "nycBrick", "laStucco"}
 # nycBrick added 2026-07-13: pre-war Manhattan limestone office towers (e.g. 70m 20-storey
 # Beaux-Arts blocks) must stay nycBrick, not auto-promote to modernGlass. Glass supertalls
 # (One WTC 541m, Chrysler 319m, etc.) are handled via authored overrides.

@@ -66,6 +66,17 @@ enum BuildingStyle: String, Codable {
     /// pre-war limestone office buildings (70m) must stay nycBrick, not auto-promote to modernGlass.
     /// Apply authored overrides for glass supertalls (WTC, modern towers) that should be modernGlass.
     case nycBrick
+
+    /// Los Angeles Spanish Colonial / stucco bungalow vernacular — the dominant residential
+    /// character of Hollywood, Silver Lake, Echo Park, Koreatown, and mid-city LA blocks.
+    /// Wall: sun-baked cream-ochre stucco (R≈0.82–0.90, G≈0.74–0.82, B≈0.56–0.64).
+    /// Roughness 0.78–0.84, metallic 0.00, clearcoat 0.04 (dried stucco micro-sheen).
+    /// Roof: Spanish barrel terracotta tile (0.68, 0.28, 0.10), roughness 0.90.
+    /// Cap: **22° pitch** (pitchTan: 0.404), maxRidgeInset: 4.5m, overhang 0.40m —
+    /// the classic low-pitch California hip roof from above.
+    /// **IN HEIGHT_PROMOTION_BYPASS** — 4-story stucco apartment blocks (≤15m) stay laStucco.
+    /// Height estimate default: 6.0m (single/double-story California bungalow).
+    case laStucco
 }
 
 /// A real OpenStreetMap building footprint, simplified and classified by
@@ -149,6 +160,7 @@ extension BuildingStyle {
         case .madrileño:           return "Madrileño"
         case .romanOchre:          return "Roman Ochre"
         case .nycBrick:            return "NYC Brick"
+        case .laStucco:            return "LA Stucco"
         }
     }
 
@@ -168,6 +180,7 @@ extension BuildingStyle {
         case .madrileño:          return "building.2.fill"
         case .romanOchre:         return "building.columns.circle.fill"
         case .nycBrick:           return "building.2.crop.circle.fill"
+        case .laStucco:           return "house.and.flag.fill"
         }
     }
 }

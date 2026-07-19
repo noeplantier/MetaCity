@@ -6,7 +6,6 @@ import Foundation
 @MainActor
 final class AppEnvironment {
     let authRepository: AuthRepository
-    let callService: CallService
     let locationProvider: UserLocationProvider
     let preferencesStore: UserPreferencesStore
     let biometricAuthenticator: BiometricAuthenticator
@@ -15,13 +14,11 @@ final class AppEnvironment {
 
     init(
         authRepository: AuthRepository = AppEnvironment.defaultAuthRepository(),
-        callService: CallService = MockCallService(),
         locationProvider: UserLocationProvider = CoreLocationProvider(),
         preferencesStore: UserPreferencesStore = UserDefaultsPreferencesStore(),
         biometricAuthenticator: BiometricAuthenticator = LocalAuthenticationBiometricAuthenticator()
     ) {
         self.authRepository = authRepository
-        self.callService = callService
         self.locationProvider = locationProvider
         self.preferencesStore = preferencesStore
         self.biometricAuthenticator = biometricAuthenticator
@@ -45,13 +42,6 @@ final class AppEnvironment {
 
     func makeDiscoverViewModel() -> DiscoverViewModel {
         DiscoverViewModel()
-    }
-
-    func makeCallViewModel() -> CallViewModel {
-        CallViewModel(
-            callService: callService,
-            joinCallUseCase: JoinCallUseCase(callService: callService)
-        )
     }
 
     func makeProfileViewModel(session: SessionStore) -> ProfileViewModel {

@@ -32,7 +32,7 @@ struct ProfileView: View {
             VStack(spacing: 0) {
                 identityCard
                 kpiRow
-                districtBadges
+                travelSection
                 proLinks
                 if showSettings { settingsSection }
                 settingsToggle
@@ -95,10 +95,19 @@ struct ProfileView: View {
                         .font(.metacityTitle3)
                         .foregroundStyle(Color.metacityTextPrimary)
 
-                    Text("EXPLORATEUR NUMÉRIQUE · TOURISME 3D & RA")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(Color.metacityNeonCyan)
-                        .tracking(1.4)
+                    // Computed from visited districts — updates as the user explores
+                    HStack(spacing: 5) {
+                        Image(systemName: viewModel.voyageurPersonality.icon)
+                            .font(.system(size: 8, weight: .bold))
+                        Text(viewModel.voyageurPersonality.title)
+                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .tracking(1.4)
+                    }
+                    .foregroundStyle(Color.metacityNeonCyan)
+                    Text(viewModel.voyageurPersonality.subtitle)
+                        .font(.system(size: 8, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.metacityNeonCyan.opacity(0.55))
+                        .tracking(0.8)
                         .multilineTextAlignment(.center)
 
                     if !viewModel.preferences.bio.isEmpty {
@@ -159,34 +168,254 @@ struct ProfileView: View {
         .padding(.bottom, Spacing.sm)
     }
 
-    // MARK: - District badges
+    // MARK: - Traveler profile
 
-    private var districtBadges: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            HStack(spacing: 6) {
-                Rectangle()
-                    .fill(Color.metacityNeonCyan)
-                    .frame(width: 3, height: 14)
-                Text("DISTRICTS EXPLORÉS")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundStyle(Color.metacityTextTertiary)
-                    .tracking(1.5)
-            }
-            .padding(.horizontal, Spacing.md)
+    private var travelSection: some View {
+        let visitedIds = viewModel.preferences.visitedDistrictIds
+        let visitedCities = CityManifest.shared.allCities
+            .filter { city in city.districts.contains { visitedIds.contains($0.id) } }
+        let discoverCities = CityManifest.shared.allCities
+            .filter { $0.districts.contains { $0.dataBundled } }
 
-            LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: Spacing.sm), count: 3),
-                spacing: Spacing.sm
-            ) {
-                ForEach(CityManifest.shared.allDistricts) { district in
-                    let visited = viewModel.preferences.visitedDistrictIds.contains(district.id)
-                    DistrictBadge(district: district, visited: visited)
+        return VStack(alignment: .leading, spacing: Spacing.sm) {
+            travelSectionLabel("MON PARCOURS")
+
+            if visitedCities.isEmpty {
+                HStack(spacing: 10) {
+                    Image(systemName: "globe.europe.africa.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color.metacityNeonCyan.opacity(0.50))
+                    Text("Explore une ville 3D pour commencer ton parcours")
+                        .font(.metacityCaption)
+                        .foregroundStyle(Color.metacityTextTertiary)
+                }
+                .padding(Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.metacitySurface,
+                             in: RoundedRectangle(cornerRadius: Radius.control, style: .continuous))
+                .padding(.horizontal, Spacing.md)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Spacing.sm) {
+                        ForEach(visitedCities) { city in
+                            travelCityCard(city: city, visitedIds: visitedIds)
+                        }
+                    }
+                    .padding(.horizontal, Spacing.md)
                 }
             }
-            .padding(.horizontal, Spacing.md)
+
+            // DESTINATIONS SUGGÉRÉES — personality-matched unvisited districts
+            let allCities = CityManifest.shared.allCities
+            let personality = viewModel.voyageurPersonality
+            let suggestedIds: [String] = {
+                switch personality {
+                case .europeanFlaneur:      return ["VieuxBordeaux", "Montmartre", "CentroStorico"]
+                case .tropicalNomad:        return ["Uluwatu", "Canggu", "Kraton"]
+                case .urbanFuturist:        return ["Shibuya", "MidtownManhattan", "VancouverDowntown"]
+                case .mediterraneanVoyager: return ["Salamanca", "CentroStorico", "Westminster"]
+                case .heritageSeekerl:      return ["KotaTua", "Kraton", "Braga"]
+                case .eclecticExplorer, .newExplorer:
+                                            return ["LeMarais", "Shibuya", "Canggu"]
+                }
+            }()
+            let suggestions: [(city: CityEntry, district: DistrictEntry)] = suggestedIds.compactMap { did in
+                for city in allCities {
+                    if let d = city.districts.first(where: {
+                        $0.id == did && $0.dataBundled && !visitedIds.contains($0.id)
+                    }) { return (city, d) }
+                }
+                return nil
+            }
+
+            if !suggestions.isEmpty {
+                travelSectionLabel("DESTINATIONS SUGGÉRÉES")
+                    .padding(.top, Spacing.xs)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Spacing.sm) {
+                        ForEach(suggestions, id: \.district.id) { pair in
+                            suggestedDestinationCard(city: pair.city, district: pair.district)
+                        }
+                    }
+                    .padding(.horizontal, Spacing.md)
+                }
+            }
+
+            travelSectionLabel("DESTINATIONS 3D")
+                .padding(.top, Spacing.xs)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.sm) {
+                    ForEach(discoverCities.prefix(6), id: \.id) { city in
+                        travelDestinationChip(city: city)
+                    }
+                }
+                .padding(.horizontal, Spacing.md)
+            }
         }
         .padding(.top, Spacing.md)
         .padding(.bottom, Spacing.lg)
+    }
+
+    private func suggestedDestinationCard(city: CityEntry, district: DistrictEntry) -> some View {
+        let accent = Self.moodAccentColor(moodKey: district.moodKey)
+        return VStack(alignment: .leading, spacing: 0) {
+            // Mood-tinted top strip
+            accent.frame(height: 3)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 5) {
+                    Circle().fill(accent).frame(width: 4, height: 4)
+                    Text(city.displayName.uppercased())
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .foregroundStyle(accent)
+                        .tracking(2)
+                }
+                Text(district.displayName)
+                    .font(.system(size: 19, weight: .black))
+                    .foregroundStyle(Color.metacityTextPrimary)
+                    .lineLimit(1)
+                Text(Self.architecturePeriodTag(moodKey: district.moodKey))
+                    .font(.system(size: 7, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.36))
+                    .tracking(0.8)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 6)
+
+                HStack {
+                    Text(district.moodKey)
+                        .font(.system(size: 7, weight: .bold, design: .monospaced))
+                        .foregroundStyle(accent.opacity(0.80))
+                        .tracking(0.3)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(accent.opacity(0.12), in: Capsule())
+                    Spacer()
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(accent)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.top, 12)
+            .padding(.bottom, 14)
+        }
+        .frame(width: 210, alignment: .topLeading)
+        .background {
+            ZStack {
+                Color.metacitySurface
+                LinearGradient(
+                    colors: [accent.opacity(0.10), Color.clear],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(accent.opacity(0.28), lineWidth: 1)
+        )
+    }
+
+    private static func moodAccentColor(moodKey: String) -> Color {
+        switch moodKey {
+        case "shibuyaNeon":        return Color(red: 0.00, green: 0.95, blue: 0.82)
+        case "nycDusk":            return Color(red: 0.68, green: 0.48, blue: 0.98)
+        case "parisianCore":       return Color(red: 0.92, green: 0.80, blue: 0.44)
+        case "bordeauxWaterfront": return Color(red: 0.95, green: 0.56, blue: 0.22)
+        case "rennesMedieval":     return Color(red: 0.58, green: 0.72, blue: 0.86)
+        case "londonSilver":       return Color(red: 0.68, green: 0.74, blue: 0.84)
+        case "madridAfternoon":    return Color(red: 0.98, green: 0.70, blue: 0.18)
+        case "romanGoldenHour":    return Color(red: 0.98, green: 0.52, blue: 0.20)
+        case "laSunset":           return Color(red: 1.00, green: 0.56, blue: 0.22)
+        case "vancouverCoastal":   return Color(red: 0.22, green: 0.76, blue: 0.90)
+        case "sfMorning":          return Color(red: 0.96, green: 0.78, blue: 0.38)
+        case "skyscraperCorridor": return Color(red: 0.20, green: 0.66, blue: 1.00)
+        case "beachResort":        return Color(red: 0.22, green: 0.92, blue: 0.74)
+        case "sacredSite":         return Color(red: 0.88, green: 0.66, blue: 0.30)
+        case "colonialSquare":     return Color(red: 0.88, green: 0.48, blue: 0.24)
+        default:                   return Color.metacityPrimary
+        }
+    }
+
+    private static func architecturePeriodTag(moodKey: String) -> String {
+        switch moodKey {
+        case "parisianCore":       return "PIERRE DE LUTÈCE · HAUSSMANN 1853–1927"
+        case "bordeauxWaterfront": return "CALCAIRE GIRONDIN · PORT DE LA LUNE XVIIIe"
+        case "rennesMedieval":     return "MI-BOIS BRETON · XIIe–XVe SIÈCLE"
+        case "londonSilver":       return "BRIQUE LONDONIENNE · ÈRE VICTORIENNE"
+        case "madridAfternoon":    return "PIERRE ENSANCHE · 1860–1936"
+        case "romanGoldenHour":    return "TUFFEAU ROMAIN · Ier–XVIIIe SIÈCLE"
+        case "shibuyaNeon":        return "BÉTON & VERRE · POST-1964"
+        case "laSunset":           return "BÉTON MODERNE · SOCAL 1950–"
+        case "nycDusk":            return "BRIQUE PRÉ-GUERRE · 1890–1940"
+        case "vancouverCoastal":   return "VERRE PACIFIQUE · POST-1980"
+        case "sfMorning":          return "BÉTON FINANCIER · POST-1960"
+        case "skyscraperCorridor": return "VERRE & ACIER · SCBD JAKARTA"
+        case "beachResort":        return "PIERRE VOLCANIQUE · TRADITION BALINAISE"
+        case "sacredSite":         return "PIERRE DE JAVA · TRADITION KRATON"
+        case "colonialSquare":     return "COLONIAL NÉERLANDAIS · 1619–1942"
+        default:                   return "DONNÉES OSM RÉELLES · METACITY"
+        }
+    }
+
+    private func travelSectionLabel(_ text: String) -> some View {
+        HStack(spacing: 6) {
+            Rectangle()
+                .fill(Color.metacityNeonCyan)
+                .frame(width: 3, height: 14)
+            Text(text)
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundStyle(Color.metacityTextTertiary)
+                .tracking(1.5)
+        }
+        .padding(.horizontal, Spacing.md)
+    }
+
+    private func travelCityCard(city: CityEntry, visitedIds: Set<String>) -> some View {
+        let count = city.districts.filter { visitedIds.contains($0.id) }.count
+        return VStack(spacing: 5) {
+            Image(systemName: "building.2.fill")
+                .font(.system(size: 18))
+                .foregroundStyle(Color.metacityNeonCyan)
+            Text(city.displayName)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.metacityTextPrimary)
+                .lineLimit(1)
+            Text("\(count)/\(city.districts.count) quartiers")
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(Color.metacityTextTertiary)
+        }
+        .frame(width: 88, height: 80)
+        .background(Color.metacitySurface,
+                     in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(Color.metacityNeonCyan.opacity(0.30), lineWidth: 1)
+        )
+    }
+
+    private func travelDestinationChip(city: CityEntry) -> some View {
+        let n = city.districts.filter { $0.dataBundled }.count
+        return HStack(spacing: 8) {
+            Image(systemName: "mappin.circle.fill")
+                .foregroundStyle(Color.metacityNeonCyan)
+                .font(.system(size: 13))
+            VStack(alignment: .leading, spacing: 1) {
+                Text(city.displayName)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.metacityTextPrimary)
+                Text("\(n) district\(n > 1 ? "s" : "") 3D")
+                    .font(.system(size: 9))
+                    .foregroundStyle(Color.metacityTextTertiary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(Color.metacitySurface,
+                     in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     // MARK: - Pro links section

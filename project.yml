@@ -52,6 +52,7 @@ targets:
         CODE_SIGN_IDENTITY: "Apple Development"
         DEVELOPMENT_TEAM: CX3S4W8M46
     dependencies:
+      - sdk: SceneKit.framework
       - package: Firebase
         product: FirebaseAuth
       - package: Firebase

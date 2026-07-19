@@ -93,6 +93,43 @@
       "tags": ["temple", "sunset", "ocean", "spiritual"],
       "isFeatured": false,
       "priceRange": "$"
+    },
+    {
+      "id": "tegallalang_bali",
+      "name": "Tegallalang Rice Terraces",
+      "type": "nature",
+      "cityId": "denpasar",
+      "coordinate": { "latitude": -8.4316, "longitude": 115.2778 },
+      "description": "Bali's most iconic landscape — a series of emerald staircase rice paddies carved into a river valley north of Ubud, using the ancient subak irrigation cooperative system recognised by UNESCO.",
+      "highlights": [
+        "UNESCO-listed subak irrigation system still in active use",
+        "Sunrise visit: mist fills the valley below the terraces before 07:30",
+        "Swing overlooking the valley — viral viewpoint with 360° paddy view",
+        "Roadside warungs serving Balinese breakfast with a paddy panorama"
+      ],
+      "category": "explore",
+      "tags": ["rice terraces", "UNESCO", "nature", "sunrise", "iconic"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "sanur_sunrise_bali",
+      "name": "Sanur Sunrise Walk",
+      "type": "beach",
+      "cityId": "denpasar",
+      "districtId": "Sanur",
+      "coordinate": { "latitude": -8.7139, "longitude": 115.2631 },
+      "description": "Sanur is Bali's only east-facing beach resort — the 4km coastal path catches the sunrise over the Lombok Strait while the rest of Bali faces sunset. Traditional jukung outrigger boats line the calm lagoon at dawn.",
+      "highlights": [
+        "East-facing beach: the only Bali sunrise on sand (all others face west)",
+        "Sanur Boardwalk — 4km continuous coastal pedestrian promenade",
+        "Jukung outrigger fleet at anchor in the lagoon at dawn",
+        "Warung breakfast culture: nasi jinggo and Bali coffee from 06:00"
+      ],
+      "category": "explore",
+      "tags": ["sunrise", "beach", "walking", "calm water", "traditional boats"],
+      "isFeatured": false,
+      "priceRange": "$"
     }
   ]
 }

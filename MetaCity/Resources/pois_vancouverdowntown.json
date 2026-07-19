@@ -1,0 +1,45 @@
+{
+  "districtId": "VancouverDowntown",
+  "pois": [
+    {
+      "id": "marine_building",
+      "name": "Marine Building",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 49.2866,
+      "longitude": -123.1190,
+      "description": "McCarter & Nairne's 1930 Art Deco tower (98m), decorated with sea creatures, ships and the zodiac in terracotta. Called 'the greatest office building in the British Empire' at its opening.",
+      "partnerURL": null
+    },
+    {
+      "id": "canada_place",
+      "name": "Canada Place",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 49.2888,
+      "longitude": -123.1113,
+      "description": "Eberhard Zeidler's 1986 complex with five white teflon sails evoking a sailing ship on Coal Harbour. The Canada Trade Centre and Alaska/BC cruise ship terminal.",
+      "partnerURL": null
+    },
+    {
+      "id": "christ_church_cathedral",
+      "name": "Christ Church Cathedral",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 49.2826,
+      "longitude": -123.1218,
+      "description": "Vancouver's oldest church (1895), a Gothic sandstone building dwarfed by surrounding towers. The contrast between its hand-hewn stone and the glass office blocks beside it is iconic.",
+      "partnerURL": null
+    },
+    {
+      "id": "gastown_steam_clock",
+      "name": "Gastown Steam Clock",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 49.2838,
+      "longitude": -123.1081,
+      "description": "Raymond Saunders' 1977 steam-powered clock whistles every 15 minutes. In historic Gastown — Vancouver's first neighbourhood, cobblestoned and reinvented as its best restaurant strip.",
+      "partnerURL": null
+    }
+  ]
+}

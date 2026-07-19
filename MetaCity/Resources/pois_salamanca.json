@@ -1,0 +1,45 @@
+{
+  "districtId": "Salamanca",
+  "pois": [
+    {
+      "id": "puerta_alcala",
+      "name": "Puerta de Alcalá",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 40.4200,
+      "longitude": -3.6884,
+      "description": "Francesco Sabatini's 1778 Neoclassical triumphal arch (22m), commissioned by Carlos III. The symbolic gateway between old Madrid and the eastern road to Alcalá de Henares.",
+      "partnerURL": null
+    },
+    {
+      "id": "palacio_cibeles",
+      "name": "Palacio de Cibeles",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 40.4200,
+      "longitude": -3.6913,
+      "description": "Antonio Palacios's 1919 wedding-cake Baroque-Plateresque palace (82m), now Madrid's City Hall. CentroCentro arts centre with a free rooftop terrace and belvedere.",
+      "partnerURL": null
+    },
+    {
+      "id": "retiro_park",
+      "name": "Parque del Buen Retiro",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 40.4153,
+      "longitude": -3.6840,
+      "description": "Madrid's 350-acre royal garden (UNESCO 2021). The artificial lake, Crystal Palace greenhouse, and the Rose Garden make it the city's living room.",
+      "partnerURL": null
+    },
+    {
+      "id": "biblioteca_nacional",
+      "name": "Biblioteca Nacional",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 40.4225,
+      "longitude": -3.6920,
+      "description": "Spain's national library (1896), with 28 million items including the Cervantes manuscripts. The museum wing opens a vault on 1,000 years of illustrated books.",
+      "partnerURL": null
+    }
+  ]
+}

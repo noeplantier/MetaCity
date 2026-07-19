@@ -1,0 +1,35 @@
+{
+  "overrides": [
+    {
+      "nameMatch": "Marine Building",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 98.0
+    },
+    {
+      "nameMatch": "Vancouver Art Gallery",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Christ Church Cathedral",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Rosewood Hotel Georgia",
+      "style": "government",
+      "heightMeters": 36.0
+    },
+    {
+      "nameMatch": "Rogers Arena",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "BC Place",
+      "style": "government",
+      "roofType": "dome"
+    }
+  ]
+}

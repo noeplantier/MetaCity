@@ -1,0 +1,37 @@
+{
+  "districtId": "Montmartre",
+  "overrides": [
+    {
+      "nameMatch": "Sacré-Cœur",
+      "style": "religious",
+      "roofType": "dome",
+      "heightMeters": 83.0
+    },
+    {
+      "nameMatch": "Basilique du Sacré-Cœur",
+      "style": "religious",
+      "roofType": "dome",
+      "heightMeters": 83.0
+    },
+    {
+      "nameMatch": "Saint-Pierre de Montmartre",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Halle Saint-Pierre",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Moulin Rouge",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Moulin de la Galette",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

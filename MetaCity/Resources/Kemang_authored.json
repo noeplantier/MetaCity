@@ -1,0 +1,27 @@
+{
+  "districtId": "Kemang",
+  "overrides": [
+    {
+      "nameMatch": "Kemang Village",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 36.0
+    },
+    {
+      "nameMatch": "Masjid Al-Azhar",
+      "style": "religious",
+      "roofType": "dome"
+    },
+    {
+      "nameMatch": "Gereja",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "ITC Fatmawati",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 28.0
+    }
+  ]
+}

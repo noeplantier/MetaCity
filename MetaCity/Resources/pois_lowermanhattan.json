@@ -1,0 +1,55 @@
+{
+  "districtId": "LowerManhattan",
+  "pois": [
+    {
+      "id": "one_wtc",
+      "name": "One World Trade Center",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 40.7127,
+      "longitude": -74.0134,
+      "description": "The Western Hemisphere's tallest building (541.3m, symbolic height of 1,776 ft for 1776). One World Observatory on floors 100–102 offers a 360° view of greater New York.",
+      "partnerURL": null
+    },
+    {
+      "id": "9_11_memorial",
+      "name": "9/11 Memorial & Museum",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 40.7115,
+      "longitude": -74.0132,
+      "description": "Michael Arad's Reflecting Absence: two acre-wide pools set in the exact footprints of the Twin Towers, framed by 400 white swamp oaks. Open year-round.",
+      "partnerURL": null
+    },
+    {
+      "id": "brooklyn_bridge",
+      "name": "Brooklyn Bridge",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 40.7061,
+      "longitude": -73.9969,
+      "description": "John Roebling's 1883 Gothic-tower suspension bridge — the world's first wire cable suspension bridge. The wooden promenade above traffic is a 30-min walk to Brooklyn.",
+      "partnerURL": null
+    },
+    {
+      "id": "wall_street_bull",
+      "name": "Charging Bull",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 40.7057,
+      "longitude": -74.0134,
+      "description": "Arturo Di Modica's 3.2-tonne bronze sculpture (1989), placed illegally outside the NYSE as a 'guerrilla gift'. The most photographed sculpture in New York.",
+      "partnerURL": null
+    },
+    {
+      "id": "battery_park",
+      "name": "Battery Park",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 40.7032,
+      "longitude": -74.0168,
+      "description": "Manhattan's southern tip. The ferry to the Statue of Liberty departs from Castle Clinton here. Ellis Island and the Governors Island ferry also depart from the Battery.",
+      "partnerURL": null
+    }
+  ]
+}

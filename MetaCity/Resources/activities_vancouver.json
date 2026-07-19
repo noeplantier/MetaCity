@@ -67,6 +67,19 @@
       "longitude": -123.1280,
       "districtId": "VancouverDowntown",
       "fragmentAssetKey": "vancouver_downtown.marina_reflection"
+    },
+    {
+      "id": "van_west_end_balade",
+      "name": "West End — micro-quartier résidentiel",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "Le West End concentre 45 000 habitants sur 2 km² : la plus haute densité résidentielle du Canada. La caméra traverse ses rues bordées d'érables rouges vers Davie Village, révélant l'alternance intime de maisons victoriennes et de tours de verre côté Burrard.",
+      "area": "West End",
+      "priceRange": "Free",
+      "duration": "12 min",
+      "latitude": 49.2860,
+      "longitude": -123.1380,
+      "districtId": "WestEnd"
     }
   ]
 }

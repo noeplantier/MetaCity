@@ -1,0 +1,65 @@
+{
+  "districtId": "LeMarais",
+  "pois": [
+    {
+      "id": "tour_saint_jacques",
+      "name": "Tour Saint-Jacques",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8572,
+      "longitude": 2.3488,
+      "description": "Gothic flamboyant tower, 52m, sole remnant of the 16th-century church of Saint-Jacques-de-la-Boucherie. The highest point in the district.",
+      "partnerURL": null
+    },
+    {
+      "id": "pompidou",
+      "name": "Centre Pompidou",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8607,
+      "longitude": 2.3522,
+      "description": "Renzo Piano and Richard Rogers' radical 1977 inside-out cultural centre. 100,000 works in the national modern art collection.",
+      "partnerURL": null
+    },
+    {
+      "id": "place_des_vosges",
+      "name": "Place des Vosges",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8553,
+      "longitude": 2.3626,
+      "description": "Paris's oldest planned square (1612). 36 identical brick-and-stone pavilions under vaulted arcades. Victor Hugo lived at no. 6.",
+      "partnerURL": null
+    },
+    {
+      "id": "musee_picasso",
+      "name": "Musée Picasso",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 48.8591,
+      "longitude": 2.3619,
+      "description": "5,000 works across the 17th-century Hôtel Salé — the world's largest Picasso collection.",
+      "partnerURL": null
+    },
+    {
+      "id": "musee_carnavalet",
+      "name": "Musée Carnavalet",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 48.8572,
+      "longitude": 2.3611,
+      "description": "The history of Paris told through 625,000 objects across two Renaissance mansions. Free entry.",
+      "partnerURL": null
+    },
+    {
+      "id": "marche_enfants_rouges",
+      "name": "Marché des Enfants Rouges",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": 48.8631,
+      "longitude": 2.3612,
+      "description": "Paris's oldest covered market (1615). A maze of stalls serving Moroccan tajines, Japanese bentos, Italian antipasti and crêpes.",
+      "partnerURL": null
+    }
+  ]
+}

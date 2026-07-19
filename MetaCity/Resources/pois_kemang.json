@@ -1,0 +1,45 @@
+{
+  "districtId": "Kemang",
+  "pois": [
+    {
+      "id": "jalan_kemang_raya",
+      "name": "Jalan Kemang Raya",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -6.2600,
+      "longitude": 106.8147,
+      "description": "The spine of Jakarta's most cosmopolitan neighbourhood — 2km of boutique restaurants, art galleries, concept stores, and rooftop bars catering to Jakarta's international community and creative class.",
+      "partnerURL": null
+    },
+    {
+      "id": "kemang_village",
+      "name": "Kemang Village",
+      "category": "shopping",
+      "tier": "featured",
+      "latitude": -6.2644,
+      "longitude": 106.8138,
+      "description": "Integrated lifestyle complex — a mall, luxury serviced residences, and The Ritz-Carlton Kemang Hotel. The centrepiece of Kemang's upscale redevelopment and the neighbourhood's tallest landmark at 36 floors.",
+      "partnerURL": null
+    },
+    {
+      "id": "kemang_art_row",
+      "name": "Kemang Art Galleries",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -6.2580,
+      "longitude": 106.8142,
+      "description": "A cluster of contemporary art galleries anchoring Kemang's reputation as Jakarta's creative hub — including Ruci Art Space, SaladStop!, and several pop-up concept stores in converted villa spaces.",
+      "partnerURL": null
+    },
+    {
+      "id": "kemang_food_street",
+      "name": "Kemang Food Scene",
+      "category": "eat",
+      "tier": "standard",
+      "latitude": -6.2594,
+      "longitude": 106.8133,
+      "description": "Kemang's dense strip of international restaurants spanning Japanese omakase, Italian trattorias, and Indonesian fusion — one of Jakarta's best concentrations of quality dining per block.",
+      "partnerURL": null
+    }
+  ]
+}

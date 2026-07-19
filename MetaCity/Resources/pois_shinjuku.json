@@ -1,0 +1,55 @@
+{
+  "districtId": "Shinjuku",
+  "pois": [
+    {
+      "id": "shinjuku_gyoen",
+      "name": "Shinjuku Gyoen National Garden",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": 35.6851,
+      "longitude": 139.7100,
+      "description": "One of Tokyo's largest parks — 58 hectares mixing French formal garden, English landscape garden, and Japanese traditional garden. A national garden (imperial retreat until 1949). The most celebrated hanami spot in Tokyo: 1,100 cherry trees of 65 varieties bloom March to May.",
+      "partnerURL": null
+    },
+    {
+      "id": "cocoon_tower",
+      "name": "Mode Gakuen Cocoon Tower",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.6912,
+      "longitude": 139.6966,
+      "description": "At 200m and 50 floors, the Cocoon Tower is one of Tokyo's most distinctive skyscrapers — its interlocking diamond-mesh exoskeleton wraps the building like a cocoon. Home to Mode Gakuen (fashion/design), Tokyo Medical & Dental University, and HAL Tokyo (IT). Completed 2008.",
+      "partnerURL": null
+    },
+    {
+      "id": "kabukicho_tower",
+      "name": "Tokyu Kabukicho Tower",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.6962,
+      "longitude": 139.7038,
+      "description": "Tokyo's newest mixed-use megastructure (2023, 192m), towering over Kabukicho — the city's most intense entertainment district. Contains a cinema complex, live music venues, hotels, restaurants, and a rooftop observation deck. The anchoring landmark of the new Kabukicho Square redevelopment.",
+      "partnerURL": null
+    },
+    {
+      "id": "nomura_building",
+      "name": "Shinjuku Nomura Building",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": 35.6920,
+      "longitude": 139.6959,
+      "description": "The tallest building in Shinjuku at 220m (1978). One of the original 'Skyscraper District' towers — the first cluster of high-rises west of Shinjuku Station that transformed Tokyo's skyline. The observation deck on the 50th floor offers panoramic views over the city.",
+      "partnerURL": null
+    },
+    {
+      "id": "hanazono_shrine",
+      "name": "Hanazono Shrine",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": 35.6932,
+      "longitude": 139.7043,
+      "description": "A quiet Shinto shrine tucked between the glass towers and the neon of Kabukicho. Founded in the Edo period, it's considered the guardian shrine of Shinjuku. The night-lit vermillion torii gates, just steps from the entertainment district, are a famous contrast of sacred and profane Tokyo.",
+      "partnerURL": null
+    }
+  ]
+}

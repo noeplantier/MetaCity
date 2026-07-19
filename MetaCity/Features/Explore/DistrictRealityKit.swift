@@ -21,6 +21,130 @@ import UIKit
 ///   `MeshResource.generate(from:)` is NOT `@MainActor`, but since `loadDistrictEntity` runs on
 ///   the main actor anyway, the full build runs there. The async wrapper still defers the hitch to
 ///   a subsequent main-actor turn so the scene scaffold renders before the geometry pops in.
+/// Per-district rendering overrides applied at entity-build time. Controls visual intensity
+/// parameters that go beyond what a mood + building style can express — e.g. Shibuya needs
+/// denser night windows than Paris even when both have `modernConcrete` buildings.
+struct DistrictRenderProfile {
+    /// Multiplier on base night window density. 1.0 = default. 1.40 = Shibuya commercial neon density.
+    let nightWindowDensityBoost: Float
+    /// Multiplier on facade band geometry depths. 1.0 = default. Applied before pool key computation
+    /// so materials stay pooled — only geometry varies. NOTE: currently passed as context for future
+    /// geometry-level use; not yet wired into `addBandStrip` geometry (that would bypass the pool).
+    let facadeDepthScale: Float
+    /// Weathering/aging intensity for historic stone and brick districts. 0.0 = pristine, 1.0 = max grime.
+    /// Applied in `materialPreset` to darken and slightly grey the base color (grime deposit) and
+    /// reduce clearcoat (patina mutes polished surfaces). Only affects non-glass styles.
+    let weatheringIntensity: Float
+
+    static let `default` = DistrictRenderProfile(nightWindowDensityBoost: 1.0, facadeDepthScale: 1.0, weatheringIntensity: 0.0)
+
+    /// Per-district presets. Priority districts get fine-tuned values; all others get `.default`.
+    static func preset(for districtId: String) -> DistrictRenderProfile {
+        switch districtId {
+        // Tokyo — Shibuya's commercial district has the densest office/shop window activity in the app
+        case "Shibuya":
+            return .init(nightWindowDensityBoost: 1.40, facadeDepthScale: 1.0, weatheringIntensity: 0.10)
+        // Jakarta SCBD — glass towers with Blade Runner density on a weekday evening
+        case "SudirmanThamrin":
+            return .init(nightWindowDensityBoost: 1.25, facadeDepthScale: 1.0, weatheringIntensity: 0.05)
+        // Jakarta historic districts — Dutch colonial fabric, tropical grime over lime plaster
+        case "KotaTua":
+            return .init(nightWindowDensityBoost: 1.00, facadeDepthScale: 1.0, weatheringIntensity: 0.65)
+        case "Menteng":
+            return .init(nightWindowDensityBoost: 0.95, facadeDepthScale: 1.0, weatheringIntensity: 0.52)
+        case "Kemang":
+            return .init(nightWindowDensityBoost: 1.05, facadeDepthScale: 1.0, weatheringIntensity: 0.40)
+        case "Ancol":
+            return .init(nightWindowDensityBoost: 1.00, facadeDepthScale: 1.0, weatheringIntensity: 0.20)
+        // Bandung — Dutch colonial hill station, significant weathering
+        case "Dago":
+            return .init(nightWindowDensityBoost: 0.95, facadeDepthScale: 1.0, weatheringIntensity: 0.48)
+        case "Braga":
+            return .init(nightWindowDensityBoost: 1.00, facadeDepthScale: 1.0, weatheringIntensity: 0.55)
+        // Yogyakarta — traditional Javanese fabric, moderate weathering
+        case "Malioboro":
+            return .init(nightWindowDensityBoost: 1.05, facadeDepthScale: 1.0, weatheringIntensity: 0.42)
+        case "Kraton":
+            return .init(nightWindowDensityBoost: 0.90, facadeDepthScale: 1.0, weatheringIntensity: 0.50)
+        // Bali — tropical humidity, moderate weathering on volcanic stone compounds
+        case "Seminyak":
+            return .init(nightWindowDensityBoost: 0.85, facadeDepthScale: 1.0, weatheringIntensity: 0.30)
+        case "Kuta":
+            return .init(nightWindowDensityBoost: 0.90, facadeDepthScale: 1.0, weatheringIntensity: 0.28)
+        case "Canggu":
+            return .init(nightWindowDensityBoost: 0.70, facadeDepthScale: 1.10, weatheringIntensity: 0.32)
+        case "Sanur":
+            return .init(nightWindowDensityBoost: 0.80, facadeDepthScale: 1.0, weatheringIntensity: 0.25)
+        case "Uluwatu":
+            return .init(nightWindowDensityBoost: 0.75, facadeDepthScale: 1.0, weatheringIntensity: 0.28)
+        // Paris Le Marais — maximum facade relief: 1.15× bands, high residential lit density
+        case "LeMarais":
+            return .init(nightWindowDensityBoost: 1.20, facadeDepthScale: 1.15, weatheringIntensity: 0.52)
+        // Paris Saint-Germain — stronger haussmannien relief than default
+        case "SaintGermain":
+            return .init(nightWindowDensityBoost: 1.15, facadeDepthScale: 1.12, weatheringIntensity: 0.46)
+        // Paris Montmartre — denser residential hill, more weathering from the hill's exposed position
+        case "Montmartre":
+            return .init(nightWindowDensityBoost: 1.15, facadeDepthScale: 1.12, weatheringIntensity: 0.55)
+        // La Défense — office towers, lights out after 20h (commercial, not residential)
+        case "LaDefense":
+            return .init(nightWindowDensityBoost: 0.75, facadeDepthScale: 1.0, weatheringIntensity: 0.05)
+        // Bordeaux historic quays — warm café/restaurant density + amber stone facade depth
+        case "VieuxBordeaux", "LesChartrons":
+            return .init(nightWindowDensityBoost: 1.18, facadeDepthScale: 1.10, weatheringIntensity: 0.45)
+        // London City — office district, Victorian brick heavy weathering from coal-era pollution
+        case "CityOfLondon":
+            return .init(nightWindowDensityBoost: 0.80, facadeDepthScale: 1.06, weatheringIntensity: 0.52)
+        // Westminster — Gothic Revival fabric, heavy stone weathering
+        case "Westminster":
+            return .init(nightWindowDensityBoost: 1.05, facadeDepthScale: 1.08, weatheringIntensity: 0.58)
+        // Madrid Salamanca — Ensanche grid, polished stone has moderate weathering
+        case "Salamanca":
+            return .init(nightWindowDensityBoost: 1.22, facadeDepthScale: 1.08, weatheringIntensity: 0.32)
+        case "Malasana":
+            return .init(nightWindowDensityBoost: 1.30, facadeDepthScale: 1.08, weatheringIntensity: 0.38)
+        // Rome Centro Storico — very old tuff/ochre plaster, heaviest weathering in the app
+        case "CentroStorico":
+            return .init(nightWindowDensityBoost: 1.05, facadeDepthScale: 1.12, weatheringIntensity: 0.68)
+        // NYC Midtown — Times Square neon + residential Midtown East, densest in Western hemisphere
+        case "MidtownManhattan":
+            return .init(nightWindowDensityBoost: 1.35, facadeDepthScale: 1.0, weatheringIntensity: 0.50)
+        // NYC Lower Manhattan — financial district, historic brick building weathering
+        case "LowerManhattan":
+            return .init(nightWindowDensityBoost: 0.90, facadeDepthScale: 1.0, weatheringIntensity: 0.48)
+        // Vancouver Downtown — Pacific NW residential + office, modern glass (low weathering)
+        case "VancouverDowntown":
+            return .init(nightWindowDensityBoost: 1.05, facadeDepthScale: 1.0, weatheringIntensity: 0.12)
+        // West End — dense residential highrises, brightest residential district in Vancouver
+        case "WestEnd":
+            return .init(nightWindowDensityBoost: 1.10, facadeDepthScale: 1.0, weatheringIntensity: 0.10)
+        // SF Downtown — Financial District modern glass towers
+        case "SFDowntown":
+            return .init(nightWindowDensityBoost: 1.00, facadeDepthScale: 1.0, weatheringIntensity: 0.08)
+        // Fisherman's Wharf — Victorian/Edwardian brick warehouses, significant weathering
+        case "FishermansWharf":
+            return .init(nightWindowDensityBoost: 0.75, facadeDepthScale: 1.0, weatheringIntensity: 0.48)
+        // DTLA — mixed office + residential; modern concrete, low weathering
+        case "DowntownLA":
+            return .init(nightWindowDensityBoost: 1.15, facadeDepthScale: 1.0, weatheringIntensity: 0.15)
+        // Hollywood — laStucco bungalow fabric, some weathering from sun/smog
+        case "Hollywood":
+            return .init(nightWindowDensityBoost: 0.85, facadeDepthScale: 1.0, weatheringIntensity: 0.30)
+        // Tokyo Shinjuku — dense commercial neon, modern concrete, very low weathering
+        case "Shinjuku":
+            return .init(nightWindowDensityBoost: 1.40, facadeDepthScale: 1.0, weatheringIntensity: 0.08)
+        // Tokyo Ginza — luxury retail + glass towers, near-pristine facades
+        case "Ginza":
+            return .init(nightWindowDensityBoost: 1.30, facadeDepthScale: 1.0, weatheringIntensity: 0.05)
+        // Tokyo Asakusa — traditional colonial fabric, moderate Edo-period weathering
+        case "Asakusa":
+            return .init(nightWindowDensityBoost: 1.10, facadeDepthScale: 1.0, weatheringIntensity: 0.35)
+        default:
+            return .default
+        }
+    }
+}
+
 enum DistrictRealityKit {
 
     enum LoadError: Error { case districtNotFound(String) }
@@ -28,11 +152,21 @@ enum DistrictRealityKit {
     /// Keyed by `"<name>_<isNight>"`. The full mesh build (polygon extrusion + MeshResource
     /// upload) is real cost; the cache ensures it only happens once per (district, mode).
     @MainActor private static var entityCache: [String: Entity] = [:]
+    /// Insertion-ordered keys for LRU eviction — oldest key is first.
+    @MainActor private static var entityCacheOrder: [String] = []
+    /// Maximum number of district entities held in memory simultaneously.
+    /// Heavy Paris/London districts are ~60–120 MB GPU each; 12 keeps peak RSS comfortably
+    /// under 1.5 GB on iPhone 15/16 Pro (6 GB physical) without thrashing for any realistic
+    /// European tour (a user is unlikely to visit >12 distinct districts in one session).
+    private static let entityCacheLimit = 12
 
     /// 50 material instances max: 10 variation buckets × 5 styles × 2 modes.
     @MainActor private static var materialPool: [String: PhysicallyBasedMaterial] = [:]
 
     @MainActor private static var windowTextureCache: [String: TextureResource] = [:]
+    @MainActor private static var windowRoughnessTextureCache: [String: TextureResource] = [:]
+    /// Tangent-space normal maps per style — one per `style.rawValue`, day mode only.
+    @MainActor private static var normalMapCache: [String: TextureResource] = [:]
     @MainActor private static var pavementTextureCache: TextureResource? = nil
     /// Mood-tinted flat ground tiles — cached by mood key (not per-district).
     @MainActor private static var groundColorCache: [String: TextureResource] = [:]
@@ -41,6 +175,25 @@ enum DistrictRealityKit {
     /// this cache is valid for the lifetime of the app process (same guarantee as entityCache).
     @MainActor private static var palmPositionCache: [String: [(x: Float, z: Float, h: Float)]] = [:]
 
+    /// Night emissive multiplier from the mood active when the current entity is being built.
+    /// Set at the top of `loadDistrictEntity` so `materialPreset` picks it up during
+    /// `makeBuildingMeshes`. Each district has exactly one fixed moodKey, so the same district
+    /// always loads with the same boost — the entity cache (keyed by district name) is safe.
+    @MainActor private static var currentMoodBoost: Float = 1.0
+    /// Per-mood wall color-temperature bias. Positive = warmer (push R, pull B); negative = cooler.
+    /// Applied additively inside `materialPreset` so each city's buildings carry a consistent
+    /// color-temperature personality even when multiple cities share the same BuildingStyle.
+    @MainActor private static var currentWarmthBias: Float = 0.0
+    /// Per-district render overrides applied at entity-build time. Provides fine-grained per-district
+    /// control over night window density, facade articulation depth, and wall roughness contrast —
+    /// beyond what mood and building style alone can express. See `DistrictRenderProfile.preset(for:)`.
+    @MainActor private static var currentDistrictProfile: DistrictRenderProfile = .default
+    /// Aging/weathering intensity for the district currently being built. 0.0 = pristine, 1.0 = max.
+    /// Sourced from `currentDistrictProfile.weatheringIntensity`. Affects base color (grime darkening),
+    /// clearcoat (patina mutes polished stone), and roughness (weathered surfaces lose gloss).
+    /// Only applied to stone/brick/plaster styles — glass and concrete styles are unaffected.
+    @MainActor private static var currentWeatheringIntensity: Float = 0.0
+
     // MARK: - Entity loading
 
     /// Builds a fully-styled `Entity` for `name` (a bundled `District` JSON resource name)
@@ -48,11 +201,19 @@ enum DistrictRealityKit {
     /// builds the geometry synchronously on the main actor and caches before returning a clone.
     @MainActor
     static func loadDistrictEntity(named name: String, isNight: Bool, mood: DistrictRealityScene.Mood = .parkDaylight) async throws -> Entity {
-        // isNight is always false — night mode removed. Key is district name only.
-        let cacheKey = name
+        let cacheKey = "\(name)_\(isNight)"
         if let cached = entityCache[cacheKey] {
+            // Promote to most-recently-used
+            entityCacheOrder.removeAll { $0 == cacheKey }
+            entityCacheOrder.append(cacheKey)
             return cached.clone(recursive: true)
         }
+        // Bake the mood's emissive boost + warmth bias + district render profile into materials.
+        // Must be set before any materialPreset call inside makeBuildingMeshes.
+        currentMoodBoost              = mood.nightEmissiveBoost
+        currentWarmthBias             = mood.warmthBias
+        currentDistrictProfile        = DistrictRenderProfile.preset(for: name)
+        currentWeatheringIntensity    = currentDistrictProfile.weatheringIntensity
         guard let district = District.load(named: name) else {
             throw LoadError.districtNotFound(name)
         }
@@ -117,6 +278,21 @@ enum DistrictRealityKit {
             for entity in makeRoofCapEntities(buildings: qBuildings, isNight: isNight, quadrantIndex: i) {
                 nearContainer.addChild(entity)
             }
+            for entity in makeChimneyEntities(buildings: qBuildings, isNight: isNight, quadrantIndex: i) {
+                nearContainer.addChild(entity)
+            }
+            for entity in makeWindowRecessEntities(buildings: qBuildings, isNight: isNight, quadrantIndex: i) {
+                nearContainer.addChild(entity)
+            }
+            for entity in makeBalconyRailingEntities(buildings: qBuildings, isNight: isNight, quadrantIndex: i) {
+                nearContainer.addChild(entity)
+            }
+            for entity in makeDormerEntities(buildings: qBuildings, isNight: isNight, quadrantIndex: i) {
+                nearContainer.addChild(entity)
+            }
+            for entity in makeRooftopEquipmentEntities(buildings: qBuildings, isNight: isNight, quadrantIndex: i) {
+                nearContainer.addChild(entity)
+            }
             for entity in makeAuthoredRoofEntities(buildings: qBuildings, isNight: isNight, quadrantIndex: i) {
                 nearContainer.addChild(entity)
             }
@@ -136,20 +312,22 @@ enum DistrictRealityKit {
             await Task.yield()
         }
 
-        // POI label panels — only for districts with curated POI data (Bali districts).
-        if let distEntry = CityManifest.shared.district(id: name),
-           let distData = District.load(named: name) {
-            if let beaconLayer = makePOIBeaconEntities(
-                districtName: name,
-                districtAnchor: distEntry.anchor,
-                districtExtent: distData.extent
-            ) {
-                root.addChild(beaconLayer)
-            }
+        // LRU eviction: remove oldest entry when over limit
+        entityCacheOrder.append(cacheKey)
+        while entityCacheOrder.count > entityCacheLimit {
+            let oldest = entityCacheOrder.removeFirst()
+            entityCache.removeValue(forKey: oldest)
         }
-
         entityCache[cacheKey] = root
         return root.clone(recursive: true)
+    }
+
+    /// Drops all cached district entities from memory. Called on OS memory pressure.
+    /// Materials and textures (smaller) are kept — only the heavyweight entity trees are evicted.
+    @MainActor
+    static func flushEntityCache() {
+        entityCache.removeAll()
+        entityCacheOrder.removeAll()
     }
 
     private static let bronzeColor = UIColor(
@@ -237,7 +415,27 @@ enum DistrictRealityKit {
             var pilasterUV:   [SIMD2<Float>] = []
             var pilasterIdx:  [UInt32]       = []
 
-            let profile = facadeProfile(for: style)
+            // Pre-allocate geometry arrays based on expected per-building vertex counts to
+            // avoid O(n) Swift Array reallocation during the building loop. Estimates derived
+            // from per-edge vertex counts for an average 6-point polygon:
+            // - walls: 6 edges × 8 verts + extras ≈ 52 verts per building
+            // - roof:  fan triangulation ≈ 20 verts per building
+            // - bands/ground/balconies/pilasters: lower but still significant for dense districts
+            let rc = buildings.count
+            wallPos.reserveCapacity(rc * 52);   wallNorm.reserveCapacity(rc * 52)
+            wallUV.reserveCapacity(rc * 52);    wallIdx.reserveCapacity(rc * 66)
+            roofPos.reserveCapacity(rc * 20);   roofNorm.reserveCapacity(rc * 20)
+            roofUV.reserveCapacity(rc * 20);    roofIdx.reserveCapacity(rc * 30)
+            bandPos.reserveCapacity(rc * 64);   bandNorm.reserveCapacity(rc * 64)
+            bandUV.reserveCapacity(rc * 64);    bandIdx.reserveCapacity(rc * 96)
+            groundPos.reserveCapacity(rc * 16); groundNorm.reserveCapacity(rc * 16)
+            groundUV.reserveCapacity(rc * 16);  groundIdx.reserveCapacity(rc * 24)
+            balkPos.reserveCapacity(rc * 32);   balkNorm.reserveCapacity(rc * 32)
+            balkUV.reserveCapacity(rc * 32);    balkIdx.reserveCapacity(rc * 48)
+            pilasterPos.reserveCapacity(rc * 16); pilasterNorm.reserveCapacity(rc * 16)
+            pilasterUV.reserveCapacity(rc * 16);  pilasterIdx.reserveCapacity(rc * 24)
+
+            let profile = facadeProfile(for: style).scaled(by: currentDistrictProfile.facadeDepthScale)
 
             // UV tile sizes in world metres — 1 texture repeat per tile.
             // Walls: 5m wide × 3.5m tall (one floor bay). Roof: 10m per tile.
@@ -401,7 +599,7 @@ enum DistrictRealityKit {
             }
 
             if !balkIdx.isEmpty {
-                var balkDesc = MeshDescriptor(name: "buildings_\(key)_balkony")
+                var balkDesc = MeshDescriptor(name: "buildings_\(key)_balconies")
                 balkDesc.positions          = MeshBuffer(balkPos)
                 balkDesc.normals            = MeshBuffer(balkNorm)
                 balkDesc.textureCoordinates = MeshBuffer(balkUV)
@@ -409,7 +607,7 @@ enum DistrictRealityKit {
                 let balkMat    = balconyMaterialPreset(for: style, isNight: isNight)
                 let balkMesh   = try MeshResource.generate(from: [balkDesc])
                 let balkEntity = ModelEntity(mesh: balkMesh, materials: [balkMat])
-                balkEntity.name = "buildings_\(key)_balkony"
+                balkEntity.name = "buildings_\(key)_balconies"
                 entities.append(balkEntity)
             }
 
@@ -458,6 +656,25 @@ enum DistrictRealityKit {
                                         balconyDepth: 0, balconyThick: 0,
                                         balconyFirstFloor: 2, balconyFloorStep: 1,
                                         pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
+
+        /// Returns a copy with all outward-projection depth fields multiplied by `scale`.
+        /// Heights (bandThick, corniceHeight, plinthHeight, groundFloorH, balconyThick) and
+        /// non-depth fields (floorInterval, pilasterWidth, pilasterSpacing, floor indices) are
+        /// unchanged — scaling only the *lateral* projections keeps geometry proportions natural.
+        func scaled(by scale: Float) -> FacadeProfile {
+            guard scale != 1.0 else { return self }
+            return FacadeProfile(
+                floorInterval: floorInterval,
+                bandDepth: bandDepth * scale, bandThick: bandThick,
+                corniceDepth: corniceDepth * scale, corniceHeight: corniceHeight,
+                plinthDepth: plinthDepth * scale, plinthHeight: plinthHeight,
+                groundFloorH: groundFloorH, groundFloorDepth: groundFloorDepth * scale,
+                balconyDepth: balconyDepth * scale, balconyThick: balconyThick,
+                balconyFirstFloor: balconyFirstFloor, balconyFloorStep: balconyFloorStep,
+                pilasterWidth: pilasterWidth, pilasterDepth: pilasterDepth * scale,
+                pilasterSpacing: pilasterSpacing
+            )
+        }
     }
 
     private static func facadeProfile(for style: BuildingStyle) -> FacadeProfile {
@@ -543,25 +760,74 @@ enum DistrictRealityKit {
                                  balconyFirstFloor: 2, balconyFloorStep: 1,
                                  pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
         case .modernGlass:
-            // Curtain-wall: thin metallic spandrel panels, dark granite lobby ~8m.
-            // No balconies, no pilasters.
-            return FacadeProfile(floorInterval: 3.5, bandDepth: 0.06, bandThick: 0.08,
+            // Curtain-wall: horizontal metallic spandrel panels at every floor (not just ledges —
+            // the actual flush spandrel zone between vision-glass bands). bandDepth 0.14m reads
+            // as a visible horizontal ridge at building-tap zoom (40-120m distance) and correctly
+            // represents the ~10-15cm projection typical of unitised curtain-wall systems.
+            // Dark granite lobby zone 10m tall (SCBD/Shibuya towers typically have 2-storey lobbies).
+            return FacadeProfile(floorInterval: 3.5, bandDepth: 0.14, bandThick: 0.10,
                                  corniceDepth: 0, corniceHeight: 0,
                                  plinthDepth: 0, plinthHeight: 0,
-                                 groundFloorH: 8.0, groundFloorDepth: 0.10,
+                                 groundFloorH: 10.0, groundFloorDepth: 0.12,
                                  balconyDepth: 0, balconyThick: 0,
                                  balconyFirstFloor: 2, balconyFloorStep: 1,
                                  pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
         case .nycBrick:
             // Pre-war brick: terracotta string courses, heavy projecting cornice, brownstone ground ~5.5m;
             // limestone piers at 3.0m. Fire-escape balconies every 2 floors from 1st.
+            // balconyDepth 1.00m = real NYC fire-escape platform depth (pre-war code required 1m clear).
             return FacadeProfile(floorInterval: 3.5, bandDepth: 0.20, bandThick: 0.15,
                                  corniceDepth: 0.35, corniceHeight: 0.50,
                                  plinthDepth: 0.10, plinthHeight: 0.55,
                                  groundFloorH: 5.5, groundFloorDepth: 0.08,
-                                 balconyDepth: 0.65, balconyThick: 0.13,
+                                 balconyDepth: 1.00, balconyThick: 0.13,
                                  balconyFirstFloor: 2, balconyFloorStep: 2,
                                  pilasterWidth: 0.22, pilasterDepth: 0.10, pilasterSpacing: 3.0)
+        case .laStucco:
+            // Spanish Mission / California bungalow: wide shallow eave cornice at top, stucco plinth.
+            // No floor bands (single-storey compound vernacular), no balconies, no pilasters.
+            // pitchTan 0.404 = 22° — shallow mission profile, wide overhang from the eave.
+            return FacadeProfile(floorInterval: 3.0, bandDepth: 0, bandThick: 0,
+                                 corniceDepth: 0.40, corniceHeight: 0.28,
+                                 plinthDepth: 0.10, plinthHeight: 0.35,
+                                 groundFloorH: 0, groundFloorDepth: 0,
+                                 balconyDepth: 0, balconyThick: 0,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
+        case .government:
+            // Civic/institutional (Neoclassical / Art Deco): heavy projecting cornice, bold rusticated
+            // base ~6m, classical pilaster strips at 4m bay. No balconies — government buildings are
+            // formal, not residential. Floor string-courses at 4m interval (wider civic floor-to-floor).
+            return FacadeProfile(floorInterval: 4.0, bandDepth: 0.24, bandThick: 0.16,
+                                 corniceDepth: 0.45, corniceHeight: 0.50,
+                                 plinthDepth: 0.14, plinthHeight: 0.70,
+                                 groundFloorH: 6.0, groundFloorDepth: 0.08,
+                                 balconyDepth: 0, balconyThick: 0,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0.26, pilasterDepth: 0.13, pilasterSpacing: 4.0)
+        case .religious:
+            // Church / mosque: bold uninterrupted nave-wall base plinth ~4m, projecting cornice /
+            // parapet at top. No floor bands (vertical nave surface is the hallmark of sacred
+            // architecture). Pilasters at wide 5m bay (giant order, not residential rhythm).
+            return FacadeProfile(floorInterval: 5.0, bandDepth: 0, bandThick: 0,
+                                 corniceDepth: 0.35, corniceHeight: 0.45,
+                                 plinthDepth: 0.14, plinthHeight: 0.60,
+                                 groundFloorH: 0, groundFloorDepth: 0,
+                                 balconyDepth: 0, balconyThick: 0,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0.20, pilasterDepth: 0.10, pilasterSpacing: 5.0)
+        case .modernConcrete:
+            // Cast concrete frame: exposed concrete floor-plate edge (spandrel) at every floor.
+            // The structural slab edge projects ~6cm — readable at building-tap zoom (40–120m)
+            // as horizontal banding, correct for any 1960s–2000s concrete frame building.
+            // No cornice, no ground-floor distinction, no balconies (residential type adds separately).
+            return FacadeProfile(floorInterval: 3.5, bandDepth: 0.06, bandThick: 0.12,
+                                 corniceDepth: 0, corniceHeight: 0,
+                                 plinthDepth: 0, plinthHeight: 0,
+                                 groundFloorH: 0, groundFloorDepth: 0,
+                                 balconyDepth: 0, balconyThick: 0,
+                                 balconyFirstFloor: 2, balconyFloorStep: 1,
+                                 pilasterWidth: 0, pilasterDepth: 0, pilasterSpacing: 0)
         default:
             return .none
         }
@@ -830,6 +1096,25 @@ enum DistrictRealityKit {
             // Limestone cornice / brownstone string course: warm sand against dark brick
             m.baseColor  = .init(tint: UIColor(red: n*0.72, green: n*0.64, blue: n*0.52, alpha: 1))
             m.roughness  = .init(floatLiteral: 0.80)
+        case .government:
+            // Polished limestone entablature / string-course: brighter cream than the warm-stone wall,
+            // slight clearcoat for the polished ashlar surface of civic architecture.
+            m.baseColor  = .init(tint: UIColor(red: n*0.86, green: n*0.84, blue: n*0.78, alpha: 1))
+            m.roughness  = .init(floatLiteral: 0.60)
+            m.clearcoat  = .init(floatLiteral: 0.14)
+            m.clearcoatRoughness = .init(floatLiteral: 0.52)
+        case .religious:
+            // Marble or dressed limestone parapet: cool blue-white stone against the warm wall,
+            // clearcoat for the polished surface of sacred architecture.
+            m.baseColor  = .init(tint: UIColor(red: n*0.78, green: n*0.80, blue: n*0.82, alpha: 1))
+            m.roughness  = .init(floatLiteral: 0.58)
+            m.clearcoat  = .init(floatLiteral: 0.18)
+            m.clearcoatRoughness = .init(floatLiteral: 0.45)
+        case .modernConcrete:
+            // Exposed concrete aggregate floor-plate edge: slightly darker than wall face,
+            // shadow in the horizontal reveal between slab edges.
+            m.baseColor  = .init(tint: UIColor(red: n*0.32, green: n*0.32, blue: n*0.32, alpha: 1))
+            m.roughness  = .init(floatLiteral: 0.85)
         default:
             return roofMaterialPreset(for: style, isNight: isNight)
         }
@@ -905,6 +1190,13 @@ enum DistrictRealityKit {
             m.roughness  = .init(floatLiteral: 0.80)
             m.clearcoat  = .init(floatLiteral: 0.05)
             m.clearcoatRoughness = .init(floatLiteral: 0.75)
+        case .government:
+            // Polished granite or Portland stone civic podium — characteristic smooth pale base of
+            // Neoclassical and Art Deco government buildings. Light clearcoat for polished surface.
+            m.baseColor  = .init(tint: UIColor(red: n*0.66, green: n*0.64, blue: n*0.60, alpha: 1))
+            m.roughness  = .init(floatLiteral: 0.60)
+            m.clearcoat  = .init(floatLiteral: 0.18)
+            m.clearcoatRoughness = .init(floatLiteral: 0.40)
         default:
             m.baseColor  = .init(tint: UIColor(white: n*0.50, alpha: 1))
             m.roughness  = .init(floatLiteral: 0.80)
@@ -1328,6 +1620,7 @@ enum DistrictRealityKit {
             case .sfMorning:          fallback = UIColor(red: 0.30, green: 0.28, blue: 0.26, alpha: 1)  // warm SF concrete sidewalk
             case .nycDusk:            fallback = UIColor(red: 0.12, green: 0.11, blue: 0.12, alpha: 1)  // near-black NYC asphalt at dusk
             case .shibuyaNeon:        fallback = UIColor(red: 0.10, green: 0.10, blue: 0.14, alpha: 1)  // near-black Tokyo wet asphalt with neon-indigo tint
+            case .laSunset:           fallback = UIColor(red: 0.56, green: 0.48, blue: 0.36, alpha: 1)  // bleached LA concrete, warm amber cast
             }
             umat.color = .init(tint: fallback)
         }
@@ -1707,6 +2000,21 @@ enum DistrictRealityKit {
                     r = UInt8(clamping: base + noise / 8)
                     g = UInt8(clamping: base + noise / 8)
                     b = UInt8(clamping: base + 8 + noise / 5)  // neon glow tints blue channel
+
+                case .laSunset:
+                    // Los Angeles DTLA — bleached sun-baked concrete/asphalt, warm sandy cast.
+                    // LA streets are wider and lighter than NYC: heat-bleached California concrete,
+                    // faint warm amber cast from the Pacific golden-hour orange bounce.
+                    if isJoint {
+                        r = 82; g = 72; b = 56
+                    } else {
+                        let br = blockParity ? 148 : 136
+                        let bg = blockParity ? 130 : 118
+                        let bb = blockParity ? 100 : 90
+                        r = UInt8(clamping: br + noise / 3)
+                        g = UInt8(clamping: bg + noise / 4)
+                        b = UInt8(clamping: bb + noise / 5)
+                    }
                 }
 
                 let i = (y * size + x) * 4
@@ -1901,7 +2209,7 @@ enum DistrictRealityKit {
     /// distinct from Dutch colonial blocks when viewed from the orbit camera above.
     @MainActor
     private static func makeRoofCapEntities(buildings: [BuildingFootprint], isNight: Bool, quadrantIndex: Int = -1) -> [ModelEntity] {
-        let capStyles: Set<BuildingStyle> = [.balinese, .colonial, .javanese, .religious, .haussmannien, .medieval, .bordelaisClassical, .londonBrick, .romanOchre]
+        let capStyles: Set<BuildingStyle> = [.balinese, .colonial, .javanese, .religious, .haussmannien, .medieval, .bordelaisClassical, .londonBrick, .romanOchre, .laStucco]
         var styleGroups: [BuildingStyle: [BuildingFootprint]] = [:]
         for b in buildings {
             guard capStyles.contains(b.style), b.polygon.count >= 3 else { continue }
@@ -1910,7 +2218,7 @@ enum DistrictRealityKit {
         }
         var entities: [ModelEntity] = []
         for style in [BuildingStyle.balinese, .colonial, .javanese, .religious,
-                      .haussmannien, .medieval, .bordelaisClassical, .londonBrick, .romanOchre] {
+                      .haussmannien, .medieval, .bordelaisClassical, .londonBrick, .romanOchre, .laStucco] {
             guard let buildings = styleGroups[style], !buildings.isEmpty else { continue }
             var pos: [SIMD3<Float>] = []
             var nrm: [SIMD3<Float>] = []
@@ -1975,6 +2283,7 @@ enum DistrictRealityKit {
         case .bordelaisClassical:  return 0.25   // Bordeaux classical cornice — narrow eave
         case .londonBrick:         return 0.20   // Victorian brick terrace — narrow eave, stack of flats
         case .romanOchre:          return 0.30   // Roman canal-tile cornice — moderate eave, Mediterranean
+        case .laStucco:            return 0.40   // LA Spanish hip — moderate eave, terracotta overhangs shade walls
         default:                   return 0.0
         }
     }
@@ -1990,6 +2299,7 @@ enum DistrictRealityKit {
         case .bordelaisClassical:  return 0.577  // ~30° — Provençal/Bordelais low-pitch canal-tile
         case .londonBrick:         return 0.466  // ~25° — shallow London slate roof, long ridgeline
         case .romanOchre:          return 0.700  // ~35° — Roman canal-tile, steeper than Bordeaux
+        case .laStucco:            return 0.404  // ~22° — shallow Spanish barrel-tile hip, Mission Revival profile
         default:                   return 0.577
         }
     }
@@ -2011,6 +2321,7 @@ enum DistrictRealityKit {
         case .bordelaisClassical:  return 3.0  // moderate Bordelais ridge — readable hip at 30° pitch
         case .londonBrick:         return 5.0  // long shallow London ridge — terraces often 15–20m span
         case .romanOchre:          return 3.5  // moderate Roman ridge — similar to religious, varied building widths
+        case .laStucco:            return 4.5  // LA bungalow — wide footprint, long ranch-style ridge
         default:                   return 4.0
         }
     }
@@ -2027,6 +2338,7 @@ enum DistrictRealityKit {
             case .bordelaisClassical:  return UIColor(red: 0.22, green: 0.10, blue: 0.05, alpha: 1)  // dark Bordelais canal tile
             case .londonBrick:         return UIColor(red: 0.14, green: 0.14, blue: 0.18, alpha: 1)  // dark London slate at night
             case .romanOchre:          return UIColor(red: 0.24, green: 0.10, blue: 0.04, alpha: 1)  // dark Roman canal tile
+            case .laStucco:            return UIColor(red: 0.24, green: 0.10, blue: 0.04, alpha: 1)  // dark Spanish barrel tile at night
             default:                   return UIColor(red: 0.20, green: 0.08, blue: 0.03, alpha: 1)
             }
         } else {
@@ -2062,9 +2374,316 @@ enum DistrictRealityKit {
                 // Dutch colonial, richer orange than Bordeaux canal tile — the rooftop colour of the
                 // historic centre from the Gianicolo overlook.
                 return UIColor(red: 0.62, green: 0.24, blue: 0.10, alpha: 1)
+            case .laStucco:
+                // Spanish Mission barrel tile — warm terracotta, slightly lighter than Roman coppo.
+                return UIColor(red: 0.68, green: 0.28, blue: 0.10, alpha: 1)
             default:
                 return UIColor(red: 0.60, green: 0.24, blue: 0.10, alpha: 1)
             }
+        }
+    }
+
+    // MARK: - Chimney stacks
+
+    /// Merges chimney geometry for eligible styles into one `ModelEntity` per style.
+    /// Named `*_chimneys` so the facade LOD system hides them at orbit and reveals them
+    /// at building-tap zoom. Each chimney stack is a 5-face rectangular prism (4 walls + top)
+    /// placed deterministically via FNV-1a on osmID so the same building gets the same
+    /// stacks across launches and reloads.
+    @MainActor
+    private static func makeChimneyEntities(buildings: [BuildingFootprint], isNight: Bool, quadrantIndex: Int = -1) -> [ModelEntity] {
+        struct ChimneySpec {
+            let sw: Float; let sd: Float   // stack width × depth
+            let minH: Float; let maxH: Float
+            let capH: Float                // zinc cone cap height (0 = no cap)
+            let dayColor: UIColor; let nightColor: UIColor
+            let metallic: Float; let roughness: Float; let clearcoat: Float
+            let hasPots: Bool
+        }
+        let specs: [BuildingStyle: ChimneySpec] = [
+            .haussmannien: .init(sw: 0.28, sd: 0.28, minH: 1.0, maxH: 1.8, capH: 0.22,
+                                 dayColor:   UIColor(red: 0.38, green: 0.42, blue: 0.48, alpha: 1),
+                                 nightColor: UIColor(red: 0.18, green: 0.20, blue: 0.24, alpha: 1),
+                                 metallic: 0.52, roughness: 0.68, clearcoat: 0.14, hasPots: false),
+            .londonBrick:  .init(sw: 0.50, sd: 0.50, minH: 0.9, maxH: 1.4, capH: 0.0,
+                                 dayColor:   UIColor(red: 0.65, green: 0.48, blue: 0.30, alpha: 1),
+                                 nightColor: UIColor(red: 0.25, green: 0.18, blue: 0.10, alpha: 1),
+                                 metallic: 0.0, roughness: 0.88, clearcoat: 0.0, hasPots: true),
+            .colonial:     .init(sw: 0.30, sd: 0.30, minH: 0.6, maxH: 1.0, capH: 0.0,
+                                 dayColor:   UIColor(red: 0.58, green: 0.42, blue: 0.26, alpha: 1),
+                                 nightColor: UIColor(red: 0.22, green: 0.15, blue: 0.08, alpha: 1),
+                                 metallic: 0.0, roughness: 0.90, clearcoat: 0.0, hasPots: false),
+            .nycBrick:     .init(sw: 0.55, sd: 0.55, minH: 1.2, maxH: 2.2, capH: 0.0,
+                                 dayColor:   UIColor(red: 0.62, green: 0.44, blue: 0.28, alpha: 1),
+                                 nightColor: UIColor(red: 0.24, green: 0.16, blue: 0.08, alpha: 1),
+                                 metallic: 0.0, roughness: 0.87, clearcoat: 0.0, hasPots: true),
+            .medieval:     .init(sw: 0.35, sd: 0.40, minH: 0.7, maxH: 1.2, capH: 0.0,
+                                 dayColor:   UIColor(red: 0.48, green: 0.46, blue: 0.42, alpha: 1),
+                                 nightColor: UIColor(red: 0.18, green: 0.17, blue: 0.15, alpha: 1),
+                                 metallic: 0.0, roughness: 0.92, clearcoat: 0.0, hasPots: false),
+        ]
+
+        var stylePositions: [SIMD3<Float>] = []
+        var styleNormals:   [SIMD3<Float>] = []
+        var styleIndices:   [UInt32]       = []
+
+        var entities: [ModelEntity] = []
+
+        for (style, spec) in specs {
+            let group = buildings.filter { $0.style == style && $0.polygon.count >= 3 }
+            guard !group.isEmpty else { continue }
+            stylePositions.removeAll(keepingCapacity: true)
+            styleNormals.removeAll(keepingCapacity: true)
+            styleIndices.removeAll(keepingCapacity: true)
+
+            for building in group {
+                let poly = building.polygon
+                let area = polygonArea(poly)
+                guard area >= 16.0 else { continue }
+                let x0 = poly.map(\.x).min()!, x1 = poly.map(\.x).max()!
+                let z0 = poly.map(\.z).min()!, z1 = poly.map(\.z).max()!
+                let bboxArea = (x1 - x0) * (z1 - z0)
+                let baseY = displayHeight(for: building, area: bboxArea) + 0.05
+
+                let seed1 = deterministicVariation(seed: building.osmID + "_ck1")
+                let W = x1 - x0, D = z1 - z0
+                let nStacks = 1 + Int(seed1 * Float(style == .nycBrick ? 4 : 3))
+
+                for si in 0..<nStacks {
+                    let frac = (Float(si) + 0.5) / Float(nStacks)
+                        + (deterministicVariation(seed: building.osmID + "_ckp\(si)") - 0.5) * 0.15
+                    let cf = max(0.1, min(0.9, frac))
+                    let edgeSeed = deterministicVariation(seed: building.osmID + "_cke\(si)")
+                    let cx: Float, cz: Float
+                    if si % 2 == 0 {
+                        cx = x0 + cf * W
+                        cz = z0 + (edgeSeed < 0.5 ? 0.12 : 0.88) * D
+                    } else {
+                        cx = x0 + (edgeSeed < 0.5 ? 0.12 : 0.88) * W
+                        cz = z0 + cf * D
+                    }
+                    let hSeed = deterministicVariation(seed: building.osmID + "_ckh\(si)")
+                    let stackH = spec.minH + hSeed * (spec.maxH - spec.minH)
+                    addChimneyStack(cx: cx, cz: cz, baseY: baseY,
+                                    w: spec.sw, d: spec.sd, h: stackH, capH: spec.capH,
+                                    positions: &stylePositions, normals: &styleNormals, indices: &styleIndices)
+                    if spec.hasPots {
+                        let nPots = 2 + Int(hSeed * 2)
+                        let potDiam: Float = style == .nycBrick ? 0.18 : 0.15
+                        let potH: Float = 0.32
+                        let spacing = (spec.sw * 0.7) / Float(max(nPots - 1, 1))
+                        for pi in 0..<nPots {
+                            let potX = cx - spec.sw * 0.35 + Float(pi) * spacing
+                            addChimneyPot(cx: potX, cz: cz, baseY: baseY + stackH,
+                                         diam: potDiam, h: potH,
+                                         positions: &stylePositions, normals: &styleNormals, indices: &styleIndices)
+                        }
+                    }
+                }
+            }
+            guard !stylePositions.isEmpty else { continue }
+            var desc = MeshDescriptor(name: "chimneys_\(style.rawValue)_q\(quadrantIndex)")
+            desc.positions  = MeshBuffer(stylePositions)
+            desc.normals    = MeshBuffer(styleNormals)
+            desc.primitives = .triangles(styleIndices)
+            guard let mesh = try? MeshResource.generate(from: [desc]) else { continue }
+            var mat = PhysicallyBasedMaterial()
+            mat.baseColor = .init(tint: isNight ? spec.nightColor : spec.dayColor)
+            mat.metallic  = .init(floatLiteral: spec.metallic)
+            mat.roughness = .init(floatLiteral: spec.roughness)
+            if spec.clearcoat > 0 {
+                mat.clearcoat          = .init(floatLiteral: spec.clearcoat)
+                mat.clearcoatRoughness = .init(floatLiteral: 0.65)
+            }
+            let entity = ModelEntity(mesh: mesh, materials: [mat])
+            // Suffix `_chimneys` so cacheFacadeDetailEntities picks this up for orbit LOD hiding.
+            entity.name = "bld_\(style.rawValue)_q\(quadrantIndex)_chimneys"
+            entities.append(entity)
+        }
+        return entities
+    }
+
+    // MARK: - Window recess geometry (close-zoom LOD only)
+
+    /// Generates 3D window recesses — dark back-quads behind each window opening —
+    /// for building styles with recognisable rectangular window grids.
+    ///
+    /// These are sub-pixel at full orbit camera distance (~500m+) and are therefore
+    /// hidden by the facade LOD system (same `_recesses` suffix picked up by
+    /// `cacheFacadeDetailEntities`). They appear only when the user pinches in past
+    /// `districtExtent × 0.22` or taps a building (`flyToBuildingWithFraming`).
+    ///
+    /// Geometry: one UnlitMaterial back-quad per window opening. No side reveals —
+    /// the single dark rectangle creates apparent depth when viewed at the
+    /// 15–30° orbit elevation angle typical of building-tap close-zoom.
+    private static func makeWindowRecessEntities(buildings: [BuildingFootprint],
+                                                  isNight: Bool,
+                                                  quadrantIndex: Int) -> [ModelEntity] {
+        struct RecessSpec {
+            let colsPerTileU: Int   // windows per 5m horizontal UV repeat
+            let recessDepth:  Float // how far behind the wall face (metres)
+            let winWidthFrac: Float // fraction of col spacing for the opening width
+            let winHeightFrac: Float // fraction of floor interval for opening height
+            let groundFloorH: Float // skip this much at the base (matches FacadeProfile.groundFloorH)
+        }
+        let specs: [BuildingStyle: RecessSpec] = [
+            .haussmannien:       .init(colsPerTileU: 5, recessDepth: 0.18, winWidthFrac: 0.52, winHeightFrac: 0.50, groundFloorH: 5.0),
+            .bordelaisClassical: .init(colsPerTileU: 4, recessDepth: 0.16, winWidthFrac: 0.50, winHeightFrac: 0.48, groundFloorH: 5.0),
+            .madrileño:          .init(colsPerTileU: 5, recessDepth: 0.14, winWidthFrac: 0.48, winHeightFrac: 0.52, groundFloorH: 5.5),
+            .londonBrick:        .init(colsPerTileU: 4, recessDepth: 0.12, winWidthFrac: 0.46, winHeightFrac: 0.46, groundFloorH: 5.0),
+            .romanOchre:         .init(colsPerTileU: 3, recessDepth: 0.14, winWidthFrac: 0.52, winHeightFrac: 0.52, groundFloorH: 5.5),
+            .colonial:           .init(colsPerTileU: 4, recessDepth: 0.10, winWidthFrac: 0.48, winHeightFrac: 0.48, groundFloorH: 4.5),
+            .nycBrick:           .init(colsPerTileU: 4, recessDepth: 0.12, winWidthFrac: 0.46, winHeightFrac: 0.46, groundFloorH: 5.5),
+            .modernConcrete:     .init(colsPerTileU: 6, recessDepth: 0.08, winWidthFrac: 0.55, winHeightFrac: 0.55, groundFloorH: 0),
+        ]
+
+        var stylePositions: [BuildingStyle: [SIMD3<Float>]] = [:]
+        var styleNormals:   [BuildingStyle: [SIMD3<Float>]] = [:]
+        var styleUVs:       [BuildingStyle: [SIMD2<Float>]] = [:]
+        var styleIndices:   [BuildingStyle: [UInt32]]       = [:]
+
+        let tileU: Float = 5.0
+        let floorInterval: Float = 3.5
+
+        for building in buildings {
+            guard let sp = specs[building.style] else { continue }
+            let pts = building.polygon
+            guard pts.count >= 3 else { continue }
+            let area = polygonArea(pts)
+            guard area >= 4.0 else { continue }
+            let h = displayHeight(for: building, area: area)
+            guard h > sp.groundFloorH + floorInterval else { continue }
+
+            let numFloors = Int((h - sp.groundFloorH) / floorInterval)
+            guard numFloors > 0 else { continue }
+
+            let colSpacing = tileU / Float(sp.colsPerTileU)
+            let halfH      = floorInterval * sp.winHeightFrac * 0.5
+
+            let n = pts.count
+            for i in 0..<n {
+                let a = pts[i], b = pts[(i + 1) % n]
+                let dx = b.x - a.x, dz = b.z - a.z
+                let len = sqrt(dx * dx + dz * dz)
+                guard len > colSpacing * 0.5 else { continue }   // edge too short for even one window
+
+                let dirX  = dx / len, dirZ  = dz / len
+                let outNx = -dz / len, outNz =  dx / len   // outward wall normal (CW polygon → left perp of travel)
+                let outN  = SIMD3<Float>(outNx, 0, outNz)
+
+                let numCols = max(1, Int(len / colSpacing))
+                let actualSpacing = len / Float(numCols)
+                let halfW = actualSpacing * sp.winWidthFrac * 0.5
+
+                for col in 0..<numCols {
+                    let u  = (Float(col) + 0.5) * actualSpacing
+                    let cx = a.x + dirX  * u
+                    let cz = a.z + dirZ  * u
+                    // Centre of the back-plane quad, recessed behind the wall face
+                    let rx = cx - outNx * sp.recessDepth
+                    let rz = cz - outNz * sp.recessDepth
+
+                    for fl in 0..<numFloors {
+                        let cy = sp.groundFloorH + (Float(fl) + 0.5) * floorInterval
+                        guard cy + halfH < h - 0.3 else { continue }   // clip top
+
+                        // Back-plane quad: normal faces outward (same direction as the wall)
+                        // so it's visible from the orbit camera.
+                        // Winding [BL, TL, TR, BL, TR, BR] produces outward-facing CCW face
+                        // (RealityKit CCW front-face convention).
+                        let bl = SIMD3<Float>(rx - dirX * halfW, cy - halfH, rz - dirZ * halfW)
+                        let br = SIMD3<Float>(rx + dirX * halfW, cy - halfH, rz + dirZ * halfW)
+                        let tr = SIMD3<Float>(rx + dirX * halfW, cy + halfH, rz + dirZ * halfW)
+                        let tl = SIMD3<Float>(rx - dirX * halfW, cy + halfH, rz - dirZ * halfW)
+
+                        let base = UInt32(stylePositions[building.style, default: []].count)
+                        stylePositions[building.style, default: []] += [bl, br, tr, tl]
+                        styleNormals  [building.style, default: []] += [outN, outN, outN, outN]
+                        styleUVs      [building.style, default: []] += [.init(0,0), .init(1,0), .init(1,1), .init(0,1)]
+                        styleIndices  [building.style, default: []] += [base, base+3, base+2, base, base+2, base+1]
+                    }
+                }
+            }
+        }
+
+        var results: [ModelEntity] = []
+        for (style, pos) in stylePositions {
+            guard !pos.isEmpty else { continue }
+            var desc = MeshDescriptor(name: "recesses_\(style.rawValue)_q\(quadrantIndex)")
+            desc.positions          = MeshBuffer(pos)
+            desc.normals            = MeshBuffer(styleNormals[style] ?? [])
+            desc.textureCoordinates = MeshBuffer(styleUVs[style] ?? [])
+            desc.primitives         = .triangles(styleIndices[style] ?? [])
+            guard let mesh = try? MeshResource.generate(from: [desc]) else { continue }
+
+            var mat = UnlitMaterial()
+            // Near-black interior — absorbs scene light, reads as deep shadow.
+            // Very faint warm tint at night (interior room colour through glass).
+            mat.color = .init(tint: isNight
+                ? UIColor(red: 0.035, green: 0.025, blue: 0.015, alpha: 1)
+                : UIColor(white: 0.022, alpha: 1))
+
+            let entity = ModelEntity(mesh: mesh, materials: [mat])
+            entity.name = "bld_\(style.rawValue)_q\(quadrantIndex)_recesses"
+            results.append(entity)
+        }
+        return results
+    }
+
+    /// 5-face rectangular stack (4 walls + flat top, open bottom against roof surface).
+    /// Optional pyramid zinc cap (4 triangles) when `capH > 0`.
+    private static func addChimneyStack(cx: Float, cz: Float, baseY: Float,
+                                        w: Float, d: Float, h: Float, capH: Float,
+                                        positions: inout [SIMD3<Float>],
+                                        normals:   inout [SIMD3<Float>],
+                                        indices:   inout [UInt32]) {
+        let hw = w * 0.5, hd = d * 0.5, topY = baseY + h
+        let c = [SIMD3<Float>(cx-hw, baseY, cz-hd), SIMD3<Float>(cx+hw, baseY, cz-hd),
+                 SIMD3<Float>(cx+hw, baseY, cz+hd), SIMD3<Float>(cx-hw, baseY, cz+hd),
+                 SIMD3<Float>(cx-hw, topY,  cz-hd), SIMD3<Float>(cx+hw, topY,  cz-hd),
+                 SIMD3<Float>(cx+hw, topY,  cz+hd), SIMD3<Float>(cx-hw, topY,  cz+hd)]
+        func quad(_ i0: Int, _ i1: Int, _ i2: Int, _ i3: Int, n: SIMD3<Float>) {
+            let b = UInt32(positions.count)
+            positions += [c[i0], c[i1], c[i2], c[i3]]
+            normals   += [n, n, n, n]
+            indices   += [b, b+1, b+2, b, b+2, b+3]
+        }
+        quad(0,1,5,4, n: SIMD3( 0, 0,-1))
+        quad(1,2,6,5, n: SIMD3( 1, 0, 0))
+        quad(2,3,7,6, n: SIMD3( 0, 0, 1))
+        quad(3,0,4,7, n: SIMD3(-1, 0, 0))
+        quad(4,5,6,7, n: SIMD3( 0, 1, 0))
+        guard capH > 0 else { return }
+        let apex = SIMD3<Float>(cx, topY + capH, cz)
+        func tri(_ a: SIMD3<Float>, _ b: SIMD3<Float>) {
+            var n = cross(b - c[4], apex - c[4]); let l = simd_length(n)
+            if l > 0.001 { n /= l } else { n = SIMD3(0,1,0) }
+            let base = UInt32(positions.count)
+            positions += [a, b, apex]; normals += [n,n,n]
+            indices   += [base, base+1, base+2]
+        }
+        tri(c[4], c[5]); tri(c[5], c[6]); tri(c[6], c[7]); tri(c[7], c[4])
+    }
+
+    /// 6-sided cylinder pot for londonBrick / nycBrick chimney tops.
+    private static func addChimneyPot(cx: Float, cz: Float, baseY: Float,
+                                      diam: Float, h: Float,
+                                      positions: inout [SIMD3<Float>],
+                                      normals:   inout [SIMD3<Float>],
+                                      indices:   inout [UInt32]) {
+        let r = diam * 0.5, topY = baseY + h
+        for i in 0..<6 {
+            let a0 = Float(i)     * .pi * 2.0 / 6.0
+            let a1 = Float(i + 1) * .pi * 2.0 / 6.0
+            let midA = (a0 + a1) * 0.5
+            let n = SIMD3<Float>(cos(midA), 0, sin(midA))
+            let b = UInt32(positions.count)
+            positions += [SIMD3(cx + r*cos(a0), baseY, cz + r*sin(a0)),
+                          SIMD3(cx + r*cos(a1), baseY, cz + r*sin(a1)),
+                          SIMD3(cx + r*cos(a1), topY,  cz + r*sin(a1)),
+                          SIMD3(cx + r*cos(a0), topY,  cz + r*sin(a0))]
+            normals += [n,n,n,n]
+            indices += [b, b+3, b+2, b, b+2, b+1]
         }
     }
 
@@ -2157,6 +2776,370 @@ enum DistrictRealityKit {
         let base = UInt32(positions.count)
         for v in fv { positions.append(v); normals.append(n) }
         for i in 1..<UInt32(fv.count - 1) { indices += [base, base + i, base + i + 1] }
+    }
+
+    // MARK: - Wave 7B: balcony railings, dormer windows, rooftop equipment
+
+    /// Wrought-iron / steel balcony guard-rails at each balcony floor level.
+    /// One merged `MeshDescriptor` per eligible style × quadrant → `_railings` suffix,
+    /// gated by the facade LOD system (hidden at orbit, shown at building-tap zoom).
+    @MainActor
+    private static func makeBalconyRailingEntities(
+        buildings: [BuildingFootprint], isNight: Bool, quadrantIndex: Int = -1
+    ) -> [ModelEntity] {
+        struct RSpec {
+            let postW: Float; let postSpacing: Float
+            let railH: Float; let handrailT: Float
+            let dayColor: UIColor; let nightColor: UIColor
+            let metallic: Float; let roughness: Float; let clearcoat: Float
+        }
+        let specs: [BuildingStyle: RSpec] = [
+            .haussmannien:       .init(postW: 0.028, postSpacing: 0.135, railH: 0.90, handrailT: 0.05,
+                dayColor:   UIColor(red: 0.12, green: 0.13, blue: 0.15, alpha: 1),
+                nightColor: UIColor(red: 0.06, green: 0.06, blue: 0.08, alpha: 1),
+                metallic: 0.74, roughness: 0.38, clearcoat: 0.32),
+            .bordelaisClassical: .init(postW: 0.030, postSpacing: 0.150, railH: 0.88, handrailT: 0.05,
+                dayColor:   UIColor(red: 0.14, green: 0.13, blue: 0.11, alpha: 1),
+                nightColor: UIColor(red: 0.07, green: 0.06, blue: 0.05, alpha: 1),
+                metallic: 0.70, roughness: 0.42, clearcoat: 0.24),
+            .madrileño:          .init(postW: 0.026, postSpacing: 0.165, railH: 0.92, handrailT: 0.055,
+                dayColor:   UIColor(red: 0.16, green: 0.14, blue: 0.10, alpha: 1),
+                nightColor: UIColor(red: 0.07, green: 0.06, blue: 0.04, alpha: 1),
+                metallic: 0.65, roughness: 0.48, clearcoat: 0.16),
+            .romanOchre:         .init(postW: 0.032, postSpacing: 0.200, railH: 0.88, handrailT: 0.06,
+                dayColor:   UIColor(red: 0.20, green: 0.17, blue: 0.13, alpha: 1),
+                nightColor: UIColor(red: 0.09, green: 0.07, blue: 0.05, alpha: 1),
+                metallic: 0.58, roughness: 0.54, clearcoat: 0.10),
+            .nycBrick:           .init(postW: 0.040, postSpacing: 0.240, railH: 1.00, handrailT: 0.06,
+                dayColor:   UIColor(red: 0.30, green: 0.30, blue: 0.32, alpha: 1),
+                nightColor: UIColor(red: 0.12, green: 0.12, blue: 0.14, alpha: 1),
+                metallic: 0.52, roughness: 0.52, clearcoat: 0.08),
+        ]
+
+        var entities: [ModelEntity] = []
+        for (style, spec) in specs {
+            let group = buildings.filter { $0.style == style && $0.polygon.count >= 3 }
+            guard !group.isEmpty else { continue }
+            let profile = facadeProfile(for: style)
+            guard profile.balconyDepth > 0, profile.balconyThick > 0 else { continue }
+
+            var positions: [SIMD3<Float>] = []
+            var normals:   [SIMD3<Float>] = []
+            var indices:   [UInt32]       = []
+
+            for building in group {
+                let poly    = building.polygon
+                let np      = poly.count
+                let area    = polygonArea(poly)
+                let h       = displayHeight(for: building, area: area)
+                let firstY  = Float(profile.balconyFirstFloor - 1) * profile.floorInterval
+                guard h > firstY + profile.balconyThick else { continue }
+                let depth   = profile.balconyDepth
+                let slabT   = profile.balconyThick
+                let stopY   = h - slabT - max(profile.corniceHeight, 0.5)
+                let hw      = spec.postW * 0.5
+                let upN     = SIMD3<Float>(0, 1, 0)
+
+                var balkY = firstY
+                while balkY <= stopY {
+                    let slabTop      = balkY + slabT
+                    let handrailBot  = slabTop + spec.railH - spec.handrailT
+                    let railTop      = slabTop + spec.railH
+
+                    for i in 0..<np {
+                        let a = poly[i], b = poly[(i + 1) % np]
+                        let dx = b.x - a.x, dz = b.z - a.z
+                        let len = sqrt(dx * dx + dz * dz)
+                        guard len > spec.postSpacing else { continue }
+                        let ex = dx / len, ez = dz / len
+                        let nx = -dz / len, nz = dx / len
+                        let outN = SIMD3<Float>(nx, 0, nz)
+                        let axO  = a.x + nx * depth, azO = a.z + nz * depth
+                        let bxO  = b.x + nx * depth, bzO = b.z + nz * depth
+
+                        // Handrail bar — front (outward-facing) face
+                        let hBase = UInt32(positions.count)
+                        positions += [SIMD3(axO, handrailBot, azO), SIMD3(bxO, handrailBot, bzO),
+                                      SIMD3(bxO, railTop,    bzO), SIMD3(axO, railTop,    azO)]
+                        normals   += [outN, outN, outN, outN]
+                        indices   += [hBase, hBase+1, hBase+3,  hBase+1, hBase+2, hBase+3]
+
+                        // Handrail bar — top face (visible from orbit at 15-30°)
+                        let tBase  = UInt32(positions.count)
+                        let inset: Float = 0.04
+                        let axI = a.x + nx * (depth - inset), azI = a.z + nz * (depth - inset)
+                        let bxI = b.x + nx * (depth - inset), bzI = b.z + nz * (depth - inset)
+                        positions += [SIMD3(axI, railTop, azI), SIMD3(axO, railTop, azO),
+                                      SIMD3(bxO, railTop, bzO), SIMD3(bxI, railTop, bzI)]
+                        normals   += [upN, upN, upN, upN]
+                        indices   += [tBase+3, tBase+1, tBase+2,  tBase+3, tBase+0, tBase+1]
+
+                        // Vertical posts at regular intervals
+                        var t: Float = spec.postSpacing * 0.5
+                        while t <= len - spec.postSpacing * 0.4 {
+                            let fx   = a.x + ex * t + nx * depth
+                            let fz   = a.z + ez * t + nz * depth
+                            let pBase = UInt32(positions.count)
+                            positions += [
+                                SIMD3(fx - hw * ex, slabTop,     fz - hw * ez),
+                                SIMD3(fx + hw * ex, slabTop,     fz + hw * ez),
+                                SIMD3(fx + hw * ex, handrailBot, fz + hw * ez),
+                                SIMD3(fx - hw * ex, handrailBot, fz - hw * ez),
+                            ]
+                            normals += [outN, outN, outN, outN]
+                            indices += [pBase, pBase+1, pBase+3,  pBase+1, pBase+2, pBase+3]
+                            t += spec.postSpacing
+                        }
+                    }
+                    balkY += Float(profile.balconyFloorStep) * profile.floorInterval
+                }
+            }
+
+            guard !positions.isEmpty else { continue }
+            var desc = MeshDescriptor(name: "railings_\(style.rawValue)_q\(quadrantIndex)")
+            desc.positions  = MeshBuffer(positions)
+            desc.normals    = MeshBuffer(normals)
+            desc.primitives = .triangles(indices)
+            guard let mesh = try? MeshResource.generate(from: [desc]) else { continue }
+            var mat = PhysicallyBasedMaterial()
+            mat.baseColor          = .init(tint: isNight ? spec.nightColor : spec.dayColor)
+            mat.metallic           = .init(floatLiteral: spec.metallic)
+            mat.roughness          = .init(floatLiteral: spec.roughness)
+            mat.clearcoat          = .init(floatLiteral: spec.clearcoat)
+            mat.clearcoatRoughness = .init(floatLiteral: 0.30)
+            let entity = ModelEntity(mesh: mesh, materials: [mat])
+            entity.name = "bld_\(style.rawValue)_q\(quadrantIndex)_railings"
+            entities.append(entity)
+        }
+        return entities
+    }
+
+    /// Dormer windows (lucarnes) protruding from pitched roof surfaces.
+    /// Eligible: haussmannien (zinc), bordelaisClassical (warm stone), medieval (granite).
+    /// Geometry: front face + gable cap only (sides hidden by roof slope from orbit camera).
+    /// `_dormers` suffix → gated by facade LOD system, hidden at orbit.
+    @MainActor
+    private static func makeDormerEntities(
+        buildings: [BuildingFootprint], isNight: Bool, quadrantIndex: Int = -1
+    ) -> [ModelEntity] {
+        struct DSpec {
+            let bayInterval: Float   // horizontal spacing between dormers
+            let w: Float             // dormer body width
+            let bodyH: Float         // dormer body height above eave
+            let d: Float             // protrusion depth outward from facade
+            let capH: Float          // gable peak above body top
+            let dayColor: UIColor; let nightColor: UIColor
+            let metallic: Float; let roughness: Float
+        }
+        let specs: [BuildingStyle: DSpec] = [
+            .haussmannien:       .init(bayInterval: 4.0, w: 0.85, bodyH: 1.30, d: 0.45, capH: 0.28,
+                dayColor:   UIColor(red: 0.38, green: 0.42, blue: 0.48, alpha: 1),  // zinc blue-grey
+                nightColor: UIColor(red: 0.18, green: 0.20, blue: 0.24, alpha: 1),
+                metallic: 0.52, roughness: 0.62),
+            .bordelaisClassical: .init(bayInterval: 4.5, w: 0.90, bodyH: 1.20, d: 0.40, capH: 0.22,
+                dayColor:   UIColor(red: 0.70, green: 0.60, blue: 0.46, alpha: 1),  // warm Gironde stone
+                nightColor: UIColor(red: 0.32, green: 0.28, blue: 0.22, alpha: 1),
+                metallic: 0.04, roughness: 0.80),
+            .medieval:           .init(bayInterval: 5.0, w: 1.00, bodyH: 1.40, d: 0.50, capH: 0.35,
+                dayColor:   UIColor(red: 0.38, green: 0.36, blue: 0.34, alpha: 1),  // Breton granite
+                nightColor: UIColor(red: 0.18, green: 0.16, blue: 0.14, alpha: 1),
+                metallic: 0.02, roughness: 0.88),
+        ]
+
+        var entities: [ModelEntity] = []
+        for (style, spec) in specs {
+            // Skip buildings with authored roof overrides (conical, dome, thatched already set)
+            let group = buildings.filter { $0.style == style && $0.polygon.count >= 3
+                                           && ($0.roofType == nil || $0.roofType == "hip") }
+            guard !group.isEmpty else { continue }
+
+            var positions: [SIMD3<Float>] = []
+            var normals:   [SIMD3<Float>] = []
+            var indices:   [UInt32]       = []
+
+            for building in group {
+                let poly = building.polygon
+                let area = polygonArea(poly)
+                let h    = displayHeight(for: building, area: area)
+                guard h >= 8.0 else { continue }
+
+                // Find the longest polygon edge — dormers line this facade
+                var bestLen: Float = 0
+                var bestIdx: Int   = 0
+                let np = poly.count
+                for i in 0..<np {
+                    let a = poly[i], b = poly[(i + 1) % np]
+                    let dx = b.x - a.x, dz = b.z - a.z
+                    let l = sqrt(dx * dx + dz * dz)
+                    if l > bestLen { bestLen = l; bestIdx = i }
+                }
+                guard bestLen >= spec.bayInterval else { continue }
+
+                let a  = poly[bestIdx], b = poly[(bestIdx + 1) % np]
+                let dx = b.x - a.x, dz = b.z - a.z
+                let len = sqrt(dx * dx + dz * dz)
+                let ex = dx / len, ez = dz / len
+                let nx = -dz / len, nz = dx / len
+                let outN = SIMD3<Float>(nx, 0, nz)
+
+                let corniceH = facadeProfile(for: style).corniceHeight
+                let eaveY    = h + max(corniceH, 0)
+                let hw       = spec.w * 0.5
+
+                var t: Float = spec.bayInterval
+                while t <= bestLen - spec.bayInterval * 0.5 {
+                    let cx = a.x + ex * t
+                    let cz = a.z + ez * t
+                    // Outer (protruding) position
+                    let ox = cx + nx * spec.d, oz = cz + nz * spec.d
+
+                    let botY = eaveY
+                    let topY = eaveY + spec.bodyH
+
+                    // Front face of dormer body (outward-facing)
+                    let fBase = UInt32(positions.count)
+                    positions += [
+                        SIMD3(ox - hw * ex, botY, oz - hw * ez),
+                        SIMD3(ox + hw * ex, botY, oz + hw * ez),
+                        SIMD3(ox + hw * ex, topY, oz + hw * ez),
+                        SIMD3(ox - hw * ex, topY, oz - hw * ez),
+                    ]
+                    normals += [outN, outN, outN, outN]
+                    indices += [fBase, fBase+1, fBase+3,  fBase+1, fBase+2, fBase+3]
+
+                    // Gable cap — two triangles (front triangle + back triangle)
+                    let topL = SIMD3<Float>(ox - hw * ex, topY, oz - hw * ez)
+                    let topR = SIMD3<Float>(ox + hw * ex, topY, oz + hw * ez)
+                    let peak = SIMD3<Float>(ox, topY + spec.capH, oz)
+                    addRoofFace([topL, topR, peak],
+                                positions: &positions, normals: &normals, indices: &indices)
+                    // Back gable (from roof slope side — inward normal auto-handled by addRoofFace)
+                    let bakL = SIMD3<Float>(cx - hw * ex, topY, cz - hw * ez)
+                    let bakR = SIMD3<Float>(cx + hw * ex, topY, cz + hw * ez)
+                    addRoofFace([bakR, bakL, peak],
+                                positions: &positions, normals: &normals, indices: &indices)
+
+                    t += spec.bayInterval
+                }
+            }
+
+            guard !positions.isEmpty else { continue }
+            var desc = MeshDescriptor(name: "dormers_\(style.rawValue)_q\(quadrantIndex)")
+            desc.positions  = MeshBuffer(positions)
+            desc.normals    = MeshBuffer(normals)
+            desc.primitives = .triangles(indices)
+            guard let mesh = try? MeshResource.generate(from: [desc]) else { continue }
+            var mat = PhysicallyBasedMaterial()
+            mat.baseColor = .init(tint: isNight ? spec.nightColor : spec.dayColor)
+            mat.metallic  = .init(floatLiteral: spec.metallic)
+            mat.roughness = .init(floatLiteral: spec.roughness)
+            let entity = ModelEntity(mesh: mesh, materials: [mat])
+            entity.name = "bld_\(style.rawValue)_q\(quadrantIndex)_dormers"
+            entities.append(entity)
+        }
+        return entities
+    }
+
+    /// Rooftop HVAC / antenna equipment boxes on modernGlass and modernConcrete towers ≥ 18m.
+    /// One merged `ModelEntity` per quadrant → `_equipment` suffix, gated by facade LOD.
+    @MainActor
+    private static func makeRooftopEquipmentEntities(
+        buildings: [BuildingFootprint], isNight: Bool, quadrantIndex: Int = -1
+    ) -> [ModelEntity] {
+        let eligible: Set<BuildingStyle> = [.modernGlass, .modernConcrete]
+        let group = buildings.filter { eligible.contains($0.style) && $0.polygon.count >= 3 }
+        guard !group.isEmpty else { return [] }
+
+        var positions: [SIMD3<Float>] = []
+        var normals:   [SIMD3<Float>] = []
+        var indices:   [UInt32]       = []
+
+        for building in group {
+            let poly = building.polygon
+            let area = polygonArea(poly)
+            let h    = displayHeight(for: building, area: area)
+            guard h >= 18.0 else { continue }
+
+            // Polygon bbox for rooftop placement bounds
+            var minX: Float =  .greatestFiniteMagnitude, maxX: Float = -.greatestFiniteMagnitude
+            var minZ: Float =  .greatestFiniteMagnitude, maxZ: Float = -.greatestFiniteMagnitude
+            for p in poly { minX = min(minX, p.x); maxX = max(maxX, p.x)
+                            minZ = min(minZ, p.z); maxZ = max(maxZ, p.z) }
+            let W = maxX - minX, D = maxZ - minZ
+            guard W >= 4.0, D >= 4.0 else { continue }
+
+            let sid = building.osmID
+            let unitCount = 1 + Int(deterministicVariation(seed: sid + "_eq_n") * 2.99)
+
+            for ui in 0..<unitCount {
+                let vx = deterministicVariation(seed: sid + "_eq_x\(ui)")
+                let vz = deterministicVariation(seed: sid + "_eq_z\(ui)")
+                let vh = deterministicVariation(seed: sid + "_eq_h\(ui)")
+                let cx = minX + W * (0.20 + vx * 0.60)
+                let cz = minZ + D * (0.20 + vz * 0.60)
+                let bw: Float = 1.2 + vh * 0.8   // 1.2–2.0 m
+                let bd: Float = 0.8 + vh * 0.4   // 0.8–1.2 m
+                let bh: Float = 0.5 + vh * 0.5   // 0.5–1.0 m
+                addBoxOnRoof(cx: cx, cz: cz, baseY: h, w: bw, d: bd, h: bh,
+                             positions: &positions, normals: &normals, indices: &indices)
+            }
+        }
+
+        guard !positions.isEmpty else { return [] }
+        var desc = MeshDescriptor(name: "equipment_q\(quadrantIndex)")
+        desc.positions  = MeshBuffer(positions)
+        desc.normals    = MeshBuffer(normals)
+        desc.primitives = .triangles(indices)
+        guard let mesh = try? MeshResource.generate(from: [desc]) else { return [] }
+        var mat = PhysicallyBasedMaterial()
+        let equipColor = UIColor(red: 0.30, green: 0.32, blue: 0.34, alpha: 1)
+        let equipNight = UIColor(red: 0.14, green: 0.15, blue: 0.16, alpha: 1)
+        mat.baseColor = .init(tint: isNight ? equipNight : equipColor)
+        mat.metallic  = .init(floatLiteral: 0.42)
+        mat.roughness = .init(floatLiteral: 0.72)
+        let entity = ModelEntity(mesh: mesh, materials: [mat])
+        entity.name = "bld_equip_q\(quadrantIndex)_equipment"
+        return [entity]
+    }
+
+    /// 5-sided box on a flat roof surface (4 side faces + top face).
+    /// CW corner order [BL, FL, FR, BR] = [(-hw,-hd),(-hw,+hd),(+hw,+hd),(+hw,-hd)].
+    /// Top face winding [0,2,3, 0,1,2] produces +Y normal (cross-verified).
+    private static func addBoxOnRoof(cx: Float, cz: Float, baseY: Float,
+                                      w: Float, d: Float, h: Float,
+                                      positions: inout [SIMD3<Float>],
+                                      normals:   inout [SIMD3<Float>],
+                                      indices:   inout [UInt32]) {
+        let hw = w * 0.5, hd = d * 0.5
+        let cx0 = cx - hw, cx1 = cx + hw
+        let cz0 = cz - hd, cz1 = cz + hd
+        let topY = baseY + h
+        // CW corners from above: BL, FL, FR, BR
+        let corners: [(x: Float, z: Float)] = [(cx0, cz0), (cx0, cz1), (cx1, cz1), (cx1, cz0)]
+
+        // 4 side faces — each edge BL→FL→FR→BR with outward normal
+        for i in 0..<4 {
+            let j   = (i + 1) % 4
+            let ax  = corners[i].x, az = corners[i].z
+            let bx  = corners[j].x, bz = corners[j].z
+            let ddx = bx - ax, ddz = bz - az
+            let ell = sqrt(ddx * ddx + ddz * ddz)
+            let sN  = SIMD3<Float>(-ddz / ell, 0, ddx / ell)
+            let sBase = UInt32(positions.count)
+            positions += [SIMD3(ax, baseY, az), SIMD3(bx, baseY, bz),
+                          SIMD3(bx, topY,  bz), SIMD3(ax, topY,  az)]
+            normals   += [sN, sN, sN, sN]
+            indices   += [sBase, sBase+1, sBase+3,  sBase+1, sBase+2, sBase+3]
+        }
+
+        // Top face — +Y normal
+        // T1 [BL,FR,BR]: v1=FR-BL=(2hw,0,2hd), v2=BR-BL=(2hw,0,0) → cross Y = +4hw·hd > 0 ✓
+        // T2 [BL,FL,FR]: v1=FL-BL=(0,0,2hd),   v2=FR-BL=(2hw,0,2hd) → cross Y = +4hw·hd > 0 ✓
+        let upN   = SIMD3<Float>(0, 1, 0)
+        let tBase = UInt32(positions.count)
+        positions += corners.map { SIMD3<Float>($0.x, topY, $0.z) }
+        normals   += [upN, upN, upN, upN]
+        indices   += [tBase+0, tBase+2, tBase+3,  tBase+0, tBase+1, tBase+2]
     }
 
     // MARK: - Authored roof overrides
@@ -2301,9 +3284,10 @@ enum DistrictRealityKit {
 
     // MARK: - POI Beacons
 
-    /// Small glowing spheres over each POI location — no stems, no text.
-    /// Featured POIs: amber sphere (radius 0.6% of district extent).
-    /// Standard POIs: grey sphere (radius 0.3%). Named "poi:<id>" for hit-testing.
+    /// Cyan neon spheres + text labels for featured POIs; grey spheres for standard.
+    /// Featured: PBR emissive glow (3.0 intensity), floating text label facing +Z.
+    /// Consecutive featured POIs connected by semi-transparent cyan flat quads.
+    /// Named "poi:<id>" / "poi_label:<id>" / "poiPaths" for hit-testing + pulse animation.
     @MainActor
     private static func makePOIBeaconEntities(
         districtName: String,
@@ -2316,24 +3300,104 @@ enum DistrictRealityKit {
         let root = Entity()
         root.name = "poiBeacons"
         let beaconY: Float = districtExtent * 0.008
+        let featuredPOIs = collection.pois.filter(\.isFeatured)
+
+        // Thin flat quads connecting consecutive featured POIs
+        if featuredPOIs.count >= 2,
+           let paths = makePOIPathLines(between: featuredPOIs, anchor: districtAnchor,
+                                        y: beaconY, extent: districtExtent) {
+            root.addChild(paths)
+        }
 
         for poi in collection.pois {
             let offset = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
                 .sceneOffset(from: districtAnchor)
             let radius: Float = poi.isFeatured ? districtExtent * 0.006 : districtExtent * 0.003
-            let color: UIColor = poi.isFeatured
-                ? UIColor(red: 1.0, green: 0.78, blue: 0.20, alpha: 0.92)
-                : UIColor(white: 0.80, alpha: 0.60)
-            let sphere = ModelEntity(
-                mesh: MeshResource.generateSphere(radius: radius),
-                materials: [UnlitMaterial(color: color)]
-            )
-            sphere.name = "poi:\(poi.id)"
-            sphere.position = SIMD3(offset.x, beaconY, offset.z)
-            root.addChild(sphere)
+
+            if poi.isFeatured {
+                // Cyan neon: PBR with high-intensity emissive glow
+                var mat = PhysicallyBasedMaterial()
+                mat.baseColor = .init(tint: UIColor(red: 0.20, green: 0.85, blue: 1.0, alpha: 1))
+                mat.emissiveColor = .init(color: UIColor(red: 0.35, green: 0.95, blue: 1.0, alpha: 1))
+                mat.emissiveIntensity = 3.0
+                mat.roughness = .init(floatLiteral: 0.05)
+                mat.metallic  = .init(floatLiteral: 0.10)
+                let sphere = ModelEntity(
+                    mesh: MeshResource.generateSphere(radius: radius),
+                    materials: [mat]
+                )
+                sphere.name = "poi:\(poi.id)"
+                sphere.position = SIMD3(offset.x, beaconY, offset.z)
+
+                // Floating text label: same font approach as makeFocusBeacon
+                let fontSize = CGFloat(districtExtent * 0.014)
+                let labelMesh = MeshResource.generateText(
+                    poi.name,
+                    extrusionDepth: 0.05,
+                    font: .systemFont(ofSize: fontSize, weight: .semibold)
+                )
+                let label = ModelEntity(mesh: labelMesh,
+                    materials: [UnlitMaterial(color: UIColor(red: 0.35, green: 0.95, blue: 1.0, alpha: 0.92))])
+                label.position = SIMD3(offset.x, beaconY + radius * 2.8, offset.z)
+                // No BillboardComponent (iOS 18+ only) — orient toward +Z at creation
+                label.look(at: label.position + SIMD3(0, 0, 1), from: label.position, relativeTo: nil)
+                label.name = "poi_label:\(poi.id)"
+
+                root.addChild(sphere)
+                root.addChild(label)
+            } else {
+                let sphere = ModelEntity(
+                    mesh: MeshResource.generateSphere(radius: radius),
+                    materials: [UnlitMaterial(color: UIColor(white: 0.65, alpha: 0.55))]
+                )
+                sphere.name = "poi:\(poi.id)"
+                sphere.position = SIMD3(offset.x, beaconY, offset.z)
+                root.addChild(sphere)
+            }
         }
 
         return root
+    }
+
+    /// Flat quad strips connecting consecutive featured POIs — neon cyan at 35% alpha.
+    @MainActor
+    private static func makePOIPathLines(between pois: [CangguPOI], anchor: GeoCoord,
+                                          y: Float, extent: Float) -> Entity? {
+        let container = Entity()
+        container.name = "poiPaths"
+        let lineW: Float = extent * 0.0018
+        let lineY = y + 0.3
+        let up = SIMD3<Float>(0, 1, 0)
+
+        for i in 0..<pois.count - 1 {
+            let a = GeoCoord(latitude: pois[i].latitude, longitude: pois[i].longitude)
+                .sceneOffset(from: anchor)
+            let b = GeoCoord(latitude: pois[i+1].latitude, longitude: pois[i+1].longitude)
+                .sceneOffset(from: anchor)
+            let dx = b.x - a.x, dz = b.z - a.z
+            let len = sqrt(dx*dx + dz*dz)
+            guard len > 0.5 else { continue }
+            let nx = -dz / len, nz = dx / len
+
+            let p0 = SIMD3<Float>(a.x + nx * lineW, lineY, a.z + nz * lineW)
+            let p1 = SIMD3<Float>(a.x - nx * lineW, lineY, a.z - nz * lineW)
+            let p2 = SIMD3<Float>(b.x - nx * lineW, lineY, b.z - nz * lineW)
+            let p3 = SIMD3<Float>(b.x + nx * lineW, lineY, b.z + nz * lineW)
+
+            var desc = MeshDescriptor(name: "poipath_\(i)")
+            desc.positions = MeshBuffer([p0, p1, p2, p3])
+            desc.normals = MeshBuffer([up, up, up, up])
+            desc.textureCoordinates = MeshBuffer([SIMD2<Float>.zero, .zero, .zero, .zero])
+            desc.primitives = .triangles([0, 1, 2,  0, 2, 3])
+
+            guard let mesh = try? MeshResource.generate(from: [desc]) else { continue }
+            var mat = UnlitMaterial()
+            mat.color = .init(tint: UIColor(red: 0.35, green: 0.95, blue: 1.0, alpha: 0.35))
+            let line = ModelEntity(mesh: mesh, materials: [mat])
+            line.name = "poipath_\(i)"
+            container.addChild(line)
+        }
+        return container.children.isEmpty ? nil : container
     }
 
     // MARK: - Focus building beacon
@@ -2522,31 +3586,67 @@ enum DistrictRealityKit {
             mat.metallic    = .init(floatLiteral: 0.0)
             mat.clearcoat   = .init(floatLiteral: 0.05)
             mat.clearcoatRoughness = .init(floatLiteral: 0.82)
+        case .laStucco:
+            // Spanish Mission barrel tile — warm terracotta, LA bungalow / Mission Revival profile.
+            let day = UIColor(red: 0.68, green: 0.28, blue: 0.10, alpha: 1)  // warm terracotta barrel tile
+            let ngt = UIColor(red: 0.22, green: 0.10, blue: 0.04, alpha: 1)
+            mat.baseColor   = .init(tint: isNight ? ngt : day)
+            mat.roughness   = .init(floatLiteral: 0.90)
+            mat.metallic    = .init(floatLiteral: 0.0)
+            mat.clearcoat   = .init(floatLiteral: 0.03)
+            mat.clearcoatRoughness = .init(floatLiteral: 0.92)
         }
         return mat
     }
 
     @MainActor
     private static func pooledMaterial(for style: BuildingStyle, variation: Float, isNight: Bool) -> PhysicallyBasedMaterial {
-        let bucket = min(Int(variation * 10), 9)
-        let key    = "\(style.rawValue)_\(bucket)_\(isNight)"
+        let bucket       = min(Int(variation * 10), 9)
+        let boostTier    = Int(currentMoodBoost * 10)            // 10 = 1.0, 11 = 1.1, 13 = 1.3 …
+        let warmthTier   = Int(currentWarmthBias * 100)          // -5 … 5 (matches ±0.05 warmthBias range)
+        let weatherTier  = Int(currentWeatheringIntensity * 10)  // 0 … 10 (0.0–1.0 in 0.1 steps)
+        let key          = "\(style.rawValue)_\(bucket)_\(isNight)_b\(boostTier)_w\(warmthTier)_a\(weatherTier)"
         if let cached = materialPool[key] { return cached }
-        let windowTex: TextureResource? = isNight ? cachedWindowTexture(for: style) : nil
-        let mat = materialPreset(for: style, variation: Float(bucket) * 0.1 + 0.05, isNight: isNight, windowTexture: windowTex)
+        // Per-bucket window density: sparse (0–2) / standard (3–6) / dense (7–9).
+        // Gives visual variety at night — a "lights-on" bucket sits next to a "mostly dark" building.
+        let windowTex: TextureResource? = isNight ? cachedWindowTexture(for: style, bucket: bucket) : nil
+        let roughTex: TextureResource?  = isNight ? nil : cachedWindowRoughnessTexture(for: style)
+        let normalTex: TextureResource? = isNight ? nil : cachedNormalMapTexture(for: style)
+        let mat = materialPreset(for: style, variation: Float(bucket) * 0.1 + 0.05, isNight: isNight,
+                                  windowTexture: windowTex, roughnessTexture: roughTex,
+                                  normalTexture: normalTex,
+                                  nightEmissiveBoost: currentMoodBoost,
+                                  warmthBias: currentWarmthBias,
+                                  weatheringIntensity: currentWeatheringIntensity)
         materialPool[key] = mat
         return mat
     }
 
     @MainActor
-    private static func cachedWindowTexture(for style: BuildingStyle) -> TextureResource? {
-        if let cached = windowTextureCache[style.rawValue] { return cached }
-        let tex = makeWindowTexture(for: style)
-        windowTextureCache[style.rawValue] = tex
+    private static func cachedWindowTexture(for style: BuildingStyle, bucket: Int) -> TextureResource? {
+        // density scale: bucket 0-2 = sparse (0.50), 3-6 = standard (1.0), 7-9 = dense (1.65).
+        // Additionally multiplied by the per-district nightWindowDensityBoost (1.0 by default,
+        // up to 1.40 for Shibuya) so flagship districts show distinctly more window activity.
+        let bucketScale: Float = bucket < 3 ? 0.50 : (bucket < 7 ? 1.0 : 1.65)
+        let densityScale = min(bucketScale * currentDistrictProfile.nightWindowDensityBoost, 2.0)
+        let profTier = Int(currentDistrictProfile.nightWindowDensityBoost * 10)
+        let key = "\(style.rawValue)_\(bucket)_p\(profTier)_night"
+        if let cached = windowTextureCache[key] { return cached }
+        let tex = makeWindowTexture(for: style, densityScale: densityScale)
+        windowTextureCache[key] = tex
         return tex
     }
 
     @MainActor
-    private static func makeWindowTexture(for style: BuildingStyle) -> TextureResource? {
+    private static func cachedWindowRoughnessTexture(for style: BuildingStyle) -> TextureResource? {
+        if let cached = windowRoughnessTextureCache[style.rawValue] { return cached }
+        let tex = makeWindowRoughnessTexture(for: style)
+        windowRoughnessTextureCache[style.rawValue] = tex
+        return tex
+    }
+
+    @MainActor
+    private static func makeWindowTexture(for style: BuildingStyle, densityScale: Float = 1.0) -> TextureResource? {
         // 256×256 for higher resolution window grid — 2× improvement on 128×128 predecessor.
         // Each window cell gets a 1px dark frame border so windows read as distinct panes
         // rather than a solid amber rectangle, even at moderate zoom.
@@ -2557,21 +3657,28 @@ enum DistrictRealityKit {
         // uniform amber glow — the contrast between dark glass (baseColor ≈ 0.07) and lit
         // windows (emissiveIntensity 2.5) only works when the dark area dominates the texture.
         let (cols, rows, winW, winH, density): (Int, Int, Int, Int, Float)
+        // Density = fraction of window cells that are lit. Values tuned per city character:
+        // European residential facades (haussmannien, bordelaisClassical) push toward 0.50 —
+        // Paris café-apartment culture means most rooms are occupied/lit at night. Commercial
+        // glass towers (modernGlass) stay at 0.25 — scattered bright spots on dark glass reads
+        // as occupied offices, not a uniform glow that loses depth. Shibuya/SCBD boosts come
+        // on top via DistrictRenderProfile.nightWindowDensityBoost (see currentDistrictProfile).
         switch style {
-        case .modernGlass:    (cols, rows, winW, winH, density) = (8, 16, 6, 8, 0.25)
-        case .modernConcrete: (cols, rows, winW, winH, density) = (6, 12, 5, 6, 0.28)
-        case .colonial:       (cols, rows, winW, winH, density) = (4,  6, 7, 7, 0.25)
-        case .government:     (cols, rows, winW, winH, density) = (5,  8, 5, 8, 0.30)
-        case .religious:      (cols, rows, winW, winH, density) = (3,  4, 10, 12, 0.15)
-        case .balinese:       (cols, rows, winW, winH, density) = (3,  4, 8, 6, 0.10)
-        case .javanese:       (cols, rows, winW, winH, density) = (4,  5, 7, 7, 0.18)
-        case .haussmannien:       (cols, rows, winW, winH, density) = (5,  8, 7, 9, 0.35)
-        case .medieval:           (cols, rows, winW, winH, density) = (3,  5, 9, 9, 0.20)
-        case .bordelaisClassical: (cols, rows, winW, winH, density) = (4,  6, 7, 9, 0.30)
-        case .londonBrick:        (cols, rows, winW, winH, density) = (4,  7, 7, 9, 0.32)
-        case .madrileño:          (cols, rows, winW, winH, density) = (5,  8, 7, 11, 0.38)
-        case .romanOchre:         (cols, rows, winW, winH, density) = (3,  5, 9, 11, 0.22)
-        case .nycBrick:           (cols, rows, winW, winH, density) = (4,  6, 7, 9, 0.30)
+        case .modernGlass:    (cols, rows, winW, winH, density) = (8, 16, 6, 8, 0.28)  // 0.25→0.28
+        case .modernConcrete: (cols, rows, winW, winH, density) = (6, 12, 5, 6, 0.38)  // 0.28→0.38
+        case .colonial:       (cols, rows, winW, winH, density) = (4,  6, 7, 7, 0.32)  // 0.25→0.32
+        case .government:     (cols, rows, winW, winH, density) = (5,  8, 5, 8, 0.35)  // 0.30→0.35
+        case .religious:      (cols, rows, winW, winH, density) = (3,  4, 10, 12, 0.18) // 0.15→0.18
+        case .balinese:       (cols, rows, winW, winH, density) = (3,  4, 8, 6, 0.12)  // 0.10→0.12
+        case .javanese:       (cols, rows, winW, winH, density) = (4,  5, 7, 7, 0.24)  // 0.18→0.24
+        case .haussmannien:       (cols, rows, winW, winH, density) = (5, 8, 7, 9, 0.50) // 0.35→0.50 (Paris café culture)
+        case .medieval:           (cols, rows, winW, winH, density) = (3, 5, 9, 9, 0.26) // 0.20→0.26
+        case .bordelaisClassical: (cols, rows, winW, winH, density) = (4, 6, 7, 9, 0.46) // 0.30→0.46
+        case .londonBrick:        (cols, rows, winW, winH, density) = (4, 7, 7, 9, 0.40) // 0.32→0.40
+        case .madrileño:          (cols, rows, winW, winH, density) = (5, 8, 7, 11, 0.48) // 0.38→0.48
+        case .romanOchre:         (cols, rows, winW, winH, density) = (3, 5, 9, 11, 0.32) // 0.22→0.32
+        case .nycBrick:           (cols, rows, winW, winH, density) = (4, 6, 7, 9, 0.42)  // 0.30→0.42
+        case .laStucco:           (cols, rows, winW, winH, density) = (3, 5, 9, 11, 0.18) // sparse residential — LA bungalows, few floors
         }
         let cellW = size / cols, cellH = size / rows
         var seed: UInt32 = 2166136261
@@ -2579,7 +3686,7 @@ enum DistrictRealityKit {
         for row in 0..<rows {
             for col in 0..<cols {
                 seed = seed &* 1664525 &+ 1013904223
-                guard Float(seed & 0xFF) / 255.0 < density else { continue }
+                guard Float(seed & 0xFF) / 255.0 < min(density * densityScale, 1.0) else { continue }
                 // Window pane: centred in cell, 1px dark frame border leaves frame visible
                 let startX = col * cellW + max(1, (cellW - winW) / 2)
                 let startY = row * cellH + max(1, (cellH - winH) / 2)
@@ -2610,14 +3717,373 @@ enum DistrictRealityKit {
                   bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
                   provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
         else { return nil }
-        return try? TextureResource.generate(from: cg, withName: "windows_\(style.rawValue)",
+        return try? TextureResource.generate(from: cg, withName: "windows_\(style.rawValue)_d\(Int(densityScale * 100))",
                                              options: .init(semantic: .hdrColor))
     }
 
-    private static func materialPreset(for style: BuildingStyle, variation: Float, isNight: Bool, windowTexture: TextureResource? = nil) -> PhysicallyBasedMaterial {
+    /// Day-mode roughness texture: window panes = very smooth (low roughness → specular glint),
+    /// wall field = rough (high roughness). Makes windows visible in daylight without emissive.
+    /// ALL window cells are painted (no density randomisation) — glass is always smooth whether
+    /// a room is lit or not. Only applied in day mode; night mode uses the emissive window texture.
+    @MainActor
+    private static func makeWindowRoughnessTexture(for style: BuildingStyle) -> TextureResource? {
+        // Per-style: (cols, rows, winW, winH, wallPixel)
+        // wallPixel matches each style's scalar roughness value in materialPreset (linear 0-255).
+        let (cols, rows, winW, winH, wallV): (Int, Int, Int, Int, UInt8)
+        switch style {
+        case .modernGlass:        (cols, rows, winW, winH, wallV) = (8, 16, 6, 8,  50)   // ~0.20 – glass wall already smooth
+        case .modernConcrete:     (cols, rows, winW, winH, wallV) = (6, 12, 5, 6, 168)   // ~0.66
+        case .haussmannien:       (cols, rows, winW, winH, wallV) = (5,  8, 7, 9, 195)   // ~0.76
+        case .bordelaisClassical: (cols, rows, winW, winH, wallV) = (4,  6, 7, 9, 198)   // ~0.78
+        case .londonBrick:        (cols, rows, winW, winH, wallV) = (4,  7, 7, 9, 212)   // ~0.83
+        case .madrileño:          (cols, rows, winW, winH, wallV) = (5,  8, 7, 11, 187)  // ~0.73
+        case .romanOchre:         (cols, rows, winW, winH, wallV) = (3,  5, 9, 11, 202)  // ~0.79
+        case .colonial:           (cols, rows, winW, winH, wallV) = (4,  6, 7, 7, 218)   // ~0.85
+        case .government:         (cols, rows, winW, winH, wallV) = (5,  8, 5, 8, 165)   // ~0.65
+        case .nycBrick:           (cols, rows, winW, winH, wallV) = (4,  6, 7, 9, 228)   // ~0.89
+        case .laStucco:           (cols, rows, winW, winH, wallV) = (3,  5, 9, 11, 195)  // ~0.76 rough stucco exterior
+        default: return nil    // balinese, javanese, religious, medieval – no window-roughness texture
+        }
+        let size = 256
+        var pixels = [UInt8](repeating: 0, count: size * size * 4)
+        // Fill entire texture with wall roughness
+        for i in stride(from: 0, to: pixels.count, by: 4) {
+            pixels[i] = wallV; pixels[i+1] = wallV; pixels[i+2] = wallV; pixels[i+3] = 255
+        }
+        // Paint every window cell smooth (no density skip — all glass is smooth in daylight)
+        let cellW = size / cols, cellH = size / rows
+        for row in 0..<rows {
+            for col in 0..<cols {
+                let startX = col * cellW + max(1, (cellW - winW) / 2)
+                let startY = row * cellH + max(1, (cellH - winH) / 2)
+                let endX   = min(startX + winW, col * cellW + cellW - 1)
+                let endY   = min(startY + winH, row * cellH + cellH - 1)
+                for py in startY..<endY {
+                    for px in startX..<endX {
+                        guard px < size, py < size else { continue }
+                        let isFrame = (px == startX || px == endX - 1 || py == startY || py == endY - 1)
+                        let v: UInt8 = isFrame ? 148 : 14  // frame: ~0.58 roughness / pane: ~0.05 (very smooth)
+                        let i = (py * size + px) * 4
+                        pixels[i] = v; pixels[i+1] = v; pixels[i+2] = v; pixels[i+3] = 255
+                    }
+                }
+            }
+        }
+        let cs = CGColorSpaceCreateDeviceRGB()
+        guard let provider = CGDataProvider(data: Data(pixels) as CFData),
+              let cg = CGImage(width: size, height: size, bitsPerComponent: 8, bitsPerPixel: 32,
+                  bytesPerRow: size * 4, space: cs,
+                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+                  provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
+        else { return nil }
+        return try? TextureResource.generate(from: cg, withName: "roughwin_\(style.rawValue)",
+                                             options: .init(semantic: .hdrColor))
+    }
+
+    @MainActor
+    private static func cachedNormalMapTexture(for style: BuildingStyle) -> TextureResource? {
+        let key = style.rawValue
+        if let cached = normalMapCache[key] { return cached }
+        guard let tex = makeNormalMapTexture(for: style) else { return nil }
+        normalMapCache[key] = tex
+        return tex
+    }
+
+    /// Generates a 128×128 tangent-space normal map per architectural style.
+    /// Flat surface = (128, 128, 255); groove/joint edges deviate R/G by ±18–28,
+    /// with nz reduced proportionally so the normal stays unit-length (approximately).
+    /// Used in day mode only — night emissive overrides surface micro-detail.
+    @MainActor
+    private static func makeNormalMapTexture(for style: BuildingStyle) -> TextureResource? {
+        let size = 256
+        var pix = [UInt8](repeating: 0, count: size * size * 4)
+
+        // Per-style inline normal-map generator.
+        // Coordinate convention: R=tangentX (±horizontal on wall), G=tangentY (±vertical),
+        // B=normal Z (outward). Flat = (128, 128, 255).
+        // Groove/joint convention: top lip of joint → G < 128 (face tilts downward toward joint);
+        // bottom lip → G > 128 (face tilts upward). Gives a bevel shadow at every joint line.
+
+        func pxHash(_ x: Int, _ y: Int) -> Int {
+            var h = UInt32(x &* 7919 &+ y &* 7793) ^ 2166136261
+            h ^= h >> 16; h = h &* 0x45d9f3b; h ^= h >> 16
+            return Int(h & 0x1F) - 16  // -16…+15
+        }
+
+        func setPixel(_ x: Int, _ y: Int, nx: Int, ny: Int, nz: Int) {
+            guard x >= 0, x < size, y >= 0, y < size else { return }
+            let i = (y * size + x) * 4
+            pix[i]   = UInt8(max(0, min(255, nx)))
+            pix[i+1] = UInt8(max(0, min(255, ny)))
+            pix[i+2] = UInt8(max(0, min(255, nz)))
+            pix[i+3] = 255
+        }
+
+        switch style {
+
+        case .haussmannien:
+            // 5 horizontal limestone courses per UV tile (5×3.5m tile → ~0.7m/course).
+            // Each course: beveled top+bottom joint with a 3px transition zone.
+            let courseH = size / 5  // 25px per course
+            for y in 0..<size {
+                let cy = y % courseH
+                for x in 0..<size {
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 3
+                    var ny = 128 + noise / 3
+                    var nz = 252 - abs(noise) / 8
+                    if cy == 0 {        // joint center
+                        nz = 238; ny = 128
+                    } else if cy == 1 { // top lip of course below joint: face tilts downward
+                        ny = 109; nz = 244
+                    } else if cy == courseH - 1 { // bottom lip above joint: tilts upward
+                        ny = 147; nz = 244
+                    } else if cy == 2 {
+                        ny = 118; nz = 249
+                    } else if cy == courseH - 2 {
+                        ny = 138; nz = 249
+                    }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .bordelaisClassical:
+            // 4 ashlar courses — slightly coarser than Parisian Lutetian, warmer stone.
+            let courseH = size / 4  // 32px per course
+            for y in 0..<size {
+                let cy = y % courseH
+                for x in 0..<size {
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 3
+                    var ny = 128 + noise / 4
+                    var nz = 251 - abs(noise) / 8
+                    if cy == 0 { nz = 236; ny = 128
+                    } else if cy == 1 { ny = 107; nz = 243
+                    } else if cy == courseH - 1 { ny = 149; nz = 243
+                    } else if cy == 2 { ny = 117; nz = 248
+                    } else if cy == courseH - 2 { ny = 139; nz = 248 }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .londonBrick:
+            // Flemish/English brick bond: 8 rows × 8 columns per 128px tile.
+            // Horizontal joints: 2px at every 16px.
+            // Vertical joints: 1px alternating offset every 16px.
+            let brickH = 16, brickW = 16
+            for y in 0..<size {
+                let row = y / brickH
+                let cy  = y % brickH
+                let offset = (row % 2 == 0) ? 0 : brickW / 2
+                for x in 0..<size {
+                    let cx = (x + offset) % brickW
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 4
+                    var ny = 128 + noise / 4
+                    var nz = 251 - abs(noise) / 9
+                    // Horizontal mortar joint: top 2px of each brick row
+                    if cy < 2 {
+                        ny = cy == 0 ? 128 : 113; nz = 240; nx = 128 + noise / 6
+                    } else if cy == 2 {
+                        ny = 118; nz = 247
+                    } else if cy == brickH - 1 {
+                        ny = 143; nz = 247
+                    }
+                    // Vertical mortar joint: first 1px of each brick column
+                    if cx == 0 && cy >= 2 && cy < brickH - 1 {
+                        nx = 108; nz = 243; ny = 128 + noise / 6
+                    } else if cx == 1 && cy >= 2 && cy < brickH - 1 {
+                        nx = 118; nz = 249
+                    }
+                    // Brick surface: slight convex micro-bump (centre is higher than edges)
+                    let bumpX = Float(cx - brickW / 2) / Float(brickW)
+                    let bumpY = Float(cy - brickH / 2) / Float(brickH)
+                    if cy >= 2 && cy < brickH - 1 && cx >= 1 {
+                        nx += Int(bumpX * 6.0)
+                        ny += Int(bumpY * 4.0)
+                    }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .madrileño:
+            // Smooth stucco/limestone: nearly flat with subtle horizontal scoring every 32px.
+            for y in 0..<size {
+                let sy = y % 32
+                for x in 0..<size {
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 6
+                    var ny = 128 + noise / 6
+                    var nz = 253 - abs(noise) / 12
+                    if sy == 0 { ny = 122; nz = 250 }
+                    else if sy == 1 { ny = 125; nz = 252 }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .romanOchre:
+            // Roman opus incertum / brick plaster: irregular block rhythm with heavier noise.
+            let courseH = size / 4   // 32px base, varies
+            for y in 0..<size {
+                // Vary course height per row: use row hash to get 24–38px
+                let row = y / courseH
+                var rowSeed = UInt32(row * 3691) ^ 1234567
+                rowSeed = rowSeed &* 16777619 ^ 987654321
+                let varCourse = 24 + Int(rowSeed % 14)
+                let cy = y % varCourse
+                for x in 0..<size {
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 2   // heavier noise for rough plaster
+                    var ny = 128 + noise / 2
+                    var nz = 248 - abs(noise) / 6
+                    if cy == 0 || cy == 1 { ny = 115; nz = 241; nx = 128 + noise / 4 }
+                    else if cy == varCourse - 1 { ny = 141; nz = 248 }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .colonial:
+            // Rough Dutch colonial stucco: dominant noise, no pattern — surface is irregular.
+            for y in 0..<size {
+                for x in 0..<size {
+                    let n = pxHash(x, y)
+                    let n2 = pxHash(x + 53, y + 37)  // second independent noise source
+                    setPixel(x, y, nx: 128 + n / 2, ny: 128 + n2 / 2, nz: 245 - abs(n) / 6)
+                }
+            }
+
+        case .modernConcrete:
+            // Board-formed concrete: vertical formwork-board joints every 32px +
+            // horizontal tie-hole pattern every 48px + fine horizontal grain.
+            for y in 0..<size {
+                let sy = y % 48   // tie-hole row period
+                for x in 0..<size {
+                    let sx = x % 32  // formwork board period
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 5
+                    var ny = 128 + noise / 8
+                    var nz = 252 - abs(noise) / 10
+                    // Vertical board joints
+                    if sx == 0 { nx = 108; nz = 242
+                    } else if sx == 1 { nx = 118; nz = 249
+                    } else if sx == 31 { nx = 148; nz = 249 }
+                    // Tie holes (small circular indent)
+                    if (sx == 15 || sx == 16) && (sy == 23 || sy == 24) {
+                        nx = 128 + noise / 4; ny = 128 + noise / 4; nz = 235
+                    }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .modernGlass:
+            // Curtain wall: near-flat with very faint spandrel-panel lines.
+            for y in 0..<size {
+                let sy = y % 32
+                for x in 0..<size {
+                    let sx = x % 32
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 8
+                    var ny = 128 + noise / 8
+                    var nz = 254 - abs(noise) / 14
+                    if sy == 0 { ny = 124; nz = 252 }
+                    if sx == 0 { nx = 124; nz = min(252, nz) }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .nycBrick:
+            // NYC brick bond: slightly larger bricks than London (higher aspect ratio).
+            // 6 rows × 8 columns at 128px → 21px tall × 16px wide.
+            let brickH = 21, brickW = 16
+            for y in 0..<size {
+                let row = y / brickH
+                let cy  = y % brickH
+                let offset = (row % 2 == 0) ? 0 : brickW / 2
+                for x in 0..<size {
+                    let cx = (x + offset) % brickW
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 4
+                    var ny = 128 + noise / 4
+                    var nz = 250 - abs(noise) / 9
+                    if cy < 2 {
+                        ny = cy == 0 ? 128 : 111; nz = 238; nx = 128 + noise / 6
+                    } else if cy == 2 { ny = 117; nz = 246
+                    } else if cy == brickH - 1 { ny = 145; nz = 246 }
+                    if cx == 0 && cy >= 2 && cy < brickH - 1 {
+                        nx = 106; nz = 241; ny = 128 + noise / 6
+                    } else if cx == 1 && cy >= 2 && cy < brickH - 1 {
+                        nx = 116; nz = 248
+                    }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .balinese:
+            // Volcanic tuff / paras stone: heavy random roughness, fissure-like cracks.
+            for y in 0..<size {
+                let crackLine = (y % 17 == 0)  // horizontal fissure every 17px
+                for x in 0..<size {
+                    let n = pxHash(x, y)
+                    let n2 = pxHash(x + 71, y + 43)
+                    var nx = 128 + n / 2
+                    var ny = 128 + n2 / 2
+                    var nz = 243 - abs(n) / 5
+                    if crackLine { ny = 115 + n / 4; nz = 238 }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        case .laStucco:
+            // California stucco: medium roughness, subtle horizontal trowel marks.
+            for y in 0..<size {
+                let sy = y % 20
+                for x in 0..<size {
+                    let noise = pxHash(x, y)
+                    var nx = 128 + noise / 4
+                    var ny = 128 + noise / 4
+                    var nz = 250 - abs(noise) / 8
+                    if sy == 0 { ny = 120; nz = 247 }
+                    setPixel(x, y, nx: nx, ny: ny, nz: nz)
+                }
+            }
+
+        default:
+            // Styles without window grids or distinct surface texture (religious, government,
+            // javanese, medieval) — a light random surface noise only, no joint pattern.
+            for y in 0..<size {
+                for x in 0..<size {
+                    let n = pxHash(x, y)
+                    setPixel(x, y, nx: 128 + n / 5, ny: 128 + n / 5, nz: 252 - abs(n) / 10)
+                }
+            }
+        }
+
+        let cs = CGColorSpaceCreateDeviceRGB()
+        guard let provider = CGDataProvider(data: Data(pix) as CFData),
+              let cg = CGImage(width: size, height: size, bitsPerComponent: 8, bitsPerPixel: 32,
+                  bytesPerRow: size * 4, space: cs,
+                  bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+                  provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)
+        else { return nil }
+        return try? TextureResource.generate(from: cg, withName: "nrm_\(style.rawValue)",
+                                             options: .init(semantic: .hdrColor))
+    }
+
+    private static func materialPreset(for style: BuildingStyle, variation: Float, isNight: Bool,
+                                        windowTexture: TextureResource? = nil,
+                                        roughnessTexture: TextureResource? = nil,
+                                        normalTexture: TextureResource? = nil,
+                                        nightEmissiveBoost: Float = 1.0,
+                                        warmthBias: Float = 0.0,
+                                        weatheringIntensity: Float = 0.0) -> PhysicallyBasedMaterial {
         var material = PhysicallyBasedMaterial()
         let wobble = (variation - 0.5) * 2
         let cgWobble = CGFloat(wobble)
+        let wb = CGFloat(warmthBias)   // additive per-channel warmth offset (±0.05 max)
+        // Aging / weathering factor applied to stone, brick, and plaster styles only.
+        // Darkens and slightly greys the base color (grime deposit), reduces clearcoat (patina),
+        // and raises roughness floor (weathered surfaces lose micro-gloss).
+        let wf = CGFloat(weatheringIntensity)
 
         switch style {
         case .modernGlass:
@@ -2657,7 +4123,13 @@ enum DistrictRealityKit {
                 material.clearcoatRoughness = .init(floatLiteral: 0.14)
             }
         case .modernConcrete:
-            material.baseColor = .init(tint: UIColor(white: 0.40 + 0.06 * cgWobble, alpha: 1))
+            // Wider per-bucket variation (0.06→0.10) + warmth shift so Tokyo grey-blue concrete
+            // reads cooler than Jakarta's warm grey under the same material style.
+            let concreteW = 0.40 + 0.10 * cgWobble
+            material.baseColor = .init(tint: UIColor(
+                red:   max(0.10, min(0.70, concreteW + wb * 0.6)),
+                green: max(0.10, min(0.70, concreteW)),
+                blue:  max(0.10, min(0.70, concreteW - wb * 0.6)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.08)
             material.roughness = .init(floatLiteral: 0.60 + 0.10 * abs(wobble))
             material.clearcoat = .init(floatLiteral: 0.10)
@@ -2665,23 +4137,39 @@ enum DistrictRealityKit {
         case .colonial:
             // Night: darken the lime-plaster facade — the wall goes into shadow, interior
             // warmth spilling from windows becomes the dominant visual signal.
-            let dayR = 0.84 + 0.04 * cgWobble
+            // Widened R variation (0.04→0.10); G/B now vary and respond to warmthBias.
+            // Weathering: tropical grime deposits darken the warm buff and add a slight grey cast.
+            let dayR = 0.84 + 0.10 * cgWobble + wb - wf * 0.08
+            let dayG = 0.79 + 0.05 * cgWobble + wb * 0.4 - wf * 0.07
+            let dayB = 0.62 + 0.04 * cgWobble - wb * 0.5 - wf * 0.04
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayR * 0.35, green: 0.79 * 0.35, blue: 0.62 * 0.35, alpha: 1)
-                : UIColor(red: dayR, green: 0.79, blue: 0.62, alpha: 1))
+                ? UIColor(red: max(0, dayR * 0.35), green: max(0, dayG * 0.35), blue: max(0, dayB * 0.35), alpha: 1)
+                : UIColor(red: max(0, min(1, dayR)), green: max(0, min(1, dayG)), blue: max(0, min(1, dayB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.02)
-            material.roughness = .init(floatLiteral: 0.82 + 0.09 * abs(wobble))
+            material.roughness = .init(floatLiteral: min(0.99, 0.82 + 0.09 * abs(wobble) + Float(wf) * 0.06))
         case .government:
             // White/cream marble — strongly differentiates government buildings from colonial
-            // (warm buff) and modernConcrete (mid-grey). Jakarta's civic and ministry buildings
-            // are consistently rendered in light Cipicung limestone and white marble cladding.
-            material.baseColor = .init(tint: UIColor(red: 0.88 + 0.03 * cgWobble, green: 0.86, blue: 0.82, alpha: 1))
+            // (warm buff) and modernConcrete (mid-grey). Widened R variation (0.03→0.06) and G
+            // now varies; warmthBias shifts between cool white marble and warm limestone.
+            let dayR = 0.88 + 0.06 * cgWobble + wb
+            let dayG = 0.86 + 0.04 * cgWobble
+            let dayB = 0.82 - wb * 0.6
+            material.baseColor = .init(tint: UIColor(
+                red:   max(0.50, min(1, dayR)),
+                green: max(0.50, min(1, dayG)),
+                blue:  max(0.50, min(1, dayB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.0)
-            material.roughness = .init(floatLiteral: 0.62 + 0.06 * abs(wobble))
+            material.roughness = .init(floatLiteral: 0.62 + 0.08 * abs(wobble))
             material.clearcoat = .init(floatLiteral: 0.18)
             material.clearcoatRoughness = .init(floatLiteral: 0.35)
         case .religious:
-            material.baseColor = .init(tint: UIColor(white: 0.91 + 0.03 * cgWobble, alpha: 1))
+            // Widened R variation (0.03→0.06); warmthBias shifts towards ivory or cool white
+            // depending on city — Rome's marble churches should read warmer than Paris's stone.
+            let reliW = 0.91 + 0.06 * cgWobble
+            material.baseColor = .init(tint: UIColor(
+                red:   max(0.55, min(1, reliW + wb * 0.4)),
+                green: max(0.55, min(1, reliW)),
+                blue:  max(0.55, min(1, reliW - wb * 0.4)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.0)
             material.roughness = .init(floatLiteral: 0.40 + 0.06 * abs(wobble))
             material.clearcoat = .init(floatLiteral: 0.22)
@@ -2694,10 +4182,20 @@ enum DistrictRealityKit {
             // and bleached to near-white under any directional sun — confirmed visually vs.
             // Kota Tua screenshots. Darkened to (0.48, 0.34, 0.22): reads as correct warm
             // volcanic stone under 35 klux and retains amber identity at night with emissive.
-            material.baseColor = .init(tint: UIColor(red: 0.48 + 0.04 * cgWobble, green: 0.34, blue: 0.22, alpha: 1))
+            // Widened variation (0.04→0.12 on R; G/B now vary); beachResort warmthBias (+0.02)
+            // pushes slightly warmer, giving Canggu's 9,402 buildings genuine tonal variety.
+            // Weathering: tropical moss, algae, and humidity darken volcanic tuff further — old
+            // compounds in Canggu/Seminyak read darker than newly-built villas.
+            let balR = 0.48 + 0.12 * cgWobble + wb * 0.5 - wf * 0.07
+            let balG = 0.34 + 0.08 * cgWobble + wb * 0.3 - wf * 0.06
+            let balB = 0.22 + 0.05 * cgWobble - wb * 0.4 - wf * 0.03
+            material.baseColor = .init(tint: UIColor(
+                red:   max(0.08, min(0.72, balR)),
+                green: max(0.05, min(0.52, balG)),
+                blue:  max(0.04, min(0.42, balB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.0)
-            material.roughness = .init(floatLiteral: 0.86 + 0.06 * abs(wobble))
-            material.clearcoat = .init(floatLiteral: 0.04)
+            material.roughness = .init(floatLiteral: min(0.99, 0.86 + 0.06 * abs(wobble) + Float(wf) * 0.05))
+            material.clearcoat = .init(floatLiteral: max(0, 0.04 - Float(wf) * 0.03))
             material.clearcoatRoughness = .init(floatLiteral: 0.90)
         case .javanese:
             // Traditional Javanese shophouse wall — warm buff plaster over brick, older and
@@ -2707,52 +4205,69 @@ enum DistrictRealityKit {
             // - balinese (dark volcanic stone, 0.48/0.34/0.22)
             // Three variation buckets: cool dusty buff / warm standard buff / amber-gold,
             // giving tonal variety along Malioboro's long shophouse row.
-            let dayR = 0.72 + 0.10 * cgWobble   // 0.62–0.82 warm buff range
+            // Javanese shophouse — warm ochre-buff plaster. G/B now vary alongside R;
+            // warmthBias from sacredSite (+0.00) has no effect but the G/B variation
+            // alone gives the long Malioboro shophouse row genuine tonal variety.
+            let javaR = 0.72 + 0.10 * cgWobble + wb
+            let javaG = 0.56 + 0.06 * cgWobble + wb * 0.4
+            let javaB = 0.40 + 0.04 * cgWobble - wb * 0.4
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayR * 0.28, green: 0.56 * 0.28, blue: 0.40 * 0.28, alpha: 1)
-                : UIColor(red: dayR, green: 0.56, blue: 0.40, alpha: 1))
+                ? UIColor(red: max(0, javaR * 0.28), green: max(0, javaG * 0.28), blue: max(0, javaB * 0.28), alpha: 1)
+                : UIColor(red: max(0, min(1, javaR)), green: max(0, min(1, javaG)), blue: max(0, min(1, javaB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.01)
             material.roughness = .init(floatLiteral: 0.85 + 0.06 * abs(wobble))
             material.clearcoat = .init(floatLiteral: 0.04)   // faint rain-washed plaster sheen
             material.clearcoatRoughness = .init(floatLiteral: 0.85)
         case .haussmannien:
-            // Lutetian limestone — calcaire lutétien — the defining material of Paris and Bordeaux.
-            // Warm cream to off-white, cut and polished by centuries of weather. The characteristic
-            // "stone colour" Paris is globally known for: neither white nor yellow but that particular
-            // warm ochre-cream. Three variation buckets: cool pale stone / warm standard cream / warm amber.
-            let dayR = 0.86 + 0.04 * cgWobble   // 0.82–0.90 range
+            // Lutetian limestone — calcaire lutétien — the defining material of Paris.
+            // Widened R variation (0.04→0.10); G/B now vary and respond to warmthBias so
+            // Paris (parisianCore, wb=-0.02) reads slightly cooler than it did before —
+            // the stone appears whiter/greyer — while Bordeaux's bordelaisClassical is
+            // distinctly warmer via its own style entry. Three buckets: cool pale / standard cream / warm.
+            // Weathering: soiling + carbon deposits (Paris pollution) grey/darken the pale limestone.
+            let hausR = 0.86 + 0.10 * cgWobble + wb - wf * 0.06
+            let hausG = 0.82 + 0.06 * cgWobble + wb * 0.4 - wf * 0.05
+            let hausB = 0.72 + 0.04 * cgWobble - wb * 0.6 - wf * 0.04
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayR * 0.28, green: 0.82 * 0.28, blue: 0.72 * 0.28, alpha: 1)
-                : UIColor(red: dayR, green: 0.82, blue: 0.72, alpha: 1))
+                ? UIColor(red: max(0, hausR * 0.28), green: max(0, hausG * 0.28), blue: max(0, hausB * 0.28), alpha: 1)
+                : UIColor(red: max(0, min(1, hausR)), green: max(0, min(1, hausG)), blue: max(0, min(1, hausB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.01)
-            material.roughness = .init(floatLiteral: 0.74 + 0.06 * abs(wobble))
-            material.clearcoat = .init(floatLiteral: 0.10)   // faint wet-stone sheen after Paris rain
+            material.roughness = .init(floatLiteral: min(0.99, 0.74 + 0.08 * abs(wobble) + Float(wf) * 0.08))
+            material.clearcoat = .init(floatLiteral: max(0, 0.10 - Float(wf) * 0.07))  // patina reduces polished sheen
             material.clearcoatRoughness = .init(floatLiteral: 0.55)
         case .medieval:
             // Half-timber plaster and Breton granite — Vieux-Rennes pan-de-bois facades mix white
             // lime-washed plaster between colombage frames with dark grey granite ground floors.
-            // Three variation buckets: cool grey granite / warm standard plaster / warm buff.
-            let dayBase = 0.76 + 0.06 * cgWobble   // 0.70–0.82 range, granite to plaster
+            // Widened R variation (0.06→0.10); G/B now vary; rennesMedieval wb=-0.03 pulls blue
+            // channel down (warmer grey instead of cool blue-grey for Breton slate).
+            // Weathering: timber darkening and plaster blackening from damp Breton climate.
+            let medR = 0.76 + 0.10 * cgWobble + wb - wf * 0.07
+            let medG = 0.68 + 0.06 * cgWobble + wb * 0.3 - wf * 0.06
+            let medB = 0.58 + 0.04 * cgWobble - wb * 0.5 - wf * 0.04
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayBase * 0.32, green: 0.68 * 0.32, blue: 0.58 * 0.32, alpha: 1)
-                : UIColor(red: dayBase, green: 0.68, blue: 0.58, alpha: 1))
+                ? UIColor(red: max(0, medR * 0.32), green: max(0, medG * 0.32), blue: max(0, medB * 0.32), alpha: 1)
+                : UIColor(red: max(0, min(1, medR)), green: max(0, min(1, medG)), blue: max(0, min(1, medB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.0)
-            material.roughness = .init(floatLiteral: 0.84 + 0.08 * abs(wobble))
-            material.clearcoat = .init(floatLiteral: 0.06)   // granite micro-sheen in wet Breton weather
+            material.roughness = .init(floatLiteral: min(0.99, 0.84 + 0.08 * abs(wobble) + Float(wf) * 0.06))
+            material.clearcoat = .init(floatLiteral: max(0, 0.06 - Float(wf) * 0.04))
             material.clearcoatRoughness = .init(floatLiteral: 0.80)
         case .bordelaisClassical:
             // Calcaire à astéries — Bordeaux's shelly Gironde limestone, distinctly warmer
             // and more amber-gold than Parisian Lutetian limestone (cream-white 0.86–0.90).
             // The characteristic Port de la Lune "gold": notably more ochre in afternoon sun.
-            // Three variation buckets: warm pale stone / standard amber-gold / deep amber.
-            let dayR = 0.82 + 0.06 * cgWobble   // 0.76–0.88 — warmer base than Paris (0.82–0.90 but cooler tones)
-            let dayG = 0.72 + 0.03 * cgWobble   // 0.69–0.75 — clearly lower G than Paris (0.82)
+            // Widened G variation (0.03→0.05); B now varies; bordeauxWaterfront wb=+0.04
+            // saturates the amber identity further vs. Paris's cooler wb=-0.02.
+            // Weathering: algae + lichen on quayside Gironde stone darken the amber.
+            // CRITICAL: do NOT raise B above 0.55 (see CLAUDE.md; higher B pushes toward haussmannien).
+            let borR = 0.82 + 0.08 * cgWobble + wb - wf * 0.06
+            let borG = 0.72 + 0.05 * cgWobble + wb * 0.4 - wf * 0.06
+            let borB = 0.50 + 0.03 * cgWobble - wb * 0.5 - wf * 0.03
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayR * 0.28, green: dayG * 0.28, blue: 0.50 * 0.28, alpha: 1)
-                : UIColor(red: dayR, green: dayG, blue: 0.50, alpha: 1))
+                ? UIColor(red: max(0, borR * 0.28), green: max(0, borG * 0.28), blue: max(0, borB * 0.28), alpha: 1)
+                : UIColor(red: max(0, min(1, borR)), green: max(0, min(1, borG)), blue: max(0.22, min(0.54, borB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.01)
-            material.roughness = .init(floatLiteral: 0.76 + 0.06 * abs(wobble))   // rough-cut stone
-            material.clearcoat = .init(floatLiteral: 0.08)   // faint rain-wet stone sheen
+            material.roughness = .init(floatLiteral: min(0.99, 0.76 + 0.06 * abs(wobble) + Float(wf) * 0.07))
+            material.clearcoat = .init(floatLiteral: max(0, 0.08 - Float(wf) * 0.06))
             material.clearcoatRoughness = .init(floatLiteral: 0.60)
         case .londonBrick:
             // London stock brick — fired yellow-buff clay brick, the defining Victorian/Georgian wall
@@ -2760,15 +4275,19 @@ enum DistrictRealityKit {
             // bond associated with Manchester). Three buckets: pale buff / warm standard ochre / deep amber.
             // Key constraint: low B channel (≤0.42) keeps it warm-toned and distinct from pale haussmannien
             // limestone (B=0.72). G channel ≤0.70 keeps it below the golden-beige of bordelaisClassical.
-            let dayR = 0.74 + 0.08 * cgWobble  // 0.66–0.82 warm buff range
-            let dayG = 0.62 + 0.06 * cgWobble  // 0.56–0.68 — clearly lower than haussmannien (0.82)
-            let dayB = 0.38 + 0.04 * cgWobble  // 0.34–0.42 — low blue, anchors warm-buff identity
+            // Widened R (0.08→0.10); G/B slight widening; londonSilver wb=-0.04 shifts
+            // the warm buff toward a greyer cooler brick — City of London overcast identity.
+            // Weathering: Victorian coal-era soot deposits darken London stock brick to near-black in
+            // heavily-exposed areas. The characteristic "sooty Victorian" look of City of London.
+            let lonR = 0.74 + 0.10 * cgWobble + wb - wf * 0.10
+            let lonG = 0.62 + 0.07 * cgWobble + wb * 0.4 - wf * 0.09
+            let lonB = 0.38 + 0.05 * cgWobble - wb * 0.5 - wf * 0.06
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayR * 0.26, green: dayG * 0.26, blue: dayB * 0.26, alpha: 1)
-                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+                ? UIColor(red: max(0, lonR * 0.26), green: max(0, lonG * 0.26), blue: max(0, lonB * 0.26), alpha: 1)
+                : UIColor(red: max(0, min(1, lonR)), green: max(0, min(1, lonG)), blue: max(0, min(1, lonB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.0)
-            material.roughness = .init(floatLiteral: 0.82 + 0.07 * abs(wobble))  // rough fired brick
-            material.clearcoat = .init(floatLiteral: 0.05)   // faint London rain gloss
+            material.roughness = .init(floatLiteral: min(0.99, 0.82 + 0.07 * abs(wobble) + Float(wf) * 0.07))
+            material.clearcoat = .init(floatLiteral: max(0, 0.05 - Float(wf) * 0.04))
             material.clearcoatRoughness = .init(floatLiteral: 0.78)
         case .madrileño:
             // 19th-century Madrid Ensanche — limestone/sandstone render in a warm golden-beige.
@@ -2778,15 +4297,19 @@ enum DistrictRealityKit {
             // B channel: 0.50–0.60 — warmer than Paris (0.72), cooler than Bordeaux (0.50 baseline).
             // Characteristic flat azotea top face visible from orbit — no cap geometry, so the base
             // material is what the camera sees looking down.
-            let dayR = 0.84 + 0.06 * cgWobble  // 0.78–0.90 warm base
-            let dayG = 0.76 + 0.04 * cgWobble  // 0.72–0.80 — clearly golden-beige
-            let dayB = 0.54 + 0.06 * cgWobble  // 0.48–0.60 — warmer than Paris, cooler than Bordeaux
+            // Widened R (0.06→0.08), G (0.04→0.05); madridAfternoon wb=+0.03 saturates the
+            // golden-beige further — the Salamanca grid reads as a warm amber plane in afternoon light.
+            // Weathering: Madrid air pollution + summer heat bleaching, slight reddish tinge from
+            // sandstone dust that accretes on the render surface.
+            let madR = 0.84 + 0.08 * cgWobble + wb - wf * 0.05
+            let madG = 0.76 + 0.05 * cgWobble + wb * 0.4 - wf * 0.06
+            let madB = 0.54 + 0.06 * cgWobble - wb * 0.5 - wf * 0.05
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayR * 0.28, green: dayG * 0.28, blue: dayB * 0.28, alpha: 1)
-                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+                ? UIColor(red: max(0, madR * 0.28), green: max(0, madG * 0.28), blue: max(0, madB * 0.28), alpha: 1)
+                : UIColor(red: max(0, min(1, madR)), green: max(0, min(1, madG)), blue: max(0.24, min(1, madB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.01)
-            material.roughness = .init(floatLiteral: 0.72 + 0.07 * abs(wobble))  // polished render over limestone
-            material.clearcoat = .init(floatLiteral: 0.12)   // Madrid sun gloss on polished stone
+            material.roughness = .init(floatLiteral: min(0.99, 0.72 + 0.07 * abs(wobble) + Float(wf) * 0.08))
+            material.clearcoat = .init(floatLiteral: max(0, 0.12 - Float(wf) * 0.08))  // polished → weathered
             material.clearcoatRoughness = .init(floatLiteral: 0.50)
         case .romanOchre:
             // Roman tuff/brick with ochre render plaster — sienna-amber, the defining colour of the
@@ -2794,15 +4317,21 @@ enum DistrictRealityKit {
             // (golden-beige) and bordelaisClassical (amber-gold). Key constraint: B channel must stay
             // ≤0.38 — the low blue is what distinguishes Rome's terracotta-sienna from other European
             // limestone cities. Three buckets: pale warm ochre / standard sienna-amber / deep terracotta.
-            let dayR = 0.78 + 0.08 * cgWobble  // 0.70–0.86 — deep sienna base
-            let dayG = 0.54 + 0.06 * cgWobble  // 0.48–0.60 — clearly lower G than madrileño (0.76)
-            let dayB = 0.30 + 0.06 * cgWobble  // 0.24–0.36 — low blue, sienna-amber identity
+            // Widened R (0.08→0.10), G (0.06→0.07); romanGoldenHour wb=+0.05 (maximum warmth
+            // in the app) saturates the sienna to deepest terracotta. B clamped ≤0.40 to
+            // preserve Rome's low-blue discriminator vs. Madrid (B≈0.54) and Bordeaux (B≈0.50).
+            // Weathering: two millennia of Rome — ancient tuff darkens from exposure, render plaster
+            // develops dark patina streaks, ochre fades toward dark umber-brown in extreme weathering.
+            // CRITICAL: keep B ≤ 0.40 — see CLAUDE.md; higher B pushes toward bordelaisClassical.
+            let romR = 0.78 + 0.10 * cgWobble + wb - wf * 0.09
+            let romG = 0.54 + 0.07 * cgWobble + wb * 0.3 - wf * 0.08
+            let romB = 0.30 + 0.06 * cgWobble - wb * 0.5 - wf * 0.04
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayR * 0.26, green: dayG * 0.26, blue: dayB * 0.26, alpha: 1)
-                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+                ? UIColor(red: max(0, romR * 0.26), green: max(0, romG * 0.26), blue: max(0, romB * 0.26), alpha: 1)
+                : UIColor(red: max(0, min(1, romR)), green: max(0, min(1, romG)), blue: max(0, min(0.38, romB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.0)
-            material.roughness = .init(floatLiteral: 0.78 + 0.08 * abs(wobble))  // rough tuff/render plaster
-            material.clearcoat = .init(floatLiteral: 0.07)   // warm-rain sheen on ancient plaster
+            material.roughness = .init(floatLiteral: min(0.99, 0.78 + 0.08 * abs(wobble) + Float(wf) * 0.08))
+            material.clearcoat = .init(floatLiteral: max(0, 0.07 - Float(wf) * 0.05))
             material.clearcoatRoughness = .init(floatLiteral: 0.72)
         case .nycBrick:
             // New York City red-brown fired brick — the defining wall material of Manhattan's pre-war
@@ -2811,16 +4340,52 @@ enum DistrictRealityKit {
             // than Roman ochre (sienna, B≈0.30). Low B channel (B≈0.20) + low G (G≈0.30) locks the
             // warm red-brown identity across all three variation buckets.
             // Three buckets: muted pale red / standard warm red-brown / deep terracotta-red.
-            let dayR = 0.56 + 0.06 * cgWobble  // 0.50–0.62 warm red-brown range
-            let dayG = 0.30 + 0.04 * cgWobble  // 0.26–0.34 — clearly lower than londonBrick (0.62)
-            let dayB = 0.20 + 0.04 * cgWobble  // 0.16–0.24 — lower than romanOchre (0.30)
+            // Widened R (0.06→0.08), G/B (0.04→0.05); nycDusk wb=+0.02 saturates the warm
+            // red-brown further — evening canyon light makes NYC brick richer/redder.
+            // Weathering: NYC brick darkens from decades of grime, exhaust deposits, and freeze-thaw
+            // spalling — the tenement stock of Midtown/Lower Manhattan reads much darker in aged blocks.
+            let nycR = 0.56 + 0.08 * cgWobble + wb - wf * 0.08
+            let nycG = 0.30 + 0.05 * cgWobble + wb * 0.3 - wf * 0.07
+            let nycB = 0.20 + 0.05 * cgWobble - wb * 0.4 - wf * 0.04
             material.baseColor = .init(tint: isNight
-                ? UIColor(red: dayR * 0.24, green: dayG * 0.24, blue: dayB * 0.24, alpha: 1)
-                : UIColor(red: dayR, green: dayG, blue: dayB, alpha: 1))
+                ? UIColor(red: max(0, nycR * 0.24), green: max(0, nycG * 0.24), blue: max(0, nycB * 0.24), alpha: 1)
+                : UIColor(red: max(0, min(1, nycR)), green: max(0, min(1, nycG)), blue: max(0, min(1, nycB)), alpha: 1))
             material.metallic  = .init(floatLiteral: 0.0)
-            material.roughness = .init(floatLiteral: 0.88 + 0.05 * abs(wobble))  // rough fired common brick
-            material.clearcoat = .init(floatLiteral: 0.04)   // minimal — just a hint of rain-wet brick sheen
+            material.roughness = .init(floatLiteral: min(0.99, 0.88 + 0.05 * abs(wobble) + Float(wf) * 0.05))
+            material.clearcoat = .init(floatLiteral: max(0, 0.04 - Float(wf) * 0.03))
             material.clearcoatRoughness = .init(floatLiteral: 0.86)
+        case .laStucco:
+            // Sun-baked California stucco — cream-ochre exterior plaster, the defining wall material
+            // of LA bungalows, Mission Revival cottages, and Spanish Colonial courtyard buildings.
+            // R=0.82–0.90, G=0.74–0.82, B=0.56–0.64. B channel (0.56–0.64) is distinctly
+            // lower than Parisian cream (B≈0.72) but higher than Roman sienna (B≈0.30–0.36),
+            // placing it correctly in the warm desert-sand range. laSunset wb=+0.04 warms the
+            // stucco further to deep ochre in the Pacific golden hour.
+            let laR = 0.86 + 0.08 * cgWobble + wb
+            let laG = 0.78 + 0.06 * cgWobble + wb * 0.4
+            let laB = 0.60 + 0.04 * cgWobble - wb * 0.5
+            material.baseColor = .init(tint: isNight
+                ? UIColor(red: max(0, laR * 0.28), green: max(0, laG * 0.28), blue: max(0, laB * 0.28), alpha: 1)
+                : UIColor(red: max(0, min(1, laR)), green: max(0, min(1, laG)), blue: max(0, min(1, laB)), alpha: 1))
+            material.metallic  = .init(floatLiteral: 0.0)
+            material.roughness = .init(floatLiteral: 0.81 + 0.07 * abs(wobble))  // rough exterior stucco
+            material.clearcoat = .init(floatLiteral: 0.04)   // minimal — dried-stucco micro-sheen
+            material.clearcoatRoughness = .init(floatLiteral: 0.88)
+        }
+
+        // Day-mode: apply roughness texture so window panes (~0.05 rough) read as specular
+        // glints against the rough stone/concrete/brick wall field. Replaces the flat scalar
+        // roughness with spatially-varying roughness — same visual effect as night window
+        // emissive texture but for daylight legibility. Not applied at night (emissive dominates).
+        if !isNight, let rt = roughnessTexture {
+            material.roughness = .init(texture: .init(rt))
+        }
+
+        // Tangent-space normal map — day mode only. Gives stone joints, brick bonds, and
+        // formwork marks genuine surface micro-relief that catches the directional sun light.
+        // Night mode: emissive window texture overrides surface micro-detail, normal map skipped.
+        if !isNight, let nt = normalTexture {
+            material.normal = .init(texture: .init(nt))
         }
 
         if isNight {
@@ -2832,7 +4397,7 @@ enum DistrictRealityKit {
                 // than averaging to a flat tone. The dark base (0.06, 0.09, 0.14) ensures dark glass
                 // dominates and lit cells pop as point sources.
                 material.emissiveColor     = .init(color: UIColor(red: 0.80, green: 0.88, blue: 1.0, alpha: 1))
-                material.emissiveIntensity = 0.55
+                material.emissiveIntensity = 0.55 * nightEmissiveBoost
                 if let windowTexture {
                     material.emissiveColor.texture = .init(windowTexture)
                 }
@@ -2840,7 +4405,7 @@ enum DistrictRealityKit {
                 // Warm incandescent/warm-LED interior glow — residential, shophouse, civic,
                 // religious. Colonial wall-darkening above makes these amber spots legible even at
                 // orbit scale (3–4 UV repeats on a 10m building vs 70+ for a 200m glass tower).
-                let intensity: Float = switch style {
+                let baseIntensity: Float = switch style {
                 case .modernConcrete: 0.65
                 case .colonial:       0.35
                 case .government:     0.28
@@ -2854,10 +4419,11 @@ enum DistrictRealityKit {
                 case .madrileño:           0.35  // Madrid terrace — warm incandescent balcony glow, moderate density
                 case .romanOchre:          0.22  // Rome historic core — intimate, lower electric density than Madrid
                 case .nycBrick:            0.34  // NYC tenements / brownstones — dense amber glow from apartment windows
+                case .laStucco:            0.18  // LA residential — sparse electric density, warm ambient from street
                 default:                   0.35
                 }
                 material.emissiveColor     = .init(color: UIColor(red: 1.0, green: 0.84, blue: 0.55, alpha: 1))
-                material.emissiveIntensity = intensity
+                material.emissiveIntensity = baseIntensity * nightEmissiveBoost
                 if let windowTexture {
                     material.emissiveColor.texture = .init(windowTexture)
                 }

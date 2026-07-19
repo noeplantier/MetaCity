@@ -1,0 +1,65 @@
+{
+  "districtId": "Shinjuku",
+  "overrides": [
+    {
+      "nameMatch": "東急歌舞伎町タワー",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 192.0
+    },
+    {
+      "nameMatch": "モード学園コクーンタワー",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 200.0
+    },
+    {
+      "nameMatch": "新宿野村ビル",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 220.0
+    },
+    {
+      "nameMatch": "新宿センタービル",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 216.0
+    },
+    {
+      "nameMatch": "損保ジャパン本社ビル",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 172.0
+    },
+    {
+      "nameMatch": "新宿ルミネ",
+      "style": "modernConcrete",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "歌舞伎町",
+      "style": "modernConcrete",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Shinjuku Station",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "新宿駅",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "花園神社",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "十二社熊野神社",
+      "style": "religious",
+      "roofType": "flat"
+    }
+  ]
+}

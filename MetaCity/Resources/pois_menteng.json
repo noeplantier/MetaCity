@@ -1,0 +1,55 @@
+{
+  "districtId": "Menteng",
+  "pois": [
+    {
+      "id": "taman_suropati",
+      "name": "Taman Suropati",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.1985,
+      "longitude": 106.8364,
+      "description": "Menteng's iconic central park — a century-old botanical garden surrounded by grand Art Deco and Dutch colonial residences. International bronze sculptures donated by ASEAN nations dot the lush grounds.",
+      "partnerURL": null
+    },
+    {
+      "id": "rumah_proklamasi",
+      "name": "Tugu Proklamasi",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.2100,
+      "longitude": 106.8342,
+      "description": "Indonesia's Proclamation Monument, marking the site where Sukarno and Hatta proclaimed Indonesian independence on 17 August 1945. The original house was demolished; the 17m obelisk and bronze busts stand in its place.",
+      "partnerURL": null
+    },
+    {
+      "id": "museum_kebangkitan",
+      "name": "Museum Kebangkitan Nasional",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.1944,
+      "longitude": 106.8341,
+      "description": "National Awakening Museum in the former STOVIA Dutch medical school (1902) — the birthplace of Budi Utomo, Indonesia's first nationalist organisation. The building's Javanese pavilion courtyard is exceptional.",
+      "partnerURL": null
+    },
+    {
+      "id": "taman_menteng",
+      "name": "Taman Menteng",
+      "category": "explore",
+      "tier": "standard",
+      "latitude": -6.1954,
+      "longitude": 106.8305,
+      "description": "A large public park in the heart of Menteng, built on the former Persija Jakarta football stadium. A relaxed escape from the city with food carts, cycling paths, and families gathering in the evening.",
+      "partnerURL": null
+    },
+    {
+      "id": "jalan_diponegoro",
+      "name": "Jalan Diponegoro",
+      "category": "explore",
+      "tier": "standard",
+      "latitude": -6.2045,
+      "longitude": 106.8360,
+      "description": "Menteng's most prestigious boulevard, lined with grand Dutch-era colonial villas now housing embassies, consulates, and ministerial residences. The tree-canopied street is one of Jakarta's finest urban promenades.",
+      "partnerURL": null
+    }
+  ]
+}

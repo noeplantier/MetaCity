@@ -1,0 +1,45 @@
+{
+  "districtId": "LaDefense",
+  "pois": [
+    {
+      "id": "grande_arche",
+      "name": "Grande Arche de la Défense",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8929,
+      "longitude": 2.2359,
+      "description": "Johan Otto von Spreckelsen's 1989 hollow cube (110m). Aligned on the Grand Axis from the Louvre through the Arc de Triomphe. Roof terrace open to visitors.",
+      "partnerURL": null
+    },
+    {
+      "id": "tour_first",
+      "name": "Tour First",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8907,
+      "longitude": 2.2399,
+      "description": "France's tallest skyscraper at 231m (2011 renovation). Its tapering glass envelope houses BNP Paribas Real Estate and is the apex of La Défense's skyline.",
+      "partnerURL": null
+    },
+    {
+      "id": "esplanade_defense",
+      "name": "Esplanade de la Défense",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 48.8918,
+      "longitude": 2.2378,
+      "description": "One of the world's largest outdoor sculpture parks, free to explore. 60+ contemporary works by Calder, Miró, César and Torricini among the towers.",
+      "partnerURL": null
+    },
+    {
+      "id": "cnit",
+      "name": "CNIT",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 48.8922,
+      "longitude": 2.2365,
+      "description": "Nicolas Esquillan's 1958 reinforced concrete shell — still one of the largest in the world. A single triangular vault spans 218m with no interior columns.",
+      "partnerURL": null
+    }
+  ]
+}

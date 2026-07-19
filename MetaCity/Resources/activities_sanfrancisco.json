@@ -1,0 +1,77 @@
+{
+  "cityId": "sanfrancisco",
+  "activities": [
+    {
+      "id": "sf_transamerica_sky",
+      "name": "Transamerica Pyramid Observation",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "San Francisco's most iconic skyline silhouette: the 260m Transamerica Pyramid with its distinctive spire and wing-shaped struts. Observatory access available for guided tours with Financial District and Bay views.",
+      "area": "SFDowntown",
+      "priceRange": "$$",
+      "duration": "1h",
+      "latitude": 37.7952,
+      "longitude": -122.4028
+    },
+    {
+      "id": "sf_alcatraz_night",
+      "name": "Alcatraz Night Tour",
+      "category": "experienceRA",
+      "tier": "premium",
+      "description": "The island's most atmospheric experience: after day visitors leave, cellhouse audio tour narrated by former inmates plays in silence. San Francisco glitters from the water tower lookout. Book 4–6 weeks ahead.",
+      "area": "FishermansWharf",
+      "priceRange": "$$$",
+      "duration": "3h",
+      "latitude": 37.8267,
+      "longitude": -122.4230
+    },
+    {
+      "id": "sf_ferry_building_market",
+      "name": "Ferry Building Farmers Market",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "Tuesday and Saturday outdoor market wrapping the 1898 Embarcadero landmark. Cowgirl Creamery, Hog Island oysters shucked to order, Blue Bottle Coffee, Acme sourdough. Best Tuesday at 8am before the office crowd.",
+      "area": "SFDowntown",
+      "priceRange": "$",
+      "duration": "1.5h",
+      "latitude": 37.7955,
+      "longitude": -122.3937
+    },
+    {
+      "id": "sf_golden_gate_bridge",
+      "name": "Golden Gate Bridge Walk",
+      "category": "explore",
+      "tier": "standard",
+      "description": "Walk or bike the full 2.7km span across the Golden Gate Strait. International Orange Art Deco towers. Fort Baker vista at the south anchor for the most photographed angle. Fog-shrouded dawn is its most cinematic.",
+      "area": "SFDowntown",
+      "priceRange": null,
+      "duration": "2h",
+      "latitude": 37.8199,
+      "longitude": -122.4783
+    },
+    {
+      "id": "sf_tartine_morning",
+      "name": "Tartine Bakery Morning",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "The most influential bread bakery in the US. Chad Robertson's country loaf is released daily at 5pm and sells out in under 30 minutes. Morning bun (orange zest, cinnamon, flaky pastry) requires a 8am queue. Open Tue–Sun.",
+      "area": "SFDowntown",
+      "priceRange": "$",
+      "duration": "30min",
+      "latitude": 37.7614,
+      "longitude": -122.4241
+    },
+    {
+      "id": "sf_dim_sum_mission",
+      "name": "Mission Burrito Trail",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "The Mission District invented the foil-wrapped burrito in 1961. La Taqueria won the James Beard Award for America's best; El Farolito opens until 3am on weekends; Papalote's roasted tomato salsa is sui generis.",
+      "area": "SFDowntown",
+      "priceRange": "$",
+      "duration": "1h",
+      "latitude": 37.7599,
+      "longitude": -122.4148
+    }
+  ]
+}

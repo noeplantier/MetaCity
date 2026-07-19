@@ -74,6 +74,42 @@
       "tags": ["food", "shopping", "outlets", "sundanese"],
       "isFeatured": false,
       "priceRange": "$"
+    },
+    {
+      "id": "tangkuban_perahu_bandung",
+      "name": "Tangkuban Perahu",
+      "type": "mountain",
+      "cityId": "bandung",
+      "coordinate": { "latitude": -6.7594, "longitude": 107.6096 },
+      "description": "The 'overturned boat' stratovolcano defines Bandung's northern skyline — three active craters at 2,084m altitude with sulphuric steam vents, walkable crater rims, and highland strawberry farms on the descent.",
+      "highlights": [
+        "Kawah Ratu — the main accessible crater with active fumaroles",
+        "Dawn mist fills the caldera before 08:00, then burns off by 10:00",
+        "Edelweiss flowers and wild orchids on crater rim trails",
+        "40 min north of Bandung — combine with Lembang dairy farms"
+      ],
+      "category": "explore",
+      "tags": ["volcano", "crater", "highland", "hiking"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "lembang_bandung",
+      "name": "Lembang Highland",
+      "type": "nature",
+      "cityId": "bandung",
+      "coordinate": { "latitude": -6.8101, "longitude": 107.6162 },
+      "description": "Bandung's cool-air satellite town at 1,300m — a ribbon of highland farms, strawberry picking, dairy co-ops, and colonial-era botanical walks along the Cikapundung River headwaters.",
+      "highlights": [
+        "Floating Market Lembang — warungs on rafts in a mountain reservoir",
+        "Strawberry farms open for self-picking from June through September",
+        "Lembang dairy — fresh susu pasteurisasi direct from the cooperative",
+        "Coolest air in the Bandung basin, often 12°C at sunrise"
+      ],
+      "category": "explore",
+      "tags": ["highland", "farms", "nature", "cool air"],
+      "isFeatured": false,
+      "priceRange": "$"
     }
   ]
 }

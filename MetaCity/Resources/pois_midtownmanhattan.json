@@ -1,0 +1,55 @@
+{
+  "districtId": "MidtownManhattan",
+  "pois": [
+    {
+      "id": "empire_state",
+      "name": "Empire State Building",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 40.7484,
+      "longitude": -73.9856,
+      "description": "Art Deco triumph at 443m (102 floors), completed in 1931 in 410 days. Observatory on floor 86 is the most visited paid attraction in the US.",
+      "partnerURL": null
+    },
+    {
+      "id": "chrysler_building",
+      "name": "Chrysler Building",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 40.7516,
+      "longitude": -73.9755,
+      "description": "William Van Alen's 1930 Art Deco pinnacle (319m). Its eagle gargoyles and Nirosta steel spire, assembled in secret inside the crown, define the Manhattan skyline.",
+      "partnerURL": null
+    },
+    {
+      "id": "grand_central",
+      "name": "Grand Central Terminal",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 40.7527,
+      "longitude": -73.9772,
+      "description": "Reed & Stem's 1913 Beaux-Arts cathedral of transit. The Main Concourse ceiling is painted with a 2,500-star constellation map in cerulean blue.",
+      "partnerURL": null
+    },
+    {
+      "id": "st_patricks",
+      "name": "St Patrick's Cathedral",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 40.7586,
+      "longitude": -73.9762,
+      "description": "James Renwick Jr's 1879 Gothic Revival cathedral, flanked by Rockefeller Center. The rose window is 26 feet in diameter — the largest decorative one in America.",
+      "partnerURL": null
+    },
+    {
+      "id": "rockefeller_center",
+      "name": "Rockefeller Center",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 40.7587,
+      "longitude": -73.9787,
+      "description": "14-building Art Deco complex (1930–39). Top of the Rock observatory offers the only view that includes the Empire State Building. The iconic Christmas tree since 1931.",
+      "partnerURL": null
+    }
+  ]
+}

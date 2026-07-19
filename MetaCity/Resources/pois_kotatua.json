@@ -1,0 +1,85 @@
+{
+  "districtId": "KotaTua",
+  "pois": [
+    {
+      "id": "museum_fatahillah",
+      "name": "Museum Fatahillah",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.1348,
+      "longitude": 106.8131,
+      "description": "The centrepiece of Fatahillah Square, this 17th-century Dutch colonial building is one of the best-preserved examples of Dutch colonial architecture in Indonesia. Originally Jakarta's City Hall (Stadhuis), now a history museum.",
+      "partnerURL": null
+    },
+    {
+      "id": "pelabuhan_sunda_kelapa",
+      "name": "Pelabuhan Sunda Kelapa",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.1217,
+      "longitude": 106.8122,
+      "description": "Jakarta's historic port, operational since the 12th century. Traditional two-masted wooden pinisi schooners from Sulawesi and Kalimantan still dock here, loading and unloading cargo by hand.",
+      "partnerURL": null
+    },
+    {
+      "id": "museum_bank_indonesia",
+      "name": "Museum Bank Indonesia",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.1358,
+      "longitude": 106.8128,
+      "description": "Housed in the ornate 1909 Nederlandsche Handel-Maatschappij building — one of Kota Tua's architectural gems. The museum traces Indonesia's monetary history from colonial trade to modern central banking.",
+      "partnerURL": null
+    },
+    {
+      "id": "gereja_sion",
+      "name": "Gereja Sion",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.1369,
+      "longitude": 106.8165,
+      "description": "Jakarta's oldest surviving church (1695), built by the VOC for freed Portuguese-origin slaves (called 'Mardijkers'). The interior preserves a carved mahogany pulpit and copper chandeliers from the colonial era.",
+      "partnerURL": null
+    },
+    {
+      "id": "cafe_batavia",
+      "name": "Café Batavia",
+      "category": "eat",
+      "tier": "featured",
+      "latitude": -6.1350,
+      "longitude": 106.8128,
+      "description": "Legendary colonial-era café facing Fatahillah Square. The 200-year-old building is filled with antique photographs, gramophone horns, and memorabilia — a living museum of Old Batavia atmosphere.",
+      "partnerURL": null
+    },
+    {
+      "id": "museum_wayang",
+      "name": "Museum Wayang",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -6.1345,
+      "longitude": 106.8125,
+      "description": "The Puppet Museum in a 1912 colonial building. Home to over 4,000 wayang puppets from across the archipelago, from ornate Javanese wayang kulit to 3D Sundanese wayang golek.",
+      "partnerURL": null
+    },
+    {
+      "id": "museum_seni_rupa",
+      "name": "Museum Seni Rupa dan Keramik",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -6.1356,
+      "longitude": 106.8139,
+      "description": "Fine Arts and Ceramics Museum occupying a colonial palace (1870) that once served as the Jakarta Supreme Court. Showcases Indonesian fine art from the 19th century to the contemporary era.",
+      "partnerURL": null
+    },
+    {
+      "id": "fatahillah_square",
+      "name": "Taman Fatahillah",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -6.1352,
+      "longitude": 106.8132,
+      "description": "The cobblestoned central square of Kota Tua — once the largest square in Southeast Asia after Amsterdam's Dam Square. The focal point of Dutch Batavia, now a vibrant public square with street performers and café terraces.",
+      "partnerURL": null
+    }
+  ]
+}

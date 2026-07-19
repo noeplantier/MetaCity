@@ -52,11 +52,11 @@ final class ActivitiesViewModel: ObservableObject {
     init(preselectedCity: CityEntry? = nil) {
         let manifest = CityManifest.shared
         let vitrineIDs = Set(Self.vitrineCityIDs)
-        // Preserve ordering: vitrine cities first, then any other cities with activity data.
+        // Preserve ordering: vitrine cities first, then European/additional cities with activity data.
         let vitrine = Self.vitrineCityIDs.compactMap { manifest.city(id: $0) }
         let others = manifest.allCities.filter {
             !vitrineIDs.contains($0.id)
-            && ["bandung", "yogyakarta"].contains($0.id)
+            && ["bandung", "yogyakarta", "london", "madrid", "bordeaux", "rome", "newyork", "losangeles", "sanfrancisco"].contains($0.id)
         }
         availableCities = vitrine + others
 

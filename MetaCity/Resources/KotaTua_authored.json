@@ -1,0 +1,62 @@
+{
+  "districtId": "KotaTua",
+  "overrides": [
+    {
+      "nameMatch": "Museum Fatahillah",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 14.0
+    },
+    {
+      "nameMatch": "Museum Sejarah Jakarta",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 14.0
+    },
+    {
+      "nameMatch": "Museum Bank Indonesia",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 18.0
+    },
+    {
+      "nameMatch": "Museum Bank Mandiri",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 16.0
+    },
+    {
+      "nameMatch": "Gereja Sion",
+      "style": "religious",
+      "roofType": "flat",
+      "heightMeters": 12.0
+    },
+    {
+      "nameMatch": "Gereja Katedral",
+      "style": "religious",
+      "roofType": "dome"
+    },
+    {
+      "nameMatch": "Museum Bahari",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 8.0
+    },
+    {
+      "nameMatch": "Café Batavia",
+      "style": "colonial",
+      "roofType": "hip",
+      "heightMeters": 10.0
+    },
+    {
+      "nameMatch": "Kantor Pos Jakarta",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Pelabuhan Sunda Kelapa",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

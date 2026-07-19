@@ -1,0 +1,86 @@
+{
+  "cityId": "madrid",
+  "activities": [
+    {
+      "id": "madrid_salamanca_grid_orbit",
+      "name": "Vol orbital — Grille Ensanche",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "La caméra orbitale révèle l'Ensanche de Castro depuis 800 m d'altitude : la grille orthogonale planifiée en 1860 contraste avec le tissu médiéval au sud. Les îlots octogonaux à coins coupés (chamfres) — le modèle barcelonais avant l'heure — sont parfaitement lisibles en vue aérienne.",
+      "area": "Salamanca",
+      "priceRange": "Free",
+      "duration": "8 min",
+      "latitude": 40.4243,
+      "longitude": -3.6808,
+      "districtId": "Salamanca",
+      "fragmentAssetKey": "madrid_salamanca.grid"
+    },
+    {
+      "id": "madrid_retiro_promenade",
+      "name": "Promenade RA — Jardin du Retiro",
+      "category": "experienceRA",
+      "tier": "premium",
+      "description": "Superposez le Palacio del Buen Retiro d'origine (1632, résidence royale Felipe IV) sur les seuls bâtiments survivants : le Casón et le Bâtiment des Armées. Le parc, ouvert au public en 1868, restituait 140 hectares de jardins royaux. Identificaton AR des statues de rois sur la grille en fonte du XIXe.",
+      "area": "Parque del Retiro",
+      "priceRange": "Free",
+      "duration": "15 min",
+      "latitude": 40.4153,
+      "longitude": -3.6844,
+      "districtId": "Salamanca",
+      "fragmentAssetKey": "madrid_salamanca.retiro"
+    },
+    {
+      "id": "madrid_cibeles_nuit",
+      "name": "Immersion nocturne — Plaza de Cibeles",
+      "category": "immersionSensorielle",
+      "tier": "premium",
+      "description": "La plaza de Cibeles en mode nuit : l'éclairage madridAfternoon reconstruit le Palacio de Comunicaciones illuminé (82 m, néo-plateresque blanc), la fontaine de 1782, les quatre bâtiments d'angle. La simulation audio restitue la clameur du Real Madrid lors des victoires en Liga — tradition depuis 1966.",
+      "area": "Paseo del Prado",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 40.4196,
+      "longitude": -3.6930,
+      "districtId": "Salamanca"
+    },
+    {
+      "id": "madrid_malasana_haussmann",
+      "name": "Visite guidée — Gran Vía Modernista",
+      "category": "visiteGuidee",
+      "tier": "standard",
+      "description": "La Gran Vía ouverte de 1910 à 1931 est le meilleur inventaire du Beaux-Arts et de l'Éclectisme español. Le focus bâtiment identifie l'Espacio Fundación Telefónica (81 m, 1929, Juan Otamendi), le Palacio de la Prensa (36 m, 1928) et la Metropolis depuis Malasaña. Chaque bâtiment a sa fiche historique.",
+      "area": "Gran Vía",
+      "priceRange": "Free",
+      "duration": "12 min",
+      "latitude": 40.4200,
+      "longitude": -3.7025,
+      "districtId": "Malasana",
+      "fragmentAssetKey": "madrid_malasana.gran_via"
+    },
+    {
+      "id": "madrid_tapas_lifestyle",
+      "name": "Lifestyle — Circuit Tabernas Malasaña",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "Le quartier Malasaña — berceau de la Movida (1975–1985) — concentre 47 tabernas sur 6 rues dans un rayon de 500 m autour de la Plaza del Dos de Mayo. L'exploration 3D identifie les façades retrofuturistes des caves à vin : néons, azulejos pop, vitres cathédrale acidées.",
+      "area": "Malasaña",
+      "priceRange": "$",
+      "duration": "30 min",
+      "latitude": 40.4265,
+      "longitude": -3.7038,
+      "districtId": "Malasana"
+    },
+    {
+      "id": "madrid_edificio_espana_orbit",
+      "name": "Vertige — Edificio España 92 m",
+      "category": "panorama",
+      "tier": "standard",
+      "description": "Le focus bâtiment monte en contre-plongée le long des 26 étages de l'Edificio España (1953, style herrerien franquiste) — tour madrileña la plus iconique jusqu'en 1982. La caméra orbitale positionne ensuite le bâtiment dans la skyline Malasaña-Moncloa, seul gratte-ciel dans un tissu Ensanche de 6 étages.",
+      "area": "Plaza de España",
+      "priceRange": "Free",
+      "duration": "6 min",
+      "latitude": 40.4226,
+      "longitude": -3.7118,
+      "districtId": "Malasana"
+    }
+  ]
+}

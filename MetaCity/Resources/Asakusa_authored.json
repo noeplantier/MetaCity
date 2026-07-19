@@ -1,0 +1,46 @@
+{
+  "districtId": "Asakusa",
+  "overrides": [
+    {
+      "nameMatch": "浅草寺",
+      "style": "religious",
+      "roofType": "dome"
+    },
+    {
+      "nameMatch": "Senso-ji",
+      "style": "religious",
+      "roofType": "dome"
+    },
+    {
+      "nameMatch": "浅草神社",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Asakusa Shrine",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "浅草ROX",
+      "style": "modernConcrete",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "東京楽天地浅草ビル",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 52.0
+    },
+    {
+      "nameMatch": "都立産業貿易センター台東館",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "浅草文化観光センター",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

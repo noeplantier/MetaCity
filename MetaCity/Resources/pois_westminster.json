@@ -1,0 +1,55 @@
+{
+  "districtId": "Westminster",
+  "pois": [
+    {
+      "id": "big_ben",
+      "name": "Elizabeth Tower",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 51.5007,
+      "longitude": -0.1246,
+      "description": "The 96m Gothic Revival clock tower (1859), housing the 13.7-tonne Great Bell. Known as Big Ben after the bell. Restored to its original terracotta-red in 2022.",
+      "partnerURL": null
+    },
+    {
+      "id": "westminster_abbey",
+      "name": "Westminster Abbey",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 51.4994,
+      "longitude": -0.1273,
+      "description": "England's coronation church since 1066. Every English monarch crowned here. 3,300 people buried within, including Darwin, Newton and Chaucer.",
+      "partnerURL": null
+    },
+    {
+      "id": "buckingham_palace",
+      "name": "Buckingham Palace",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 51.5014,
+      "longitude": -0.1419,
+      "description": "The official London residence of the British monarch since 1837. 775 rooms. The Changing of the Guard happens in the forecourt daily at 11 am.",
+      "partnerURL": null
+    },
+    {
+      "id": "trafalgar_square",
+      "name": "Trafalgar Square",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 51.5080,
+      "longitude": -0.1281,
+      "description": "London's public piazza. Nelson's Column (51.6m) commemorates the 1805 Battle of Trafalgar. The Fourth Plinth hosts rotating contemporary art commissions.",
+      "partnerURL": null
+    },
+    {
+      "id": "houses_of_parliament",
+      "name": "Palace of Westminster",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 51.4999,
+      "longitude": -0.1248,
+      "description": "Barry and Pugin's Gothic Revival masterpiece (1870). The House of Commons and Lords sit here. The 300m river facade is best seen from the South Bank.",
+      "partnerURL": null
+    }
+  ]
+}

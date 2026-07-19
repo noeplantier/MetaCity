@@ -2,18 +2,16 @@ import SwiftUI
 
 struct HomeTabView: View {
     @StateObject private var discoverViewModel: DiscoverViewModel
-    @StateObject private var placesViewModel: PlacesViewModel
     @StateObject private var activitiesViewModel: ActivitiesViewModel
-    @StateObject private var contactsViewModel: ContactsViewModel
+    @StateObject private var placesViewModel: PlacesViewModel
     @StateObject private var profileViewModel: ProfileViewModel
     @State private var selectedTab: AppTab = .discover
 
     init(environment: AppEnvironment, session: SessionStore) {
-        _discoverViewModel = StateObject(wrappedValue: environment.makeDiscoverViewModel())
-        _placesViewModel   = StateObject(wrappedValue: PlacesViewModel())
+        _discoverViewModel   = StateObject(wrappedValue: environment.makeDiscoverViewModel())
         _activitiesViewModel = StateObject(wrappedValue: ActivitiesViewModel())
-        _contactsViewModel = StateObject(wrappedValue: ContactsViewModel())
-        _profileViewModel  = StateObject(wrappedValue: environment.makeProfileViewModel(session: session))
+        _placesViewModel     = StateObject(wrappedValue: PlacesViewModel())
+        _profileViewModel    = StateObject(wrappedValue: environment.makeProfileViewModel(session: session))
     }
 
     var body: some View {
@@ -22,6 +20,10 @@ struct HomeTabView: View {
                 .tabItem { Label("Discover", systemImage: "globe.asia.australia.fill") }
                 .tag(AppTab.discover)
 
+            ActivitiesView(viewModel: activitiesViewModel)
+                .tabItem { Label("Activités", systemImage: "ticket.fill") }
+                .tag(AppTab.activities)
+
             PlacesView(
                 viewModel: placesViewModel,
                 discoverViewModel: discoverViewModel,
@@ -29,14 +31,6 @@ struct HomeTabView: View {
             )
             .tabItem { Label("Places", systemImage: "map.fill") }
             .tag(AppTab.places)
-
-            ActivitiesView(viewModel: activitiesViewModel)
-                .tabItem { Label("Activités", systemImage: "ticket.fill") }
-                .tag(AppTab.activities)
-
-            ContactsView(viewModel: contactsViewModel)
-                .tabItem { Label("Contacts", systemImage: "person.2.fill") }
-                .tag(AppTab.contacts)
 
             ProfileView(viewModel: profileViewModel)
                 .tabItem { Label("Profile", systemImage: "person.fill") }
@@ -50,14 +44,10 @@ struct HomeTabView: View {
             if newTab == .places, let city = discoverViewModel.focusedCity {
                 placesViewModel.loadPlaces(for: city)
             }
-            if newTab == .contacts, let city = discoverViewModel.focusedCity {
-                contactsViewModel.selectCity(city.id)
-            }
         }
         .onChange(of: activitiesViewModel.pendingDistrictId) { _, districtId in
             guard let districtId else { return }
             activitiesViewModel.clearPendingNavigation()
-            // Find the district and its parent city in the manifest.
             let manifest = CityManifest.shared
             guard let district = manifest.district(id: districtId),
                   let city = manifest.allCities.first(where: { c in

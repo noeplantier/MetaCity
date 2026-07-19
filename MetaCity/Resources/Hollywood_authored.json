@@ -1,0 +1,55 @@
+{
+  "overrides": [
+    {
+      "nameMatch": "TCL Chinese Theatre",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Capitol Records Building",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 57.0
+    },
+    {
+      "nameMatch": "Dolby Theatre",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "El Capitan Theatre",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "El Capitan Entertainment Centre",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Egyptian Theater",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Arclight Cinemas",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Pacific Theatres Cinerama Dome",
+      "style": "modernGlass",
+      "roofType": "dome"
+    },
+    {
+      "nameMatch": "Hollywood Palladium",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Henry Fonda Theater",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

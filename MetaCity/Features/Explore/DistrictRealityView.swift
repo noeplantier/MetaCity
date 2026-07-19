@@ -35,6 +35,17 @@ struct DistrictRealityView: UIViewRepresentable {
     var searchFlyToken: Int = 0
     /// Model-local camera target (metres from district anchor) for the most-recent search selection.
     var searchFlyCentroid: SIMD3<Float> = .zero
+    /// Bumped by `DiscoverViewModel.setViewPreset(.focus)`. Re-triggers `flyToBuildingWithFraming`
+    /// for the building stored from the last single-tap selection.
+    var viewFocusToken: Int = 0
+    /// The currently selected building — mirrored from DiscoverViewModel so the coordinator
+    /// can access it when `viewFocusToken` fires without storing state across sessions.
+    var selectedBuilding: BuildingFootprint? = nil
+    /// Current camera preset — used by the coordinator to choose SURVOL / OVERVIEW / ZOOM.
+    var activeViewPreset: ViewPreset = .overview
+    /// Day/night mode toggle. When changed, the coordinator discards and rebuilds the district
+    /// entity with the appropriate emissive/roughness materials and lighting rig.
+    var isNight: Bool = false
 
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(frame: .zero, cameraMode: .nonAR, automaticallyConfigureSession: false)
@@ -46,6 +57,11 @@ struct DistrictRealityView: UIViewRepresentable {
         arView.backgroundColor = mood.skyColors.horizon
         arView.isOpaque = true
 
+        // ProMotion: RealityKit's internal CADisplayLink already targets the display's maximum
+        // refresh rate (120fps on ProMotion hardware) — no explicit configuration required.
+        // CALayer.preferredFrameRateRange does not exist (only CADisplayLink/CAAnimation have it);
+        // ARView's own display link is private and handles this automatically.
+
         context.coordinator.onZoomBack = onZoomBack
         context.coordinator.onBuildingSelected = onBuildingSelected
         context.coordinator.onPOISelected = onPOISelected
@@ -54,7 +70,9 @@ struct DistrictRealityView: UIViewRepresentable {
             districtName: districtName,
             mood: mood,
             isAutoRotating: isAutoRotating,
-            rotationSpeed: rotationSpeed
+            rotationSpeed: rotationSpeed,
+            isNight: isNight,
+            activeViewPreset: activeViewPreset
         )
 
         // Single-finger pan → orbit azimuth + elevation
@@ -91,11 +109,15 @@ struct DistrictRealityView: UIViewRepresentable {
         context.coordinator.update(
             isAutoRotating: isAutoRotating,
             rotationSpeed: rotationSpeed,
+            isNight: isNight,
             venueTargetPOIId: venueTargetPOIId,
             resetToken: cameraResetToken,
             buildingOrbitToken: buildingOrbitToken,
             searchFlyToken: searchFlyToken,
-            searchFlyCentroid: searchFlyCentroid
+            searchFlyCentroid: searchFlyCentroid,
+            viewFocusToken: viewFocusToken,
+            selectedBuilding: selectedBuilding,
+            activeViewPreset: activeViewPreset
         )
     }
 
@@ -115,11 +137,18 @@ struct DistrictRealityView: UIViewRepresentable {
         private var flySubscription: Cancellable?
         private var cinematicSubscription: Cancellable?
         private var lodSubscription: Cancellable?   // per-frame LOD check, runs only in venue mode
-        private var selectionRingSubscription: Cancellable?
         private var cameraEntity: Entity?
 
         /// Populated after each `loadModel` completes. Empty until the entity tree is placed.
         private var quadrantLOD: [QuadrantLODNode] = []
+        /// Sub-pixel-at-orbit entities: _bands, _pilasters, _balconies.
+        /// Hidden during orbit, revealed when camera moves within ~30% of districtExtent (building tap / venue).
+        private var facadeDetailEntities: [Entity] = []
+        /// Tracks whether facade detail is currently shown — avoids repeated `setFacadeDetailEnabled`
+        /// calls on every pinch frame when the threshold hasn't been crossed.
+        private var facadeDetailEnabled: Bool = false
+        private var poiPulseSubscription: Cancellable?
+        private var poiBeaconsEntity: Entity?
         private var districtAnchor: AnchorEntity?
         private var districtName = ""
         private var mood: DistrictRealityScene.Mood = .parkDaylight
@@ -139,12 +168,17 @@ struct DistrictRealityView: UIViewRepresentable {
         private var currentDistance: Float = 100
 
         private var currentIsAutoRotating = false
+        private var currentViewPreset: ViewPreset = .overview
         private var currentVenueTargetPOIId: String? = nil
         private var rotationSpeed: Double = 1.0
         private var loadGeneration = 0
         private var lastResetToken: Int = 0
         private var lastSearchFlyToken: Int = 0
         private var lastBuildingOrbitToken: Int = 0
+        private var lastViewFocusToken: Int = 0
+        /// Stored from the last successful `flyToBuildingWithFraming` call so `.focus` preset
+        /// can re-trigger the fly without needing another tap.
+        private var lastFocusedBuilding: BuildingFootprint?
         // Updated on each building tap — used by buildingOrbitToken to restart the orbit
         // around the selected building's centroid rather than the district centre.
         private var inspectedBuildingCentroid: SIMD3<Float>? = nil
@@ -154,16 +188,21 @@ struct DistrictRealityView: UIViewRepresentable {
         /// so we avoid re-fetching from the `District` cache on the gesture hot path.
         private var cachedDistrict: District?
 
+        private var currentIsNight: Bool = false
+
         var onZoomBack: (() -> Void)? = nil
         var onBuildingSelected: ((BuildingFootprint) -> Void)? = nil
         var onPOISelected: ((String) -> Void)? = nil
 
         func setUp(in arView: ARView, districtName: String, mood: DistrictRealityScene.Mood,
-                   isAutoRotating: Bool, rotationSpeed: Double) {
+                   isAutoRotating: Bool, rotationSpeed: Double, isNight: Bool = false,
+                   activeViewPreset: ViewPreset = .overview) {
             self.arView = arView
             self.districtName = districtName
             self.mood = mood
             self.currentIsAutoRotating = isAutoRotating
+            self.currentViewPreset = activeViewPreset
+            self.currentIsNight = isNight
             self.rotationSpeed = rotationSpeed
 
             guard let district = District.load(named: districtName) else {
@@ -176,9 +215,8 @@ struct DistrictRealityView: UIViewRepresentable {
             arView.scene.addAnchor(anchor)
             districtAnchor = anchor
 
-            // Night mode removed — always day. isNight: false throughout.
             DistrictRealityScene.installLighting(in: arView, anchor: anchor, mood: mood,
-                                                  extent: district.extent, isNight: false)
+                                                  extent: district.extent, isNight: currentIsNight)
 
             let camera = PerspectiveCamera()
             camera.camera.fieldOfViewInDegrees = mood.fieldOfViewDegrees
@@ -188,13 +226,28 @@ struct DistrictRealityView: UIViewRepresentable {
 
             let lookY: Float = district.extent * 0.03
             center = SIMD3(district.buildingCentroid.x, lookY, district.buildingCentroid.z)
-            // Start wider than the mood default so the user opens to a full district overview.
-            // Continuous pinch replaces the old binary isElevated split.
-            distance = district.extent * mood.cameraDistanceFraction * 1.5
-            height   = district.extent * mood.cameraHeightFraction   * 1.4
-            districtExtent = district.extent
-            districtCenter = center
-            districtDistance = distance
+            districtExtent   = district.extent
+            districtCenter   = center
+            // Orbit reference: 1.5× the mood fraction — same as original, used by
+            // resetToDefaultPosition multipliers. Do NOT reduce this without verifying
+            // all moods: it is the anchor for AÉRIEN/OVERVIEW/ZOOM multipliers.
+            districtDistance = district.extent * mood.cameraDistanceFraction * 1.5
+
+            // Initial camera position respects the active preset.
+            switch currentViewPreset {
+            case .ciel:
+                // SURVOL: frames the full district perimeter from near-overhead.
+                // Uses districtExtent directly — NOT districtDistance (which is a small orbit ref).
+                distance = districtExtent * 0.30
+                height   = districtExtent * 1.35
+            case .overview:
+                // OVERVIEW: bird's-eye ~61° elevation.
+                distance = districtDistance * 0.60
+                height   = distance * 1.10
+            default:
+                distance = districtDistance
+                height   = district.extent * mood.cameraHeightFraction * 1.4
+            }
 
             // Initialise gesture state to match the starting camera position (azimuth = 0
             // places the camera at center + (0, height, +distance) which is what setUp uses).
@@ -209,12 +262,27 @@ struct DistrictRealityView: UIViewRepresentable {
             startCinematicEntry(camera: camera, scene: arView.scene)
         }
 
-        func update(isAutoRotating: Bool, rotationSpeed: Double,
+        func update(isAutoRotating: Bool, rotationSpeed: Double, isNight: Bool = false,
                     venueTargetPOIId: String?, resetToken: Int, buildingOrbitToken: Int,
-                    searchFlyToken: Int, searchFlyCentroid: SIMD3<Float>) {
+                    searchFlyToken: Int, searchFlyCentroid: SIMD3<Float>,
+                    viewFocusToken: Int, selectedBuilding: BuildingFootprint?,
+                    activeViewPreset: ViewPreset = .overview) {
             guard let arView else { return }
+            // Always track the current selection so viewFocusToken has a building to fly to
+            if let b = selectedBuilding { lastFocusedBuilding = b }
 
             self.rotationSpeed = rotationSpeed
+            currentViewPreset = activeViewPreset
+
+            // Night mode toggle — rebuild entity and lighting when the mode changes.
+            if isNight != currentIsNight {
+                currentIsNight = isNight
+                if let anchor = districtAnchor {
+                    DistrictRealityScene.installLighting(in: arView, anchor: anchor, mood: mood,
+                                                          extent: districtExtent, isNight: isNight)
+                    loadModel(named: districtName, into: anchor)
+                }
+            }
 
             if isAutoRotating != currentIsAutoRotating {
                 currentIsAutoRotating = isAutoRotating
@@ -251,6 +319,14 @@ struct DistrictRealityView: UIViewRepresentable {
                 }
             }
 
+            if viewFocusToken != lastViewFocusToken {
+                lastViewFocusToken = viewFocusToken
+                if let building = lastFocusedBuilding {
+                    setFacadeDetailEnabled(true)
+                    flyToBuildingWithFraming(building, scene: arView.scene)
+                }
+            }
+
             if searchFlyToken != lastSearchFlyToken {
                 lastSearchFlyToken = searchFlyToken
                 orbitSubscription?.cancel()
@@ -266,9 +342,9 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
-        /// Flies to a POI venue using an elevated overview orbit — never eye-level.
-        /// Camera approaches from the current azimuth at 15° elevation so the venue
-        /// reads in context of its surrounding block, same framing as buildingWithFraming.
+        /// Flies to a POI venue. Primary path: finds the nearest building to the POI's
+        /// lat/lon and calls `flyToBuildingWithFraming` for building-level close-up framing.
+        /// Fallback (no nearby building): elevated overview at 20% district extent.
         private func flyToVenue(poiId: String, districtName: String, scene: RealityKit.Scene) {
             guard let collection = CangguPOICollection.load(for: districtName),
                   let poi = collection.pois.first(where: { $0.id == poiId }),
@@ -278,33 +354,51 @@ struct DistrictRealityView: UIViewRepresentable {
             let geoAnchor = districtEntry.anchor
             let offset = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
                 .sceneOffset(from: geoAnchor)
+            let poiPos = SIMD3<Float>(offset.x, 0, offset.z)
 
-            // Overview orbit zoom — elevated ensemble view, never eye-level.
-            // Distance: 20% of district extent (same order as mood's cameraDistanceFraction).
-            // Elevation: 15° — reads depth well, shows the venue in its block context.
-            let orbitDist   = Float(districtExtent) * 0.20
-            let elevSin: Float = 0.259   // sin(15°)
-            let elevCos: Float = 0.966   // cos(15°)
-            let lookTarget  = SIMD3<Float>(offset.x, 3.0, offset.z)
-            let camY        = lookTarget.y + orbitDist * elevSin
-            let groundDist  = orbitDist * elevCos
-            let overviewPos = SIMD3<Float>(
+            // Primary: fly to nearest building to the POI coordinates.
+            if let district = cachedDistrict,
+               let nearest = nearestBuilding(to: poiPos, in: district.buildings, maxMeters: 120),
+               nearest.heightMeters > 4.0 {
+                flyToBuildingWithFraming(nearest, scene: scene)
+                return
+            }
+
+            // Fallback: no building within 120m — elevated overview zoom centred on POI coords.
+            let orbitDist: Float  = Float(districtExtent) * 0.20
+            let elevSin: Float    = 0.259   // sin(15°)
+            let elevCos: Float    = 0.966   // cos(15°)
+            let lookTarget        = SIMD3<Float>(offset.x, 3.0, offset.z)
+            let camY              = lookTarget.y + orbitDist * elevSin
+            let groundDist        = orbitDist * elevCos
+            let overviewPos       = SIMD3<Float>(
                 offset.x + sin(azimuth) * groundDist,
                 camY,
                 offset.z + cos(azimuth) * groundDist
             )
-
-            // Update gesture state so post-fly pan/orbit resume from the landed position.
             center           = lookTarget
             currentDistance  = orbitDist
             currentElevation = camY
-
             orbitSubscription?.cancel()
             orbitSubscription = nil
-            if let anchor = districtAnchor {
-                DistrictRealityKit.updateGroundColor(in: anchor, for: poi.category, mood: mood)
-            }
             flyCamera(to: overviewPos, lookAt: lookTarget, scene: scene)
+        }
+
+        /// Returns the building whose polygon centroid is closest to `target` within `maxMeters`.
+        private func nearestBuilding(to target: SIMD3<Float>,
+                                     in buildings: [BuildingFootprint],
+                                     maxMeters: Float) -> BuildingFootprint? {
+            let maxSq = maxMeters * maxMeters
+            var best: BuildingFootprint? = nil
+            var bestSq: Float = maxSq
+            for b in buildings where !b.polygon.isEmpty {
+                let n  = Float(b.polygon.count)
+                let cx = b.polygon.map(\.x).reduce(0, +) / n
+                let cz = b.polygon.map(\.z).reduce(0, +) / n
+                let sq = (cx - target.x) * (cx - target.x) + (cz - target.z) * (cz - target.z)
+                if sq < bestSq { bestSq = sq; best = b }
+            }
+            return best
         }
 
         // MARK: - Gesture handlers
@@ -379,6 +473,18 @@ struct DistrictRealityView: UIViewRepresentable {
             let normZoom = 1.0 - (currentDistance - minDist) / max(maxDist - minDist, 1)
             updateFOV(normalizedZoom: normZoom)
 
+            // Pinch-triggered facade LOD: reveal bands/balconies/chimneys when close enough
+            // even without a building tap. Only active in orbit mode (no inspected building),
+            // so it doesn't fight `flyToBuildingWithFraming`'s explicit enable.
+            // Threshold 22% of district extent: ~110m for Paris, ~660m for Canggu.
+            if inspectedBuildingCentroid == nil {
+                let showDetail = currentDistance < districtExtent * 0.22
+                if showDetail != facadeDetailEnabled {
+                    facadeDetailEnabled = showDetail
+                    setFacadeDetailEnabled(showDetail)
+                }
+            }
+
             if currentDistance >= maxDist * 0.98 { onZoomBack?() }
         }
 
@@ -439,63 +545,6 @@ struct DistrictRealityView: UIViewRepresentable {
             guard let building = bestBuilding, minDist < districtExtent * 0.10 else { return }
 
             onBuildingSelected?(building)
-
-            // Compute footprint centroid once — used by scanner ring and framing.
-            let n  = Float(building.polygon.count)
-            let cx = building.polygon.map(\.x).reduce(0, +) / n
-            let cz = building.polygon.map(\.z).reduce(0, +) / n
-
-            // Holographic amber scanner rings — two counter-rotating arc-segment rings + halo.
-            selectionRingSubscription?.cancel()
-            selectionRingSubscription = nil
-            let ringCX = cx, ringCZ = cz
-            Task { @MainActor [weak self] in
-                guard let self, let anchor = self.districtAnchor else { return }
-                DistrictRealityKit.clearSelectionRing(in: anchor)
-                let ringRadius = building.polygon.map { p -> Float in
-                    sqrt((p.x - ringCX) * (p.x - ringCX) + (p.z - ringCZ) * (p.z - ringCZ))
-                }.max() ?? 5.0
-                guard let scanner = DistrictRealityKit.makeHoloScanner(
-                    centroid: SIMD3(ringCX, 0, ringCZ),
-                    radius: max(ringRadius, 3.0)
-                ) else { return }
-                scanner.name = "selectionRing"
-                anchor.addChild(scanner)
-                let outerArcs = scanner.children.first(where: { $0.name == "outerArcs" })
-                let innerArcs = scanner.children.first(where: { $0.name == "innerArcs" })
-                var outerAngle: Float = 0
-                var innerAngle: Float = 0
-                var breathPhase: Float = 0
-                guard let av = self.arView else { return }
-                self.selectionRingSubscription = av.scene.subscribe(to: SceneEvents.Update.self) {
-                    [weak scanner, weak outerArcs, weak innerArcs] _ in
-                    guard let root = scanner else { return }
-                    outerAngle  += 0.018
-                    innerAngle  -= 0.013
-                    outerArcs?.transform.rotation = simd_quatf(angle: outerAngle, axis: SIMD3(0, 1, 0))
-                    innerArcs?.transform.rotation = simd_quatf(angle: innerAngle, axis: SIMD3(0, 1, 0))
-                    breathPhase += 0.042
-                    let s = 1.0 + 0.045 * sin(breathPhase)
-                    root.scale = SIMD3(s, 1, s)
-                }
-            }
-
-            // Cinematic bounding-box framing — replaces the old scalar-height-only approach.
-            // Sets inspectedBuildingCentroid, inspectedOrbitDist, inspectedOrbitH,
-            // center, currentDistance, currentElevation as side effects.
-            flyToBuildingWithFraming(building, scene: arView.scene)
-
-            // If auto-rotate is on, resume orbit around the building after the fly settles.
-            if currentIsAutoRotating {
-                let orbitCenter = SIMD3<Float>(cx, center.y, cz)
-                let d = inspectedOrbitDist
-                let h = inspectedOrbitH
-                Task { @MainActor [weak self] in
-                    try? await Task.sleep(nanoseconds: 1_400_000_000)
-                    guard let self else { return }
-                    self.startBuildingOrbit360(center: orbitCenter, orbDist: d, orbH: h, scene: arView.scene)
-                }
-            }
         }
 
         private func updateCameraPosition() {
@@ -507,16 +556,39 @@ struct DistrictRealityView: UIViewRepresentable {
         }
 
         private func resetToDefaultPosition() {
-            // Restore district-wide orbit pivot (building overview shifts this to a building centroid)
             center = districtCenter
-            currentDistance = districtDistance
             azimuth = 0
-            currentElevation = height
-            // Restore base FOV (building-focus may have narrowed it)
             updateFOV(normalizedZoom: 0)
+            setFacadeDetailEnabled(false)
+            facadeDetailEnabled = false
             guard let arView else { return }
-            flyCamera(to: SIMD3(center.x, height, center.z + districtDistance),
-                      lookAt: center, scene: arView.scene)
+
+            if currentViewPreset == .ciel {
+                // SURVOL: frames the full district perimeter from near-overhead.
+                let survolHoriz  = districtExtent * 0.30
+                let survolH      = districtExtent * 1.35
+                currentDistance  = survolHoriz
+                currentElevation = survolH
+                flyCamera(to: SIMD3(center.x, survolH, center.z + survolHoriz),
+                          lookAt: center, scene: arView.scene)
+                orbitSubscription?.cancel()
+                orbitSubscription = nil
+            } else if currentViewPreset == .overview {
+                // OVERVIEW: bird's-eye ~61°.
+                let overviewDist = districtDistance * 0.60
+                let overviewH    = overviewDist * 1.10
+                currentDistance  = overviewDist
+                currentElevation = overviewH
+                flyCamera(to: SIMD3(center.x, overviewH, center.z + overviewDist),
+                          lookAt: center, scene: arView.scene)
+                orbitSubscription?.cancel()
+                orbitSubscription = nil
+            } else {
+                currentDistance  = districtDistance
+                currentElevation = height
+                flyCamera(to: SIMD3(center.x, height, center.z + districtDistance),
+                          lookAt: center, scene: arView.scene)
+            }
         }
 
         // Pan and pinch can fire simultaneously — lets the user orbit while slowly zooming.
@@ -528,18 +600,17 @@ struct DistrictRealityView: UIViewRepresentable {
         private func loadModel(named districtName: String, into anchor: AnchorEntity) {
             loadGeneration += 1
             let generation = loadGeneration
+            let isNightSnapshot = currentIsNight
             Task { @MainActor [weak self] in
                 guard let entity = try? await DistrictRealityKit.loadDistrictEntity(
-                    named: districtName, isNight: false, mood: self?.mood ?? .parkDaylight)
+                    named: districtName, isNight: isNightSnapshot, mood: self?.mood ?? .parkDaylight)
                 else { return }
                 guard let self, self.loadGeneration == generation else { return }
                 anchor.children.first(where: { $0.name == "districtModel" })?.removeFromParent()
-                self.selectionRingSubscription?.cancel()
-                self.selectionRingSubscription = nil
-                DistrictRealityKit.clearSelectionRing(in: anchor)
                 entity.name = "districtModel"
                 anchor.addChild(entity)
                 self.extractQuadrantLOD(from: entity)
+                self.cacheFacadeDetailEntities(from: entity)
                 // Apply orbit or venue LOD now that quadrantLOD is populated.
                 // `applyOrbitLOD()` at setUp time ran against an empty `quadrantLOD` array,
                 // so it was a no-op — the palm entities were still enabled in the cached clone.
@@ -549,6 +620,7 @@ struct DistrictRealityView: UIViewRepresentable {
                 if self.currentVenueTargetPOIId == nil {
                     self.applyOrbitLOD()
                 }
+                // (POI beacons removed — no pulse subscription needed)
             }
         }
 
@@ -588,6 +660,52 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
+        /// Caches references to fine-detail facade entities (`_bands`, `_pilasters`, `_balconies`)
+        /// from all quadrant near-containers. Called once after `extractQuadrantLOD` populates the tree.
+        /// These entities are sub-pixel at full-orbit camera distances: hiding them at orbit gives a
+        /// cleaner overview; they re-appear when the camera zooms to building-tap or venue distance.
+        private func cacheFacadeDetailEntities(from root: Entity) {
+            facadeDetailEntities = []
+            for q in 0..<4 {
+                guard let quad = root.findEntity(named: "q\(q)"),
+                      let near = quad.children.first(where: { $0.name == "near" }) else { continue }
+                for child in near.children {
+                    let n = child.name
+                    if n.hasSuffix("_bands") || n.hasSuffix("_pilasters") || n.hasSuffix("_balconies") || n.hasSuffix("_chimneys") || n.hasSuffix("_recesses") || n.hasSuffix("_railings") || n.hasSuffix("_dormers") || n.hasSuffix("_equipment") {
+                        facadeDetailEntities.append(child)
+                    }
+                }
+            }
+        }
+
+        private func setFacadeDetailEnabled(_ enabled: Bool) {
+            for e in facadeDetailEntities { e.isEnabled = enabled }
+        }
+
+        /// Pulses the cyan neon featured POI beacons at 1.5 Hz (scale 0.92–1.08).
+        /// Throttled to 30 fps (every-other-frame guard, same as orbit camera).
+        /// Pre-caches the featured-sphere entity array so the per-frame closure does
+        /// zero name-based lookup work.
+        @MainActor
+        private func startPOIPulse(scene: RealityKit.Scene) {
+            poiPulseSubscription?.cancel()
+            guard let beacons = poiBeaconsEntity else { return }
+            let featuredBeacons = Array(beacons.children.filter { $0.name.hasPrefix("poi:") })
+            guard !featuredBeacons.isEmpty else { return }
+            var elapsed: Double = 0
+            var frameCount = 0
+            poiPulseSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] event in
+                guard self != nil else { return }
+                frameCount += 1
+                guard frameCount & 1 == 0 else { return }  // 30fps throttle
+                elapsed += Double(event.deltaTime)
+                let pulse = Float(0.92 + 0.08 * sin(elapsed * .pi * 2.0 * 1.5))
+                for beacon in featuredBeacons {
+                    beacon.scale = SIMD3(repeating: pulse)
+                }
+            }
+        }
+
         /// Orbit mode: every quadrant at full quality, but palms hidden.
         ///
         /// Palm trunk geometry (4-sided prisms 0.17–0.28 m wide, 6.5–11.5 m tall) is sub-pixel at
@@ -603,6 +721,8 @@ struct DistrictRealityView: UIViewRepresentable {
                 node.far.isEnabled  = false
                 setPalmsEnabled(false, in: node.near)
             }
+            setFacadeDetailEnabled(false)
+            facadeDetailEnabled = false
         }
 
         /// Venue mode: per-frame camera-proximity check. Quadrants within
@@ -610,12 +730,13 @@ struct DistrictRealityView: UIViewRepresentable {
         private func startVenueLOD(scene: RealityKit.Scene) {
             lodSubscription?.cancel()
             let threshold = districtExtent * 0.5
+            let thresholdSq = threshold * threshold  // avoid sqrt per frame per quadrant
             lodSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
                 guard let self, let cam = self.cameraEntity else { return }
                 let camX = cam.position.x, camZ = cam.position.z
                 for node in self.quadrantLOD {
                     let dx = camX - node.center.x, dz = camZ - node.center.z
-                    let isNear = sqrt(dx * dx + dz * dz) <= threshold
+                    let isNear = dx * dx + dz * dz <= thresholdSq
                     let wasNear = node.near.isEnabled
                     node.near.isEnabled = isNear
                     node.far.isEnabled  = !isNear
@@ -779,6 +900,7 @@ struct DistrictRealityView: UIViewRepresentable {
         /// `currentDistance`, and `currentElevation` as side effects so post-fly pan/orbit resume
         /// from the landed position.
         private func flyToBuildingWithFraming(_ building: BuildingFootprint, scene: RealityKit.Scene) {
+            lastFocusedBuilding = building
             let pts = building.polygon
             guard !pts.isEmpty else { return }
 
@@ -799,12 +921,12 @@ struct DistrictRealityView: UIViewRepresentable {
 
             // FOV-based fitting distance: sphere must fit inside the camera frustum with margin
             let halfFovRad = (mood.fieldOfViewDegrees * 0.5) * (Float.pi / 180)
-            let fovFitDist = sphereR / tan(halfFovRad) * 1.30
+            let fovFitDist = sphereR / tan(halfFovRad) * 1.85
 
             // Tall buildings (> 60 m) get a looser distance cap and steeper elevation so the
             // camera rises above the mid-point and the full height remains in frame.
             let isTall = building.heightMeters > 60
-            let maxRelDist: Float = isTall ? 0.52 : 0.38
+            let maxRelDist: Float = isTall ? 0.65 : 0.50
             let eyeDist = min(max(fovFitDist, footprintR * 1.2, 12.0), districtExtent * maxRelDist)
 
             // Elevation angle: 20° for tall buildings (wider vertical frame), 15° for low-rise
@@ -812,7 +934,7 @@ struct DistrictRealityView: UIViewRepresentable {
             let elevCos: Float = isTall ? 0.940 : 0.966   // cos(20°) / cos(15°)
 
             // Look-at Y: lower 1/3–2/5 of building height for a balanced full-building frame
-            let lookH = building.heightMeters * (isTall ? 0.40 : 0.35)
+            let lookH = building.heightMeters * (isTall ? 0.35 : 0.28)
             let lookTarget = SIMD3<Float>(cx, lookH, cz)
 
             // Camera position: approach from current azimuth, elevated above look-at
@@ -840,6 +962,8 @@ struct DistrictRealityView: UIViewRepresentable {
             let normZoom = 1.0 - (eyeDist - minDist) / max(maxDist - minDist, 1)
             updateFOV(normalizedZoom: max(normZoom, 0))
 
+            setFacadeDetailEnabled(true)
+            facadeDetailEnabled = true
             flyCamera(to: camPos, lookAt: lookTarget, scene: scene)
         }
     }
