@@ -1,0 +1,55 @@
+{
+  "districtId": "Montmartre",
+  "pois": [
+    {
+      "id": "sacre_coeur",
+      "name": "Basilique du Sacré-Cœur",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 48.8867,
+      "longitude": 2.3431,
+      "description": "Romano-Byzantine basilica at the summit of Montmartre (83m). Its gleaming white travertine self-cleans in the rain. Highest viewpoint in Paris.",
+      "partnerURL": null
+    },
+    {
+      "id": "moulin_rouge",
+      "name": "Moulin Rouge",
+      "category": "nightlife",
+      "tier": "featured",
+      "latitude": 48.8842,
+      "longitude": 2.3323,
+      "description": "The world's most famous cabaret, opening in 1889. The red windmill on Boulevard de Clichy. Toulouse-Lautrec painted its dancers here.",
+      "partnerURL": null
+    },
+    {
+      "id": "place_du_tertre",
+      "name": "Place du Tertre",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 48.8866,
+      "longitude": 2.3408,
+      "description": "The village square that predates Paris's absorption of Montmartre. Artists set up easels here year-round — a living street art gallery.",
+      "partnerURL": null
+    },
+    {
+      "id": "musee_montmartre",
+      "name": "Musée de Montmartre",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 48.8882,
+      "longitude": 2.3400,
+      "description": "The oldest building on the Butte, where Renoir, Utrillo and Suzanne Valadon had studios. Gardens overlook the Montmartre vineyard.",
+      "partnerURL": null
+    },
+    {
+      "id": "vignes_montmartre",
+      "name": "Vignes de Montmartre",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 48.8876,
+      "longitude": 2.3413,
+      "description": "Paris's only remaining vineyard, planted 1933. Produces ~800 bottles per year of Pinot Noir. Harvested every October in a village festival.",
+      "partnerURL": null
+    }
+  ]
+}

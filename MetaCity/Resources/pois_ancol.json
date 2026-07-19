@@ -1,0 +1,55 @@
+{
+  "districtId": "Ancol",
+  "pois": [
+    {
+      "id": "dufan",
+      "name": "Dunia Fantasi (Dufan)",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -6.1223,
+      "longitude": 106.8412,
+      "description": "Indonesia's largest and oldest theme park, open since 1985. 25 thrilling rides including the Halilintar roller coaster, Kora-Kora Viking ship, and Istana Boneka indoor puppet ride.",
+      "partnerURL": null
+    },
+    {
+      "id": "sea_world",
+      "name": "Jakarta Aquarium Sea World",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -6.1211,
+      "longitude": 106.8430,
+      "description": "Southeast Asia's first and largest oceanarium, featuring a 35-metre underwater acrylic tunnel with sharks, rays, and 14,000 marine animals across 40 exhibits.",
+      "partnerURL": null
+    },
+    {
+      "id": "ancol_beach",
+      "name": "Pantai Ancol",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -6.1155,
+      "longitude": 106.8350,
+      "description": "Jakarta's main urban beach resort stretching 4km along the Java Sea. Popular for weekend escapes with palm-lined promenades, jet-ski rentals, and sunset views toward the Thousand Islands.",
+      "partnerURL": null
+    },
+    {
+      "id": "atlantis_water_adventure",
+      "name": "Atlantis Water Adventure",
+      "category": "explore",
+      "tier": "standard",
+      "latitude": -6.1228,
+      "longitude": 106.8397,
+      "description": "Large water park within the Ancol resort complex — slides, wave pools, and lazy rivers, with 14 water attractions across 5 hectares.",
+      "partnerURL": null
+    },
+    {
+      "id": "pasar_seni_ancol",
+      "name": "Pasar Seni Ancol",
+      "category": "shopping",
+      "tier": "standard",
+      "latitude": -6.1234,
+      "longitude": 106.8367,
+      "description": "Ancol's arts market — 350 workshops and galleries where visitors can watch batik painting, wayang carving, and silver jewellery making before purchasing directly from artisans.",
+      "partnerURL": null
+    }
+  ]
+}

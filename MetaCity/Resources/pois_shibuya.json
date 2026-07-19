@@ -1,0 +1,55 @@
+{
+  "districtId": "Shibuya",
+  "pois": [
+    {
+      "id": "scramble_crossing",
+      "name": "Shibuya Scramble Crossing",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.6594,
+      "longitude": 139.7005,
+      "description": "The world's busiest pedestrian crossing — 2,500 people cross simultaneously when the lights change. Best viewed from the Starbucks or Mag's Park terrace above.",
+      "partnerURL": null
+    },
+    {
+      "id": "scramble_square_obs",
+      "name": "Scramble Square",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.6582,
+      "longitude": 139.7022,
+      "description": "Shibuya's tallest tower (230m, 2019). The SHIBUYA SKY observation deck on floor 46 offers a 360° panorama of Tokyo — Fuji visible on clear days.",
+      "partnerURL": null
+    },
+    {
+      "id": "hachiko_statue",
+      "name": "Hachiko Statue",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6590,
+      "longitude": 139.7003,
+      "description": "Bronze statue of the Akita dog who waited at Shibuya Station for his deceased owner every day for nine years until 1935. The most popular meeting point in Tokyo.",
+      "partnerURL": null
+    },
+    {
+      "id": "nhk_broadcasting",
+      "name": "NHK Broadcasting Center",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6632,
+      "longitude": 139.6979,
+      "description": "Japan's public broadcaster since 1950, housed in a 48m complex in Yoyogi. Studio Park is open to visitors — walk through live TV sets.",
+      "partnerURL": null
+    },
+    {
+      "id": "shibuya_stream",
+      "name": "Shibuya Stream",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6569,
+      "longitude": 139.6996,
+      "description": "2018 mixed-use tower (180m) built over the channelled Shibuya River. The promenade follows the original riverbed through cafes and terraces.",
+      "partnerURL": null
+    }
+  ]
+}

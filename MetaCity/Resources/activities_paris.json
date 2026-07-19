@@ -68,6 +68,20 @@
       "latitude": 48.8558,
       "longitude": 2.3545,
       "districtId": "LeMarais"
+    },
+    {
+      "id": "paris_sacre_coeur_panorama",
+      "name": "Panorama — Sacré-Cœur vu du ciel",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "La caméra orbitale positionne le spectateur au-dessus de la coupole de 83 mètres : la butte Montmartre révèle son tissu de ruelles médiévales, vignobles urbains et ateliers d'artistes — un îlot de village dans la métropole parisienne.",
+      "area": "Montmartre",
+      "priceRange": "Free",
+      "duration": "12 min",
+      "latitude": 48.8867,
+      "longitude": 2.3431,
+      "districtId": "Montmartre",
+      "fragmentAssetKey": "paris_montmartre.sacre_coeur"
     }
   ]
 }

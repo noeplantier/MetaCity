@@ -914,6 +914,56 @@
               "dataPath": "Districts/LowerManhattan.json"
             }
           ]
+        },
+        {
+          "id": "losangeles",
+          "displayName": "Los Angeles",
+          "shortName": "LA",
+          "anchor": {
+            "latitude": 34.040,
+            "longitude": -118.250
+          },
+          "mapZoomRadius": 12000,
+          "markerColor": "#E8855A",
+          "markerHeight": 1.0,
+          "districts": [
+            {
+              "id": "DowntownLA",
+              "displayName": "Downtown LA",
+              "anchor": {
+                "latitude": 34.040,
+                "longitude": -118.250
+              },
+              "boundingBox": {
+                "south": 34.033,
+                "west": -118.265,
+                "north": 34.058,
+                "east": -118.235
+              },
+              "focusBuildingName": "Wilshire Grand Center",
+              "moodKey": "laSunset",
+              "dataBundled": true,
+              "dataPath": "Districts/DowntownLA.json"
+            },
+            {
+              "id": "Hollywood",
+              "displayName": "Hollywood",
+              "anchor": {
+                "latitude": 34.100,
+                "longitude": -118.330
+              },
+              "boundingBox": {
+                "south": 34.090,
+                "west": -118.345,
+                "north": 34.115,
+                "east": -118.315
+              },
+              "focusBuildingName": "Capitol Records Building",
+              "moodKey": "laSunset",
+              "dataBundled": true,
+              "dataPath": "Districts/Hollywood.json"
+            }
+          ]
         }
       ]
     },
@@ -950,6 +1000,63 @@
               "moodKey": "shibuyaNeon",
               "dataBundled": true,
               "dataPath": "Districts/Shibuya.json",
+              "supportsAR": false
+            },
+            {
+              "id": "Shinjuku",
+              "displayName": "Shinjuku",
+              "anchor": {
+                "latitude": 35.6938,
+                "longitude": 139.7036
+              },
+              "boundingBox": {
+                "south": 35.686,
+                "west": 139.695,
+                "north": 35.700,
+                "east": 139.708
+              },
+              "focusBuildingName": "Nomura Building",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Shinjuku.json",
+              "supportsAR": false
+            },
+            {
+              "id": "Ginza",
+              "displayName": "Ginza",
+              "anchor": {
+                "latitude": 35.6718,
+                "longitude": 139.7681
+              },
+              "boundingBox": {
+                "south": 35.666,
+                "west": 139.762,
+                "north": 35.675,
+                "east": 139.773
+              },
+              "focusBuildingName": "GINZA SIX",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Ginza.json",
+              "supportsAR": false
+            },
+            {
+              "id": "Asakusa",
+              "displayName": "Asakusa",
+              "anchor": {
+                "latitude": 35.7148,
+                "longitude": 139.7967
+              },
+              "boundingBox": {
+                "south": 35.711,
+                "west": 139.793,
+                "north": 35.720,
+                "east": 139.803
+              },
+              "focusBuildingName": "Senso-ji Temple",
+              "moodKey": "sacredSite",
+              "dataBundled": true,
+              "dataPath": "Districts/Asakusa.json",
               "supportsAR": false
             }
           ]

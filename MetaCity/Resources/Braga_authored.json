@@ -1,0 +1,32 @@
+{
+  "districtId": "Braga",
+  "overrides": [
+    {
+      "nameMatch": "Gedung Merdeka",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 18.0
+    },
+    {
+      "nameMatch": "Gedung Sate",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 48.0
+    },
+    {
+      "nameMatch": "Bank Indonesia",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Gereja",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Katedral",
+      "style": "religious",
+      "roofType": "dome"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "districtId": "Asakusa",
+  "pois": [
+    {
+      "id": "sensoji_temple",
+      "name": "Senso-ji Temple",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.7147,
+      "longitude": 139.7966,
+      "description": "Tokyo's oldest temple, founded in 628 AD. The iconic Kaminarimon gate with its giant red lantern is the defining image of old Tokyo. The five-storey pagoda, main hall, and Nakamise shopping street form Japan's most visited religious site — over 30 million visitors annually.",
+      "partnerURL": null
+    },
+    {
+      "id": "kaminarimon",
+      "name": "Kaminarimon Gate",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.7108,
+      "longitude": 139.7963,
+      "description": "The 'Thunder Gate' of Senso-ji — one of Tokyo's most recognisable icons. The enormous red 680kg paper lantern hangs beneath the gate between the statues of Fujin (wind) and Raijin (thunder). Rebuilt in 1960 after destruction in 1865.",
+      "partnerURL": null
+    },
+    {
+      "id": "nakamise_shopping",
+      "name": "Nakamise Shopping Street",
+      "category": "shopping",
+      "tier": "featured",
+      "latitude": 35.7121,
+      "longitude": 139.7964,
+      "description": "The 250-metre covered shopping arcade leading to Senso-ji's main hall. 89 shops sell traditional Tokyo souvenirs — ningyo dolls, sembei rice crackers, jinrikisha toys, hagoita battledores, and wagashi sweets. The current arcade dates from 1945 reconstruction.",
+      "partnerURL": null
+    },
+    {
+      "id": "asakusa_shrine",
+      "name": "Asakusa Shrine",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": 35.7150,
+      "longitude": 139.7974,
+      "description": "A Shinto shrine adjacent to Senso-ji, dedicated to the three men who founded the Buddhist temple. One of Tokyo's most important shrines, and home to the Sanja Matsuri — one of the three great festivals of Tokyo, drawing 2 million visitors each May.",
+      "partnerURL": null
+    },
+    {
+      "id": "sumida_park",
+      "name": "Sumida Park",
+      "category": "explore",
+      "tier": "standard",
+      "latitude": 35.7178,
+      "longitude": 139.8001,
+      "description": "A riverside park on the banks of the Sumida River, famous for its cherry blossom hanami parties and the Sumida River Fireworks Festival — one of Tokyo's oldest, dating from 1733. The park offers unobstructed views across to Skytree.",
+      "partnerURL": null
+    }
+  ]
+}

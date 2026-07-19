@@ -67,6 +67,20 @@
       "latitude": 35.6598,
       "longitude": 139.7002,
       "districtId": "Shibuya"
+    },
+    {
+      "id": "tokyo_cerulean_lifestyle",
+      "name": "Penthouse 184m — Cerulean Tower",
+      "category": "lifestyle",
+      "tier": "premium",
+      "description": "Hôtel de luxe Tokyu sur 40 étages : la caméra focus monte de la base à la silhouette sommitale et positionne le spectateur au niveau du rooftop bar. La perspective plongeante révèle le quadrillage dense des rues de Shibuya-ku inexplorable à pied.",
+      "area": "Shibuya",
+      "priceRange": "$$$",
+      "duration": "8 min",
+      "latitude": 35.6565,
+      "longitude": 139.6998,
+      "districtId": "Shibuya",
+      "fragmentAssetKey": "tokyo_shibuya.cerulean_tower"
     }
   ]
 }

@@ -1,0 +1,55 @@
+{
+  "districtId": "CentroStorico",
+  "pois": [
+    {
+      "id": "santivo",
+      "name": "Sant'Ivo alla Sapienza",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 41.8991,
+      "longitude": 12.4727,
+      "description": "Francesco Borromini's 1660 masterpiece (60m spiral lantern). The world's most complex Baroque church plan — a six-pointed star in the courtyard of La Sapienza university.",
+      "partnerURL": null
+    },
+    {
+      "id": "pantheon_area",
+      "name": "Piazza della Rotonda",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 41.8987,
+      "longitude": 12.4768,
+      "description": "The square in front of the Pantheon (27 BC/125 AD). The portico columns are monolithic Egyptian granite, each 12m tall. The dome was the largest in the world for 1,300 years.",
+      "partnerURL": null
+    },
+    {
+      "id": "castel_sant_angelo",
+      "name": "Castel Sant'Angelo",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 41.9031,
+      "longitude": 12.4663,
+      "description": "Hadrian's mausoleum (135 AD), later the popes' fortress. The terrace (48m) commands the best panorama of the Vatican and the Tiber bend. Tosca ends here.",
+      "partnerURL": null
+    },
+    {
+      "id": "piazza_navona",
+      "name": "Piazza Navona",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 41.8988,
+      "longitude": 12.4734,
+      "description": "Built over Domitian's 1st-century stadium. Bernini's Fountain of the Four Rivers (1651) is flanked by Sant'Agnese — Borromini vs. Bernini at point-blank range.",
+      "partnerURL": null
+    },
+    {
+      "id": "campo_de_fiori",
+      "name": "Campo de' Fiori",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": 41.8957,
+      "longitude": 12.4726,
+      "description": "Rome's only piazza without a church — a 14th-century execution square, now an open-air market every morning and Rome's liveliest aperitivo hub at dusk.",
+      "partnerURL": null
+    }
+  ]
+}

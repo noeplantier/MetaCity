@@ -1,6 +1,8 @@
+import Combine
 import FirebaseCore
 import GoogleSignIn
 import SwiftUI
+import UIKit
 
 @main
 struct MetaCityApp: App {
@@ -56,12 +58,16 @@ struct MetaCityApp: App {
                                                         "VieuxBordeaux", "LesChartrons",
                                                         "CityOfLondon", "Westminster", "Salamanca", "CentroStorico",
                                                         "Malasana",
-                                                        // Tokyo — Shibuya 2,615 buildings
-                                                        "Shibuya",
+                                                        // Tokyo — Shibuya 2,615 / Shinjuku 3,271 / Asakusa 3,928 buildings
+                                                        "Shibuya", "Shinjuku", "Asakusa",
+                                                        // Tokyo — Ginza 2,008 buildings
+                                                        "Ginza",
                                                         // North America — all 6 will be heavy (dense city grids)
                                                         "VancouverDowntown", "WestEnd",
                                                         "SFDowntown", "FishermansWharf",
-                                                        "MidtownManhattan", "LowerManhattan"]
+                                                        "MidtownManhattan", "LowerManhattan",
+                                                        // Los Angeles — DowntownLA 2,658 / Hollywood 7,193 buildings
+                                                        "DowntownLA", "Hollywood"]
                     for district in CityManifest.shared.allDistricts
                         where district.dataBundled && !heavyDistricts.contains(district.id) {
                         _ = try? await DistrictRealityKit.loadDistrictEntity(
@@ -72,6 +78,12 @@ struct MetaCityApp: App {
                     // Google's sign-in sheet redirects back into the app via this URL scheme
                     // (registered in project.yml from the plist's REVERSED_CLIENT_ID).
                     GIDSignIn.sharedInstance.handle(url)
+                }
+                .onReceive(NotificationCenter.default.publisher(
+                    for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+                    // Flush entity cache under memory pressure — entities will be rebuilt on
+                    // next visit. Material pool and texture caches are much smaller and kept.
+                    Task { @MainActor in DistrictRealityKit.flushEntityCache() }
                 }
                 // MetaCity's brand is the anthracite-on-white look, full stop — not "dark mode",
                 // so it's forced regardless of the system appearance setting.

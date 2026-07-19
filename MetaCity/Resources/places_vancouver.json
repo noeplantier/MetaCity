@@ -1,0 +1,103 @@
+{
+  "cityId": "vancouver",
+  "places": [
+    {
+      "id": "van_stanleypark",
+      "name": "Stanley Park Seawall",
+      "type": "nature",
+      "cityId": "vancouver",
+      "districtId": "VancouverDowntown",
+      "coordinate": { "latitude": 49.3043, "longitude": -123.1443 },
+      "description": "9km seawall cycling and walking path around 405 hectares of old-growth forest. Mountains across Burrard Inlet, totem poles, Prospect Point with Lions Gate Bridge view.",
+      "highlights": ["9km car-free seawall around the park", "Lions Gate Bridge from Prospect Point", "Eight Totem Poles — Coast Salish culture"],
+      "category": "nature",
+      "tags": ["park", "seawall", "cycling", "forest"],
+      "isFeatured": true,
+      "priceRange": null
+    },
+    {
+      "id": "van_granville",
+      "name": "Granville Island Market",
+      "type": "culinary",
+      "cityId": "vancouver",
+      "districtId": "VancouverDowntown",
+      "coordinate": { "latitude": 49.2718, "longitude": -123.1340 },
+      "description": "Vancouver's culinary heart on a former industrial island. 50+ vendors: BC salmon, pastries, artisan cheese, Portuguese custard tarts. Outdoor kayak and False Creek ferry dock.",
+      "highlights": ["Fresh BC salmon and halibut daily", "Lee's Donuts — lineup before 10am", "Public Market open daily year-round"],
+      "category": "lifestyle",
+      "tags": ["market", "salmon", "artisan", "falseCreek"],
+      "isFeatured": true,
+      "priceRange": "$"
+    },
+    {
+      "id": "van_capilano",
+      "name": "Capilano Suspension Bridge",
+      "type": "mountain",
+      "cityId": "vancouver",
+      "districtId": "WestEnd",
+      "coordinate": { "latitude": 49.3435, "longitude": -123.1136 },
+      "description": "137m suspension bridge, 70m above the Capilano River. Oldest tourist attraction in Vancouver (1889). Treetops Adventure cliffwalk, giant Douglas firs up to 1,000 years old.",
+      "highlights": ["137m span, 70m above Capilano Canyon", "Treetops Adventure — walkway through firs", "Cliffwalk — cantilever over granite cliff"],
+      "category": "mountain",
+      "tags": ["bridge", "forest", "adventure", "canyon"],
+      "isFeatured": true,
+      "priceRange": "$$"
+    },
+    {
+      "id": "van_coalharbour",
+      "name": "Coal Harbour Seawall",
+      "type": "neighborhood",
+      "cityId": "vancouver",
+      "districtId": "VancouverDowntown",
+      "coordinate": { "latitude": 49.2889, "longitude": -123.1242 },
+      "description": "Flat waterfront promenade from Stanley Park to Canada Place. Superyacht marina, float-plane terminal, North Shore mountains reflected in Burrard Inlet. Vancouver's most scenic walk.",
+      "highlights": ["Superyacht marina dockside walk", "Float-plane takeoffs from Harbour Air", "North Shore mountains panorama"],
+      "category": "neighborhood",
+      "tags": ["seawall", "marina", "mountains", "walk"],
+      "isFeatured": true,
+      "priceRange": null
+    },
+    {
+      "id": "van_gastown",
+      "name": "Gastown Steam Clock",
+      "type": "heritage",
+      "cityId": "vancouver",
+      "districtId": "VancouverDowntown",
+      "coordinate": { "latitude": 49.2840, "longitude": -123.1094 },
+      "description": "Victorian-era cobblestone district, Vancouver's oldest neighbourhood. The Steam Clock whistles every 15 minutes. Acclaimed restaurants, architecture tours, and the best selection of independent boutiques.",
+      "highlights": ["Steam Clock whistles Westminster Chimes every 15min", "Cobblestone Water Street — oldest in Vancouver", "Chambar and L'Abattoir for dinner"],
+      "category": "heritage",
+      "tags": ["historic", "cobblestone", "boutiques", "restaurants"],
+      "isFeatured": false,
+      "priceRange": "$"
+    },
+    {
+      "id": "van_kitsilano",
+      "name": "Kitsilano Beach",
+      "type": "beach",
+      "cityId": "vancouver",
+      "districtId": "WestEnd",
+      "coordinate": { "latitude": 49.2774, "longitude": -123.1608 },
+      "description": "Vancouver's most popular urban beach: 4th Avenue boutiques, Naam vegetarian, and the largest outdoor saltwater pool in Canada. Downtown skyline and North Shore mountains framing the horizon.",
+      "highlights": ["Largest saltwater pool in Canada", "Downtown skyline from the sand", "4th Avenue — best independent shops"],
+      "category": "beach",
+      "tags": ["beach", "saltwater pool", "mountains", "kits"],
+      "isFeatured": false,
+      "priceRange": null
+    },
+    {
+      "id": "van_moa",
+      "name": "Museum of Anthropology",
+      "type": "cultural",
+      "cityId": "vancouver",
+      "districtId": "WestEnd",
+      "coordinate": { "latitude": 49.2685, "longitude": -123.2590 },
+      "description": "Arthur Erickson's masterpiece on UBC cliffs. Largest collection of Northwest Coast First Nations art in the world: Haida totem poles, Gwaii Haanas carvings, Musqueam weavings.",
+      "highlights": ["Haida totem poles in the Great Hall", "Raven and the First Men — Haida sculpture", "Cliff edge overlooking Strait of Georgia"],
+      "category": "cultural",
+      "tags": ["indigenous", "totem", "haida", "anthropology"],
+      "isFeatured": false,
+      "priceRange": "$"
+    }
+  ]
+}

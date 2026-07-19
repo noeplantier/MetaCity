@@ -4,7 +4,7 @@ import SwiftUI
 
 /// Unified spatial surface: Map → city focus → district 3D.
 /// The `cityExplore` state (CityOverviewView + district list page) has been removed.
-/// Districts are tappable directly from the map via `DistrictPinView` annotations at any zoom.
+/// Districts are tappable directly from the map via `` annotations at any zoom.
 /// State machine: worldMap ↔ cityFocused ↔ districtExplore.
 struct DiscoverView: View {
     @ObservedObject var viewModel: DiscoverViewModel
@@ -24,6 +24,12 @@ struct DiscoverView: View {
                 .allowsHitTesting(false)
                 .animation(.easeOut(duration: 0.28), value: transitionFlash)
             overlayLayer
+            // First-entry district reveal — above all other overlays
+            if let ctx = viewModel.districtRevealContext {
+                DistrictRevealOverlay(context: ctx, onDismiss: viewModel.dismissDistrictReveal)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(100)
+            }
         }
         .onChange(of: viewModel.showingMap) { _, isNowShowingMap in
             if !isNowShowingMap {
@@ -41,7 +47,7 @@ struct DiscoverView: View {
     private var mapLayer: some View {
         Map(position: $viewModel.cameraPosition) {
             // City pins
-            ForEach(viewModel.manifest.allCities) { city in
+            ForEach(viewModel.visibleCities) { city in
                 Annotation("", coordinate: city.anchor.clLocationCoordinate) {
                     CityPinView(
                         city: city,
@@ -95,8 +101,13 @@ struct DiscoverView: View {
                 onPOISelected: { viewModel.selectPOIById($0, districtId: district.id) },
                 venueTargetPOIId: viewModel.venueTargetPOIId,
                 searchFlyToken: viewModel.searchFlyToken,
-                searchFlyCentroid: viewModel.searchFlyCentroid
+                searchFlyCentroid: viewModel.searchFlyCentroid,
+                viewFocusToken: viewModel.viewFocusToken,
+                selectedBuilding: viewModel.selectedBuilding,
+                activeViewPreset: viewModel.activeViewPreset,
+                isNight: viewModel.isNightMode
             )
+            .id(district.id)    // forces coordinator recreation when district changes
             .ignoresSafeArea()
             .opacity(viewModel.showingMap ? 0 : 1)
             .animation(.easeInOut(duration: 0.35), value: viewModel.showingMap)
@@ -113,8 +124,8 @@ struct DiscoverView: View {
                 worldMapOverlay
             case .cityFocused(let city):
                 cityFocusedOverlay(city: city)
-            case .districtExplore(_, let district):
-                districtExploreOverlay(district: district)
+            case .districtExplore(let city, let district):
+                districtExploreOverlay(city: city, district: district)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -129,12 +140,14 @@ struct DiscoverView: View {
                     Text("MetaCity")
                         .font(.metacityLargeTitle)
                         .foregroundStyle(Color.metacityTextPrimary)
-                    Text("\(viewModel.manifest.allCities.count) VILLES · \(viewModel.manifest.allDistricts.filter(\.dataBundled).count) QUARTIERS 3D")
+                    Text("\(viewModel.visibleCities.count) VILLES · \(viewModel.manifest.allDistricts.filter(\.dataBundled).count) QUARTIERS 3D")
                         .font(.system(size: 10, weight: .semibold, design: .monospaced))
                         .foregroundStyle(Color.metacityPrimary.opacity(0.8))
                         .tracking(0.8)
                 }
                 Spacer()
+                // Globe — returns to world map
+                EarthGlobeButton(onTap: { viewModel.resetToWorldMap() })
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.top, Spacing.md)
@@ -143,11 +156,11 @@ struct DiscoverView: View {
                 .padding(.horizontal, Spacing.lg)
                 .padding(.top, Spacing.sm)
 
-            let results = viewModel.globalSearchResults()
             if viewModel.isGlobalSearchActive && !viewModel.globalSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
                 GlobalSearchDropdown(
                     instantCities: viewModel.instantCityResults,
-                    results: results,
+                    districtResults: viewModel.globalDistrictResults,
+                    placeResults: viewModel.globalPlaceResults,
                     worldSuggestions: viewModel.worldCitySuggestions,
                     onSelect: { viewModel.selectGlobalSearchResult($0) },
                     onSelectSuggestion: { viewModel.selectWorldCitySuggestion($0) }
@@ -164,22 +177,23 @@ struct DiscoverView: View {
 
     private func cityFocusedOverlay(city: CityEntry) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
+            // Unified navbar — matches districtExploreOverlay layout
+            HStack(spacing: Spacing.sm) {
                 backButton
-                Spacer()
+                globalSearchBar
+                EarthGlobeButton(onTap: { viewModel.resetToWorldMap() })
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.top, Spacing.md)
+            .padding(.bottom, Spacing.sm)
+            .background(.ultraThinMaterial)
+            .overlay(alignment: .bottom) { ScanLineView() }
 
-            globalSearchBar
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.sm)
-
-            let results = viewModel.globalSearchResults()
             if viewModel.isGlobalSearchActive && !viewModel.globalSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
                 GlobalSearchDropdown(
                     instantCities: viewModel.instantCityResults,
-                    results: results,
+                    districtResults: viewModel.globalDistrictResults,
+                    placeResults: viewModel.globalPlaceResults,
                     worldSuggestions: viewModel.worldCitySuggestions,
                     onSelect: { viewModel.selectGlobalSearchResult($0) },
                     onSelectSuggestion: { viewModel.selectWorldCitySuggestion($0) }
@@ -213,6 +227,9 @@ struct DiscoverView: View {
                 .foregroundStyle(Color.metacityTextPrimary)
                 .tint(Color.metacityPrimary)
                 .onTapGesture { viewModel.isGlobalSearchActive = true }
+                .onChange(of: viewModel.globalSearchQuery) { _, new in
+                    if !new.isEmpty { viewModel.isGlobalSearchActive = true }
+                }
                 .submitLabel(.search)
                 .onSubmit {
                     let results = viewModel.globalSearchResults()
@@ -278,24 +295,27 @@ struct DiscoverView: View {
 
     // MARK: - districtExplore overlay
 
-    private func districtExploreOverlay(district: DistrictEntry) -> some View {
+    private func districtExploreOverlay(city: CityEntry, district: DistrictEntry) -> some View {
         VStack(spacing: 0) {
-            // HUD header — minimal: back button only, no district name label.
-            // The 3D scene is the spatial indicator; text clutter defeats premium clarity.
-            HStack {
+            // Unified nav row: back | search bar | night toggle | globe
+            HStack(spacing: Spacing.sm) {
                 backButton
-                Spacer()
+                DistrictSearchBar(query: $viewModel.districtSearchQuery)
+                Button(action: { viewModel.isNightMode.toggle() }) {
+                    Image(systemName: viewModel.isNightMode ? "moon.fill" : "sun.max.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(viewModel.isNightMode ? Color.metacityNeonCyan : Color.metacityTextPrimary)
+                        .frame(width: 36, height: 36)
+                        .background(.ultraThinMaterial, in: Circle())
+                }
+                .accessibilityLabel(viewModel.isNightMode ? "Day mode" : "Night mode")
+                EarthGlobeButton(onTap: { viewModel.resetToWorldMap() })
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.top, Spacing.md)
             .padding(.bottom, Spacing.sm)
             .background(.ultraThinMaterial)
             .overlay(alignment: .bottom) { ScanLineView() }
-
-            // Search bar
-            DistrictSearchBar(query: $viewModel.districtSearchQuery)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.sm)
 
             // Autocomplete dropdown
             let results = viewModel.searchResults(in: district)
@@ -309,6 +329,23 @@ struct DiscoverView: View {
 
             Spacer()
 
+            // Floating mini-map — hidden when a venue card is open
+            let hasCard = viewModel.selectedVenuePOI != nil
+            if !hasCard {
+                HStack {
+                    Spacer()
+                    DistrictMiniMapView(
+                        district: district,
+                        activePreset: viewModel.activeViewPreset,
+                        onPresetChange: { viewModel.setViewPreset($0) }
+                    )
+                    .padding(.trailing, Spacing.lg)
+                    .padding(.bottom, Spacing.sm)
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.92)))
+                .animation(.easeInOut(duration: 0.22), value: hasCard)
+            }
+
             // VenueCard
             if let poi = viewModel.selectedVenuePOI {
                 HUDVenueCard(poi: poi, onDismiss: { viewModel.dismissVenue() })
@@ -317,22 +354,13 @@ struct DiscoverView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
-            // BuildingInfoCard
-            if let building = viewModel.selectedBuilding {
-                HUDBuildingCard(building: building, onDismiss: { viewModel.clearSelectedBuilding() }, onOrbit: { viewModel.startBuildingOrbit() })
-                .padding(.horizontal, Spacing.lg)
-                .padding(.bottom, Spacing.sm)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-
-            DistrictControlsPanel(viewModel: viewModel, district: district)
         }
     }
 
     // MARK: - Helpers
 
     private var districtPins: [DistrictPin] {
-        viewModel.manifest.allCities.flatMap { city in
+        viewModel.visibleCities.flatMap { city in
             city.districts.map { DistrictPin(city: city, district: $0) }
         }
     }
@@ -346,6 +374,271 @@ struct DiscoverView: View {
                 .background(.ultraThinMaterial, in: Circle())
         }
         .accessibilityLabel("Back")
+    }
+}
+
+// MARK: - District tab bar
+
+/// Horizontal scroll of bundled districts for the current city.
+/// Each tab shows the district name, an active-indicator capsule, and a visited-status dot.
+/// Tapping a district that is already selected is a no-op (prevent accidental reloads).
+private struct DistrictTabBar: View {
+    let city: CityEntry
+    let selectedDistrictId: String
+    let onSelect: (DistrictEntry) -> Void
+
+    @State private var visitedIds: Set<String> = []
+
+    private var bundled: [DistrictEntry] { city.districts.filter(\.dataBundled) }
+
+    var body: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(bundled) { district in
+                        Button {
+                            guard district.id != selectedDistrictId else { return }
+                            onSelect(district)
+                        } label: {
+                            let isActive  = district.id == selectedDistrictId
+                            let isVisited = visitedIds.contains(district.id)
+                            VStack(spacing: 2) {
+                                // Visited dot — above the label, subtle
+                                Circle()
+                                    .fill(isVisited
+                                          ? Color.metacityNeonCyan.opacity(isActive ? 1.0 : 0.55)
+                                          : Color.white.opacity(0.18))
+                                    .frame(width: 4, height: 4)
+                                Text(district.displayName.uppercased())
+                                    .font(.system(size: 10, weight: isActive ? .bold : .medium,
+                                                  design: .monospaced))
+                                    .foregroundStyle(isActive
+                                        ? Color.metacityNeonCyan
+                                        : Color.white.opacity(0.55))
+                                    .tracking(0.6)
+                                    .lineLimit(1)
+                                // Active indicator bar
+                                Capsule()
+                                    .fill(isActive ? Color.metacityNeonCyan : Color.clear)
+                                    .frame(height: 2)
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 6)
+                            .id(district.id)
+                        }
+                        .buttonStyle(.plain)
+                        .animation(.easeInOut(duration: 0.18), value: selectedDistrictId)
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+            }
+            .background {
+                Color.black.opacity(0.62)
+                    .overlay(Color.metacityNeonCyan.opacity(0.03))
+            }
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(Color.white.opacity(0.07))
+                    .frame(height: 0.5)
+            }
+            .frame(height: 46)
+            .onChange(of: selectedDistrictId) { _, newId in
+                withAnimation { proxy.scrollTo(newId, anchor: .center) }
+                refreshVisited()
+            }
+            .onAppear {
+                proxy.scrollTo(selectedDistrictId, anchor: .center)
+                refreshVisited()
+            }
+        }
+    }
+
+    private func refreshVisited() {
+        var ids = Set<String>()
+        for d in bundled where UserDefaults.standard.bool(forKey: "reveal_\(d.id)") {
+            ids.insert(d.id)
+        }
+        visitedIds = ids
+    }
+}
+
+// MARK: - District reveal overlay
+
+/// Full-width bottom overlay that slides in on a district's first visit, showing
+/// key stats for 3.5s then auto-dismisses. One-time per district (UserDefaults key).
+private struct DistrictRevealOverlay: View {
+    let context: DistrictRevealContext
+    let onDismiss: () -> Void
+
+    @State private var progress: CGFloat = 1.0   // drains 1→0 over 3.5s
+    @State private var appeared = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            VStack(spacing: 0) {
+                // Mood-tinted drain bar
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Color.white.opacity(0.06)
+                        moodAccentColor
+                            .frame(width: geo.size.width * progress)
+                            .shadow(color: moodAccentColor.opacity(0.5), radius: 4, y: 0)
+                    }
+                }
+                .frame(height: 2)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    // Header row: city tag + dismiss
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            // City name row with mood accent dot
+                            HStack(spacing: 5) {
+                                Circle()
+                                    .fill(moodAccentColor)
+                                    .frame(width: 4, height: 4)
+                                Text(context.city.displayName.uppercased())
+                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .foregroundStyle(moodAccentColor)
+                                    .tracking(3)
+                            }
+                            Text(context.district.displayName)
+                                .font(.system(size: 26, weight: .black, design: .default))
+                                .foregroundStyle(.white)
+                                .lineLimit(1)
+                            // Architecture period tag
+                            Text(architectureTag)
+                                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                                .foregroundStyle(Color.white.opacity(0.42))
+                                .tracking(1.2)
+                        }
+                        Spacer()
+                        Button(action: onDismiss) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.white.opacity(0.55))
+                                .frame(width: 28, height: 28)
+                                .background(Color.white.opacity(0.08), in: Circle())
+                        }
+                    }
+
+                    // Stats row with mood-accented stat values
+                    HStack(spacing: Spacing.lg) {
+                        if context.buildingCount > 0 {
+                            RevealStat(label: "BÂTIMENTS", value: "\(context.buildingCount)", accent: moodAccentColor)
+                            RevealStat(label: "ROUTES",    value: "\(context.roadCount)",      accent: moodAccentColor)
+                        }
+                        RevealStat(label: "AMBIANCE", value: moodLabel, accent: moodAccentColor)
+                        if context.activityCount > 0 {
+                            RevealStat(label: "ACTIVITÉS", value: "\(context.activityCount)", accent: moodAccentColor)
+                        }
+                    }
+                }
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, 16)
+                // Dark glassmorphism background: near-opaque black + material blur
+                .background {
+                    ZStack {
+                        Color.black.opacity(0.82)
+                        Rectangle().fill(.ultraThinMaterial).opacity(0.35)
+                    }
+                }
+            }
+            .offset(y: appeared ? 0 : 60)
+            .opacity(appeared ? 1 : 0)
+        }
+        .ignoresSafeArea(edges: .bottom)
+        .onAppear {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.80)) { appeared = true }
+            withAnimation(.linear(duration: 3.5)) { progress = 0 }
+        }
+    }
+
+    // MARK: - Mood accent color — per city/mood identity
+
+    private var moodAccentColor: Color {
+        switch context.district.moodKey {
+        case "shibuyaNeon":        return Color(red: 0.00, green: 0.95, blue: 0.82)   // neon cyan — Tokyo
+        case "nycDusk":            return Color(red: 0.68, green: 0.48, blue: 0.98)   // Manhattan purple
+        case "parisianCore":       return Color(red: 0.92, green: 0.80, blue: 0.44)   // Parisian gold
+        case "bordeauxWaterfront": return Color(red: 0.95, green: 0.56, blue: 0.22)   // Garonne amber
+        case "rennesMedieval":     return Color(red: 0.58, green: 0.72, blue: 0.86)   // Breton slate blue
+        case "londonSilver":       return Color(red: 0.68, green: 0.74, blue: 0.84)   // London silver
+        case "madridAfternoon":    return Color(red: 0.98, green: 0.70, blue: 0.18)   // Iberian gold
+        case "romanGoldenHour":    return Color(red: 0.98, green: 0.52, blue: 0.20)   // Roman sienna
+        case "laSunset":           return Color(red: 1.00, green: 0.56, blue: 0.22)   // Pacific sunset
+        case "vancouverCoastal":   return Color(red: 0.22, green: 0.76, blue: 0.90)   // Pacific teal
+        case "sfMorning":          return Color(red: 0.96, green: 0.78, blue: 0.38)   // California morning
+        case "skyscraperCorridor": return Color(red: 0.20, green: 0.66, blue: 1.00)   // SCBD neon blue
+        case "beachResort":        return Color(red: 0.22, green: 0.92, blue: 0.74)   // tropical aqua
+        case "sacredSite":         return Color(red: 0.88, green: 0.66, blue: 0.30)   // temple gold
+        case "colonialSquare":     return Color(red: 0.88, green: 0.48, blue: 0.24)   // terracotta
+        default:                   return Color.metacityPrimary
+        }
+    }
+
+    // MARK: - Mood display label
+
+    private var moodLabel: String {
+        switch context.district.moodKey {
+        case "skyscraperCorridor": return "SKYLINE"
+        case "parisianCore":       return "PARIS"
+        case "bordeauxWaterfront": return "WATERFRONT"
+        case "londonSilver":       return "LONDON"
+        case "madridAfternoon":    return "GOLDEN HR"
+        case "romanGoldenHour":    return "ROME"
+        case "shibuyaNeon":        return "NEON"
+        case "laSunset":           return "SUNSET"
+        case "nycDusk":            return "DUSK"
+        case "vancouverCoastal":   return "COASTAL"
+        case "sfMorning":          return "MORNING"
+        case "beachResort":        return "RESORT"
+        case "sacredSite":         return "SACRÉ"
+        case "colonialSquare":     return "COLONIAL"
+        case "rennesMedieval":     return "MÉDIÉVAL"
+        default:                   return context.district.moodKey.uppercased()
+        }
+    }
+
+    // MARK: - Architecture period string derived from mood key
+
+    private var architectureTag: String {
+        switch context.district.moodKey {
+        case "parisianCore":       return "PIERRE DE LUTÈCE · HAUSSMANN 1853–1927"
+        case "bordeauxWaterfront": return "CALCAIRE GIRONDIN · PORT DE LA LUNE XVIIIe"
+        case "rennesMedieval":     return "MI-BOIS BRETON · XIIe–XVe SIÈCLE"
+        case "londonSilver":       return "BRIQUE LONDONIENNE · ÈRE VICTORIENNE"
+        case "madridAfternoon":    return "PIERRE ENSANCHE · 1860–1936"
+        case "romanGoldenHour":    return "TUFFEAU ROMAIN · Ier–XVIIIe SIÈCLE"
+        case "shibuyaNeon":        return "BÉTON & VERRE · POST-1964"
+        case "laSunset":           return "BÉTON MODERNE · SOCAL 1950–"
+        case "nycDusk":            return "BRIQUE PRÉ-GUERRE · 1890–1940"
+        case "vancouverCoastal":   return "VERRE PACIFIQUE · POST-1980"
+        case "sfMorning":          return "BÉTON FINANCIER · POST-1960"
+        case "skyscraperCorridor": return "VERRE & ACIER · SCBD JAKARTA"
+        case "beachResort":        return "PIERRE VOLCANIQUE · TRADITION BALINAISE"
+        case "sacredSite":         return "PIERRE DE JAVA · TRADITION KRATON"
+        case "colonialSquare":     return "COLONIAL NÉERLANDAIS · 1619–1942"
+        default:                   return "DONNÉES OSM RÉELLES · METACITY"
+        }
+    }
+}
+
+private struct RevealStat: View {
+    let label: String
+    let value: String
+    var accent: Color = Color.metacityPrimary
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.system(size: 8, weight: .bold, design: .monospaced))
+                .foregroundStyle(Color.white.opacity(0.38))
+                .tracking(1.5)
+            Text(value)
+                .font(.system(size: 16, weight: .black, design: .monospaced))
+                .foregroundStyle(accent)
+        }
     }
 }
 
@@ -408,6 +701,17 @@ private struct DistrictPinView: View {
         case "beachResort":        return Color(red: 0.85, green: 0.65, blue: 0.25)
         case "sacredSite":         return Color(red: 0.55, green: 0.42, blue: 0.30)
         case "highlandMorning":    return Color(red: 0.40, green: 0.65, blue: 0.55)
+        case "parisianCore":       return Color(red: 0.62, green: 0.68, blue: 0.82)
+        case "bordeauxWaterfront": return Color(red: 0.88, green: 0.64, blue: 0.28)
+        case "rennesMedieval":     return Color(red: 0.50, green: 0.52, blue: 0.58)
+        case "londonSilver":       return Color(red: 0.58, green: 0.62, blue: 0.72)
+        case "madridAfternoon":    return Color(red: 0.92, green: 0.68, blue: 0.28)
+        case "romanGoldenHour":    return Color(red: 0.88, green: 0.54, blue: 0.24)
+        case "shibuyaNeon":        return Color(red: 0.10, green: 0.82, blue: 0.92)
+        case "laSunset":           return Color(red: 0.96, green: 0.62, blue: 0.24)
+        case "nycDusk":            return Color(red: 0.92, green: 0.56, blue: 0.18)
+        case "vancouverCoastal":   return Color(red: 0.48, green: 0.72, blue: 0.90)
+        case "sfMorning":          return Color(red: 0.90, green: 0.74, blue: 0.50)
         default:                   return Color.metacityPrimary
         }
     }
@@ -543,11 +847,103 @@ private struct CityWeatherWidget: View {
 
 // MARK: - City callout card (cityFocused — now shows district list inline)
 
+// MARK: - Featured activities strip (inside CityCalloutCard)
+
+private struct FeaturedActivitiesStrip: View {
+    let activities: [ActivityEntry]
+
+    private func icon(for category: ActivityCategory) -> String {
+        switch category {
+        case .panorama:           return "binoculars.fill"
+        case .experienceRA:       return "arkit"
+        case .immersionSensorielle: return "headphones"
+        case .visiteGuidee:       return "map.fill"
+        case .lifestyle:          return "sparkles"
+        case .eat:                return "fork.knife"
+        case .stay:               return "bed.double.fill"
+        case .explore:            return "location.fill"
+        case .nightlife:          return "moon.stars.fill"
+        case .wellness:           return "heart.fill"
+        case .shopping:           return "bag.fill"
+        case .sport:              return "figure.run"
+        }
+    }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Spacing.sm) {
+                ForEach(activities) { activity in
+                    HStack(spacing: 6) {
+                        Image(systemName: icon(for: activity.category))
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color.metacityPrimary)
+                        Text(activity.name)
+                            .font(.system(size: 11, weight: .medium, design: .default))
+                            .foregroundStyle(Color.metacityTextPrimary)
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color.metacityPrimary.opacity(0.10), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, 10)
+        }
+    }
+}
+
+// MARK: - Top places strip (inside CityCalloutCard)
+
+private struct TopPlacesStrip: View {
+    let places: [PlaceEntry]
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Spacing.sm) {
+                ForEach(places) { place in
+                    HStack(spacing: 6) {
+                        Image(systemName: place.type.icon)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color.metacityPrimary.opacity(0.80))
+                        Text(place.name)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.metacityTextPrimary)
+                            .lineLimit(1)
+                        if let price = place.priceRange {
+                            Text(price)
+                                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                                .foregroundStyle(Color.metacityTextTertiary)
+                        }
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.metacityPrimary.opacity(0.07))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .strokeBorder(Color.metacityPrimary.opacity(0.15), lineWidth: 0.5)
+                            )
+                    )
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
+// MARK: - City callout card
+
 private struct CityCalloutCard: View {
     let city: CityEntry
     let onSelectDistrict: (DistrictEntry) -> Void
     let onEnterCity: () -> Void
     let onDismiss: () -> Void
+
+    @State private var featuredActivities: [ActivityEntry] = []
+    @State private var featuredPlaces: [PlaceEntry] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -582,6 +978,18 @@ private struct CityCalloutCard: View {
             // Live weather strip
             CityWeatherWidget(city: city)
             Divider().padding(.horizontal, Spacing.md)
+
+            // Featured activities strip (premium, up to 3)
+            if !featuredActivities.isEmpty {
+                FeaturedActivitiesStrip(activities: featuredActivities)
+                Divider().padding(.horizontal, Spacing.md)
+            }
+
+            // Featured places strip (up to 3 isFeatured places from static JSON)
+            if !featuredPlaces.isEmpty {
+                TopPlacesStrip(places: featuredPlaces)
+                Divider().padding(.horizontal, Spacing.md)
+            }
 
             if city.districts.isEmpty {
                 // No 3D data yet
@@ -658,6 +1066,18 @@ private struct CityCalloutCard: View {
                 )
         )
         .shadow(color: .black.opacity(0.28), radius: 20, y: 8)
+        .task(id: city.id) {
+            // Load up to 3 premium activities for this city (city-level file + per-district files).
+            var all = CityActivities.load(for: city.id)
+            for district in city.districts {
+                let extra = CityActivities.load(for: district.id.lowercased())
+                let seen = Set(all.map(\.id))
+                all += extra.filter { !seen.contains($0.id) }
+            }
+            featuredActivities = Array(all.filter { $0.tier == .premium }.prefix(3))
+            // Load top 3 featured places from static bundle (no network needed).
+            featuredPlaces = Array(CityPlaces.load(for: city.id).filter(\.isFeatured).prefix(3))
+        }
     }
 
     private func moodColor(for district: DistrictEntry) -> Color {
@@ -670,49 +1090,18 @@ private struct CityCalloutCard: View {
         case "beachResort":        return Color(red: 0.85, green: 0.65, blue: 0.25)
         case "sacredSite":         return Color(red: 0.55, green: 0.42, blue: 0.30)
         case "highlandMorning":    return Color(red: 0.40, green: 0.65, blue: 0.55)
+        case "parisianCore":       return Color(red: 0.62, green: 0.68, blue: 0.82)
+        case "bordeauxWaterfront": return Color(red: 0.88, green: 0.64, blue: 0.28)
+        case "rennesMedieval":     return Color(red: 0.50, green: 0.52, blue: 0.58)
+        case "londonSilver":       return Color(red: 0.58, green: 0.62, blue: 0.72)
+        case "madridAfternoon":    return Color(red: 0.92, green: 0.68, blue: 0.28)
+        case "romanGoldenHour":    return Color(red: 0.88, green: 0.54, blue: 0.24)
+        case "shibuyaNeon":        return Color(red: 0.10, green: 0.82, blue: 0.92)
+        case "laSunset":           return Color(red: 0.96, green: 0.62, blue: 0.24)
+        case "nycDusk":            return Color(red: 0.92, green: 0.56, blue: 0.18)
+        case "vancouverCoastal":   return Color(red: 0.48, green: 0.72, blue: 0.90)
+        case "sfMorning":          return Color(red: 0.90, green: 0.74, blue: 0.50)
         default:                   return Color.metacityPrimary
-        }
-    }
-}
-
-// MARK: - District controls panel
-
-private struct DistrictControlsPanel: View {
-    @ObservedObject var viewModel: DiscoverViewModel
-    let district: DistrictEntry
-
-    var body: some View {
-        HStack(alignment: .center, spacing: Spacing.lg) {
-            // Auto-rotate toggle — only control left now that night mode is day-only
-            // and the overview/close binary split is replaced by continuous pinch zoom.
-            VStack(spacing: 2) {
-                Toggle("", isOn: $viewModel.isAutoRotating)
-                    .labelsHidden()
-                    .tint(Color.metacityPrimary)
-                Text("Rotate")
-                    .font(.metacityCaption)
-                    .foregroundStyle(Color.metacityTextSecondary)
-            }
-
-            Spacer()
-
-            Button { viewModel.resetCamera() } label: {
-                Label("Reset", systemImage: "arrow.counterclockwise")
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(1)
-                    .foregroundStyle(Color.metacityTextSecondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(Color.metacitySurface.opacity(0.8), in: Capsule())
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, Spacing.lg)
-        .padding(.vertical, Spacing.md)
-        .padding(.bottom, Spacing.sm)
-        .background(.ultraThinMaterial)
-        .overlay(alignment: .top) {
-            Rectangle().fill(Color.metacitySeparator).frame(height: 1)
         }
     }
 }
@@ -726,7 +1115,7 @@ private struct HUDBuildingCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Tag line
+            // Tag strip: style icon + label + era + dismiss
             HStack(spacing: 6) {
                 Image(systemName: building.style.icon)
                     .font(.system(size: 9, weight: .semibold))
@@ -735,6 +1124,13 @@ private struct HUDBuildingCard: View {
                     .font(.system(size: 9, weight: .bold, design: .monospaced))
                     .foregroundStyle(accentColor)
                     .tracking(1.2)
+                Text("·")
+                    .font(.system(size: 9, weight: .light, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.30))
+                Text(architectureEra)
+                    .font(.system(size: 8, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.50))
+                    .tracking(0.6)
                 Spacer()
                 Button(action: onDismiss) {
                     Image(systemName: "xmark")
@@ -747,14 +1143,22 @@ private struct HUDBuildingCard: View {
             }
             .padding(.horizontal, 14)
             .padding(.top, 10)
-            .padding(.bottom, 6)
+            .padding(.bottom, 5)
 
-            // Name
+            // Building name
             Text(building.name ?? building.style.displayName)
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
                 .padding(.horizontal, 14)
+
+            // Material / style description line
+            Text(styleDescription)
+                .font(.system(size: 10, weight: .regular, design: .default))
+                .foregroundStyle(Color.white.opacity(0.52))
+                .lineLimit(1)
+                .padding(.horizontal, 14)
+                .padding(.top, 3)
 
             // Data grid
             HStack(spacing: 0) {
@@ -768,14 +1172,14 @@ private struct HUDBuildingCard: View {
             .padding(.vertical, 8)
             .padding(.horizontal, 14)
 
-            // Orbit action
+            // Return to overview
             Divider()
                 .padding(.horizontal, 14)
             Button(action: onOrbit) {
                 HStack(spacing: 6) {
-                    Image(systemName: "rotate.3d")
+                    Image(systemName: "map.fill")
                         .font(.system(size: 11, weight: .semibold))
-                    Text("ORBIT 360°")
+                    Text("VUE QUARTIER")
                         .font(.system(size: 10, weight: .bold, design: .monospaced))
                         .tracking(1.0)
                 }
@@ -785,14 +1189,20 @@ private struct HUDBuildingCard: View {
                 .background(accentColor.opacity(0.08))
             }
             .buttonStyle(.plain)
-
         }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.black.opacity(0.80))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.ultraThinMaterial.opacity(0.22))
+                )
+        }
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.26), accentColor.opacity(0.32)],
+                        colors: [Color.white.opacity(0.20), accentColor.opacity(0.40)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ),
                     lineWidth: 1
@@ -814,29 +1224,70 @@ private struct HUDBuildingCard: View {
                 p.addLine(to: CGPoint(x: 16, y: 16))
                 p.addLine(to: CGPoint(x: 0, y: 16))
             }
-            .stroke(accentColor.opacity(0.5), lineWidth: 1)
+            .stroke(accentColor.opacity(0.60), lineWidth: 1.5)
             .frame(width: 16, height: 16)
             .padding(6)
         }
-        .shadow(color: accentColor.opacity(0.22), radius: 20, y: 6)
+        .shadow(color: accentColor.opacity(0.28), radius: 24, y: 8)
     }
 
     private var accentColor: Color {
         switch building.style {
-        case .modernGlass:    return Color(red: 0.35, green: 0.75, blue: 1.0)
-        case .modernConcrete: return Color(red: 0.60, green: 0.65, blue: 0.70)
-        case .colonial:       return Color(red: 0.95, green: 0.72, blue: 0.38)
-        case .government:     return Color(red: 0.80, green: 0.80, blue: 0.88)
-        case .religious:      return Color(red: 0.90, green: 0.85, blue: 0.40)
-        case .balinese:       return Color(red: 0.90, green: 0.60, blue: 0.32)
-        case .javanese:       return Color(red: 0.75, green: 0.55, blue: 0.30)
-        case .haussmannien:        return Color(red: 0.92, green: 0.88, blue: 0.72)  // Lutetian limestone cream
-        case .medieval:            return Color(red: 0.80, green: 0.72, blue: 0.58)  // Breton stone
-        case .bordelaisClassical:  return Color(red: 0.95, green: 0.80, blue: 0.42)  // calcaire à astéries amber-gold
-        case .londonBrick:         return Color(red: 0.76, green: 0.60, blue: 0.42)  // warm buff London stock brick
-        case .madrileño:           return Color(red: 0.88, green: 0.78, blue: 0.42)  // warm Madrid golden-beige
-        case .romanOchre:          return Color(red: 0.78, green: 0.58, blue: 0.32)  // Roman sienna-amber ochre
-        case .nycBrick:            return Color(red: 0.72, green: 0.38, blue: 0.28)  // NYC red-brown fired brick
+        case .modernGlass:         return Color(red: 0.35, green: 0.75, blue: 1.0)
+        case .modernConcrete:      return Color(red: 0.60, green: 0.65, blue: 0.70)
+        case .colonial:            return Color(red: 0.95, green: 0.72, blue: 0.38)
+        case .government:          return Color(red: 0.80, green: 0.80, blue: 0.88)
+        case .religious:           return Color(red: 0.90, green: 0.85, blue: 0.40)
+        case .balinese:            return Color(red: 0.90, green: 0.60, blue: 0.32)
+        case .javanese:            return Color(red: 0.75, green: 0.55, blue: 0.30)
+        case .haussmannien:        return Color(red: 0.92, green: 0.88, blue: 0.72)
+        case .medieval:            return Color(red: 0.80, green: 0.72, blue: 0.58)
+        case .bordelaisClassical:  return Color(red: 0.95, green: 0.80, blue: 0.42)
+        case .londonBrick:         return Color(red: 0.76, green: 0.60, blue: 0.42)
+        case .madrileño:           return Color(red: 0.88, green: 0.78, blue: 0.42)
+        case .romanOchre:          return Color(red: 0.78, green: 0.58, blue: 0.32)
+        case .nycBrick:            return Color(red: 0.72, green: 0.38, blue: 0.28)
+        case .laStucco:            return Color(red: 0.92, green: 0.80, blue: 0.52)
+        }
+    }
+
+    private var architectureEra: String {
+        switch building.style {
+        case .modernGlass:         return "XXe–XXIe"
+        case .modernConcrete:      return "1950–2000"
+        case .colonial:            return "1880–1942"
+        case .government:          return "CIVIC"
+        case .religious:           return "PATRIMOINE"
+        case .balinese:            return "VERNACULAIRE"
+        case .javanese:            return "VERNACULAIRE"
+        case .haussmannien:        return "1853–1927"
+        case .medieval:            return "XIe–XVe"
+        case .bordelaisClassical:  return "XVIIe–XIXe"
+        case .londonBrick:         return "1714–1914"
+        case .madrileño:           return "1860–1930"
+        case .romanOchre:          return "Ier–XVIIe"
+        case .nycBrick:            return "1880–1940"
+        case .laStucco:            return "1900–1960"
+        }
+    }
+
+    private var styleDescription: String {
+        switch building.style {
+        case .modernGlass:         return "Rideau de verre · PBR clearcoat 0.28"
+        case .modernConcrete:      return "Béton armé · voiles préfabriqués"
+        case .colonial:            return "Enduit chaux · stijl colonial néerlandais"
+        case .government:          return "Architecture civique · pierre de taille"
+        case .religious:           return "Architecture sacrée · dôme / campanile"
+        case .balinese:            return "Tuf volcanique · pierre de Paras"
+        case .javanese:            return "Bois de teck · joglo traditionnel"
+        case .haussmannien:        return "Calcaire lutetian · balcons Second Empire"
+        case .medieval:            return "Granit breton · colombages plâtre"
+        case .bordelaisClassical:  return "Calcaire à astéries · toiture canal"
+        case .londonBrick:         return "London stock brick · ardoise galloise"
+        case .madrileño:           return "Calcaire / grès Madrid · azotea plate"
+        case .romanOchre:          return "Tuf / brique romaine · tuiles coppo"
+        case .nycBrick:            return "Brique d'argile cuite · ardoise NY"
+        case .laStucco:            return "Stuc Mission · tuile barrel espagnole"
         }
     }
 
@@ -934,12 +1385,19 @@ private struct HUDVenueCard: View {
                 .buttonStyle(.plain)
             }
         }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.black.opacity(0.80))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(.ultraThinMaterial.opacity(0.22))
+                )
+        }
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.28), tierAccent.opacity(0.30)],
+                        colors: [Color.white.opacity(0.20), tierAccent.opacity(0.40)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ),
                     lineWidth: 1
@@ -955,7 +1413,17 @@ private struct HUDVenueCard: View {
             .frame(width: 16, height: 16)
             .padding(6)
         }
-        .shadow(color: tierAccent.opacity(0.25), radius: 20, y: 6)
+        .overlay(alignment: .bottomTrailing) {
+            Path { p in
+                p.move(to: CGPoint(x: 16, y: 0))
+                p.addLine(to: CGPoint(x: 16, y: 16))
+                p.addLine(to: CGPoint(x: 0, y: 16))
+            }
+            .stroke(tierAccent.opacity(0.60), lineWidth: 1.5)
+            .frame(width: 16, height: 16)
+            .padding(6)
+        }
+        .shadow(color: tierAccent.opacity(0.30), radius: 24, y: 8)
     }
 
     private var tierAccent: Color {
@@ -1107,6 +1575,223 @@ private struct DistrictSearchDropdown: View {
     }
 }
 
+// MARK: - District mini-map widget
+
+/// Interactive MapKit overview that floats bottom-right in the district explore view.
+/// Shows satellite imagery of the district extent with a glowing anchor dot.
+/// Hides automatically when a VenueCard or BuildingInfoCard is visible.
+private struct DistrictMiniMapView: View {
+    let district: DistrictEntry
+    var activePreset: ViewPreset = .overview
+    var onPresetChange: ((ViewPreset) -> Void)? = nil
+
+    @State private var camera: MapCameraPosition
+    @State private var pulse: CGFloat = 0
+    @State private var isExpanded: Bool = false
+
+    init(district: DistrictEntry,
+         activePreset: ViewPreset = .overview,
+         onPresetChange: ((ViewPreset) -> Void)? = nil) {
+        self.district = district
+        self.activePreset = activePreset
+        self.onPresetChange = onPresetChange
+        let b = district.boundingBox
+        let latSpan = b.north - b.south
+        let lonSpan = b.east  - b.west
+        let avgLat  = (b.north + b.south) / 2
+        let metersLat = 111_320.0
+        let metersLon = metersLat * cos(avgLat * .pi / 180)
+        let span  = max(latSpan * metersLat, lonSpan * metersLon)
+        let dist  = max(span * 1.5, 700)
+        _camera = State(initialValue: .camera(
+            MapCamera(centerCoordinate: district.anchor.clLocationCoordinate,
+                      distance: dist, heading: 0, pitch: 0)
+        ))
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Top info bar: district name + mood label + expand toggle
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(accentColor)
+                    .frame(width: 4, height: 4)
+                Text(district.displayName.uppercased())
+                    .font(.system(size: 7.5, weight: .bold, design: .monospaced))
+                    .foregroundStyle(accentColor)
+                    .tracking(1.0)
+                    .lineLimit(1)
+                Spacer()
+                Text(moodLabel)
+                    .font(.system(size: 7, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.45))
+                    .tracking(0.8)
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.up")
+                    .font(.system(size: 6.5, weight: .bold))
+                    .foregroundStyle(accentColor.opacity(0.60))
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .background(Color.black.opacity(0.78))
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.70)) {
+                    isExpanded.toggle()
+                }
+            }
+
+            // Map body with animated pulse dot — touch disabled so taps reach the header
+            Map(position: $camera) {
+                Annotation("", coordinate: district.anchor.clLocationCoordinate, anchor: .center) {
+                    ZStack {
+                        Circle()
+                            .stroke(accentColor.opacity(0.35 * (1 - pulse)), lineWidth: 1.5)
+                            .frame(width: 22 + pulse * 14, height: 22 + pulse * 14)
+                        Circle()
+                            .fill(accentColor.opacity(0.20))
+                            .frame(width: 18, height: 18)
+                        Circle()
+                            .fill(accentColor)
+                            .frame(width: 7, height: 7)
+                            .shadow(color: accentColor, radius: 5)
+                    }
+                }
+            }
+            .mapStyle(.hybrid(elevation: .flat, pointsOfInterest: .excludingAll))
+            .frame(height: isExpanded ? 182 : 130)
+            .disabled(true)     // let taps pass through to the header toggle
+
+            // View preset chips — visible when expanded
+            if isExpanded {
+                HStack(spacing: 6) {
+                    ForEach(ViewPreset.allCases, id: \.self) { preset in
+                        let isActive = preset == activePreset
+                        Button {
+                            onPresetChange?(preset)
+                        } label: {
+                            Text(preset.label)
+                                .font(.system(size: 7, weight: .bold, design: .monospaced))
+                                .tracking(0.8)
+                                .foregroundStyle(isActive ? Color.black : accentColor.opacity(0.70))
+                                .padding(.horizontal, 7)
+                                .padding(.vertical, 3.5)
+                                .background(
+                                    Capsule()
+                                        .fill(isActive ? accentColor : accentColor.opacity(0.12))
+                                )
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(accentColor.opacity(isActive ? 0 : 0.30), lineWidth: 0.8)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 9)
+                .padding(.vertical, 6)
+                .background(Color.black.opacity(0.82))
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
+            // Bottom GPS bar
+            VStack(spacing: 2) {
+                HStack(spacing: 4) {
+                    Text("LAT")
+                        .font(.system(size: 6.5, weight: .bold, design: .monospaced))
+                        .foregroundStyle(accentColor.opacity(0.72))
+                    Spacer()
+                    Text(String(format: "%.4f°", district.anchor.latitude))
+                        .font(.system(size: 7, weight: .regular, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.62))
+                }
+                HStack(spacing: 4) {
+                    Text("LON")
+                        .font(.system(size: 6.5, weight: .bold, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.32))
+                    Spacer()
+                    Text(String(format: "%.4f°", district.anchor.longitude))
+                        .font(.system(size: 7, weight: .regular, design: .monospaced))
+                        .foregroundStyle(Color.white.opacity(0.62))
+                }
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .background(Color.black.opacity(0.78))
+        }
+        .frame(width: isExpanded ? 214 : 160)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [accentColor.opacity(isExpanded ? 0.80 : 0.65),
+                                 accentColor.opacity(isExpanded ? 0.30 : 0.20)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ),
+                    lineWidth: isExpanded ? 1.2 : 1
+                )
+        }
+        .shadow(color: accentColor.opacity(isExpanded ? 0.38 : 0.22), radius: isExpanded ? 20 : 14, y: 5)
+        .shadow(color: .black.opacity(0.55), radius: 18, y: 7)
+        .animation(.spring(response: 0.35, dampingFraction: 0.70), value: isExpanded)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                pulse = 1.0
+            }
+        }
+    }
+
+    private var moodLabel: String {
+        switch district.moodKey {
+        case "shibuyaNeon":        return "NEON"
+        case "nycDusk":            return "DUSK"
+        case "parisianCore":       return "PARIS"
+        case "bordeauxWaterfront": return "BORDEAUX"
+        case "rennesMedieval":     return "MÉDIÉVAL"
+        case "londonSilver":       return "LONDON"
+        case "madridAfternoon":    return "MADRID"
+        case "romanGoldenHour":    return "ROME"
+        case "laSunset":           return "LA"
+        case "vancouverCoastal":   return "PACIFIC"
+        case "sfMorning":          return "SF"
+        case "beachResort":        return "BALI"
+        case "sacredSite":         return "TEMPLE"
+        case "skyscraperCorridor": return "SKYLINE"
+        case "colonialSquare":     return "COLONIAL"
+        case "highlandMorning":    return "BANDUNG"
+        case "residentialDusk":    return "JAKARTA"
+        case "parkDaylight":       return "MENTENG"
+        case "coastalPark":        return "ANCOL"
+        default:                   return "URBAN"
+        }
+    }
+
+    private var accentColor: Color {
+        switch district.moodKey {
+        case "shibuyaNeon":        return Color(red: 0.00, green: 0.95, blue: 0.82)
+        case "nycDusk":            return Color(red: 0.68, green: 0.48, blue: 0.98)
+        case "parisianCore":       return Color(red: 0.92, green: 0.80, blue: 0.44)
+        case "bordeauxWaterfront": return Color(red: 0.95, green: 0.56, blue: 0.22)
+        case "rennesMedieval":     return Color(red: 0.58, green: 0.72, blue: 0.86)
+        case "londonSilver":       return Color(red: 0.68, green: 0.74, blue: 0.84)
+        case "madridAfternoon":    return Color(red: 0.98, green: 0.70, blue: 0.18)
+        case "romanGoldenHour":    return Color(red: 0.98, green: 0.52, blue: 0.20)
+        case "laSunset":           return Color(red: 1.00, green: 0.56, blue: 0.22)
+        case "vancouverCoastal":   return Color(red: 0.22, green: 0.76, blue: 0.90)
+        case "sfMorning":          return Color(red: 0.96, green: 0.78, blue: 0.38)
+        case "beachResort":        return Color(red: 0.22, green: 0.92, blue: 0.74)
+        case "sacredSite":         return Color(red: 0.88, green: 0.66, blue: 0.30)
+        case "highlandMorning":    return Color(red: 0.48, green: 0.80, blue: 0.96)
+        case "residentialDusk":    return Color(red: 0.95, green: 0.62, blue: 0.32)
+        case "parkDaylight":       return Color(red: 0.40, green: 0.88, blue: 0.46)
+        case "coastalPark":        return Color(red: 0.22, green: 0.80, blue: 0.88)
+        case "colonialSquare":     return Color(red: 0.90, green: 0.74, blue: 0.42)
+        default:                   return Color.metacityNeonCyan
+        }
+    }
+}
+
 // MARK: - HUD scan-line effect
 
 /// Sweeping translucent cyan stripe that crosses the district HUD header left→right every 3.5s.
@@ -1139,98 +1824,122 @@ private struct ScanLineView: View {
 // MARK: - Global search dropdown
 
 private struct GlobalSearchDropdown: View {
-    /// Local results from the first character — cities with bundled 3D data (zero latency).
+    /// Zero-latency city matches from the first character typed.
     let instantCities: [GlobalSearchResult]
-    let results: [GlobalSearchResult]
+    /// District matches from the first character — up to 5.
+    let districtResults: [GlobalSearchResult]
+    /// Building + POI matches from 2+ characters — up to 8.
+    let placeResults: [GlobalSearchResult]
     let worldSuggestions: [WorldCitySuggestion]
     let onSelect: (GlobalSearchResult) -> Void
     let onSelectSuggestion: (WorldCitySuggestion) -> Void
 
     private var hasContent: Bool {
-        !instantCities.isEmpty || !results.isEmpty || !worldSuggestions.isEmpty
+        !instantCities.isEmpty || !districtResults.isEmpty || !placeResults.isEmpty || !worldSuggestions.isEmpty
     }
 
     var body: some View {
+        ScrollView(.vertical, showsIndicators: false) {
         VStack(spacing: 0) {
-            // Instant city results — from the 1st character typed, purely local
+            // VILLES 3D — city results from first character, zero latency
             if !instantCities.isEmpty {
-                sectionHeader("VILLES 3D", icon: "globe.europe.africa.fill")
+                sectionHeader("VILLES 3D", icon: "globe.europe.africa.fill", accent: Color(red: 0.20, green: 0.82, blue: 0.65))
                 ForEach(instantCities) { result in
-                    Button { onSelect(result) } label: {
-                        instantCityRow(result)
-                    }
-                    .buttonStyle(.plain)
+                    Button { onSelect(result) } label: { instantCityRow(result) }
+                        .buttonStyle(.plain)
                     if result.id != instantCities.last?.id {
-                        Divider().padding(.horizontal, 14)
+                        hairline
                     }
                 }
-                if !results.isEmpty || !worldSuggestions.isEmpty {
-                    Divider().padding(.horizontal, 14)
-                }
+                if !districtResults.isEmpty || !placeResults.isEmpty || !worldSuggestions.isEmpty { hairline }
             }
 
-            // In-app results (districts/buildings/POIs — requires 2+ chars)
-            if !results.isEmpty {
-                sectionHeader("DANS L'APP", icon: "map.fill")
-                ForEach(results) { result in
-                Button { onSelect(result) } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: result.icon)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(iconColor(for: result))
-                            .frame(width: 22)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(result.name)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color.metacityTextPrimary)
-                                .lineLimit(1)
-                            Text(result.subtitle)
-                                .font(.system(size: 10))
-                                .foregroundStyle(Color.metacityTextTertiary)
-                                .lineLimit(1)
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
+            // QUARTIERS — district matches from first character
+            if !districtResults.isEmpty {
+                sectionHeader("QUARTIERS", icon: "map.fill", accent: Color.metacityNeonCyan)
+                ForEach(districtResults) { result in
+                    Button { onSelect(result) } label: { resultRow(result) }
+                        .buttonStyle(.plain)
+                    if result.id != districtResults.last?.id { hairline }
                 }
-                .buttonStyle(.plain)
-
-                if result.id != results.last?.id {
-                    Divider().padding(.horizontal, 14)
-                }
+                if !placeResults.isEmpty || !worldSuggestions.isEmpty { hairline }
             }
-            } // end if !results.isEmpty
 
-            // World-city suggestions from MKLocalSearchCompleter (fires after 2 chars + 180ms)
+            // LIEUX — building + POI matches from 2+ characters
+            if !placeResults.isEmpty {
+                sectionHeader("LIEUX", icon: "building.fill", accent: Color(red: 0.95, green: 0.72, blue: 0.30))
+                ForEach(placeResults) { result in
+                    Button { onSelect(result) } label: { resultRow(result) }
+                        .buttonStyle(.plain)
+                    if result.id != placeResults.last?.id { hairline }
+                }
+                if !worldSuggestions.isEmpty { hairline }
+            }
+
+            // VILLES DU MONDE — MKLocalSearchCompleter (2 chars + 180ms)
             if !worldSuggestions.isEmpty {
-                sectionHeader("VILLES DU MONDE", icon: "globe")
-
+                sectionHeader("VILLES DU MONDE", icon: "globe", accent: Color.metacityTextTertiary)
                 ForEach(worldSuggestions) { suggestion in
                     if suggestion.isVitrine {
-                        Button { onSelectSuggestion(suggestion) } label: {
-                            worldSuggestionRow(suggestion)
-                        }
-                        .buttonStyle(.plain)
+                        Button { onSelectSuggestion(suggestion) } label: { worldSuggestionRow(suggestion) }
+                            .buttonStyle(.plain)
                     } else {
-                        worldSuggestionRow(suggestion)
-                            .opacity(0.65)
+                        worldSuggestionRow(suggestion).opacity(0.55)
                     }
-
-                    if suggestion.id != worldSuggestions.last?.id {
-                        Divider().padding(.horizontal, 14)
-                    }
+                    if suggestion.id != worldSuggestions.last?.id { hairline }
                 }
             }
         }
-        .background(.ultraThinMaterial,
-                    in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }  // end ScrollView
+        .frame(maxHeight: 360)
+        .background {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.black.opacity(0.82))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(.ultraThinMaterial.opacity(0.18))
+                )
+        }
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(Color.metacityNeonCyan.opacity(0.22), lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.22), radius: 14, y: 4)
+        .shadow(color: Color.metacityNeonCyan.opacity(0.08), radius: 18, y: 6)
+        .shadow(color: .black.opacity(0.30), radius: 12, y: 4)
         .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+
+    private var hairline: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.07))
+            .frame(height: 0.5)
+            .padding(.horizontal, 14)
+    }
+
+    @ViewBuilder
+    private func resultRow(_ result: GlobalSearchResult) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: result.icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(iconColor(for: result))
+                .frame(width: 22)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(result.name)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.92))
+                    .lineLimit(1)
+                Text(result.subtitle)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.white.opacity(0.45))
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "arrow.right")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(iconColor(for: result).opacity(0.60))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
     }
 
     @ViewBuilder
@@ -1238,26 +1947,26 @@ private struct GlobalSearchDropdown: View {
         HStack(spacing: 10) {
             Image(systemName: "mappin.and.ellipse")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(suggestion.isVitrine ? Color.metacityNeonCyan : Color.metacityTextTertiary)
+                .foregroundStyle(suggestion.isVitrine ? Color.metacityNeonCyan : Color.white.opacity(0.40))
                 .frame(width: 22)
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 5) {
                     Text(suggestion.title)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.metacityTextPrimary)
+                        .foregroundStyle(Color.white.opacity(0.92))
                         .lineLimit(1)
                     if suggestion.isVitrine {
-                        Text("Vitrine 3D")
+                        Text("3D")
                             .font(.system(size: 8, weight: .bold, design: .monospaced))
                             .foregroundStyle(Color.metacityNeonCyan)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
-                            .background(Color.metacityNeonCyan.opacity(0.12), in: Capsule())
+                            .background(Color.metacityNeonCyan.opacity(0.14), in: Capsule())
                     }
                 }
                 Text(suggestion.isVitrine ? suggestion.subtitle : "Bientôt disponible en 3D")
                     .font(.system(size: 10))
-                    .foregroundStyle(Color.metacityTextTertiary)
+                    .foregroundStyle(Color.white.opacity(0.40))
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
@@ -1269,27 +1978,27 @@ private struct GlobalSearchDropdown: View {
     private func iconColor(for result: GlobalSearchResult) -> Color {
         switch result.kind {
         case .city:     return Color(red: 0.20, green: 0.82, blue: 0.65)
-        case .district: return Color.metacityPrimary
-        case .building: return Color(red: 0.85, green: 0.65, blue: 0.25)
-        case .poi:      return Color(red: 0.95, green: 0.28, blue: 0.05)
+        case .district: return Color.metacityNeonCyan
+        case .building: return Color(red: 0.95, green: 0.72, blue: 0.30)
+        case .poi:      return Color(red: 0.95, green: 0.38, blue: 0.20)
         }
     }
 
     @ViewBuilder
-    private func sectionHeader(_ title: String, icon: String) -> some View {
+    private func sectionHeader(_ title: String, icon: String, accent: Color) -> some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(Color.metacityTextTertiary)
+                .foregroundStyle(accent.opacity(0.80))
             Text(title)
                 .font(.system(size: 9, weight: .bold, design: .monospaced))
-                .foregroundStyle(Color.metacityTextTertiary)
-                .tracking(1.0)
+                .foregroundStyle(accent.opacity(0.80))
+                .tracking(1.2)
             Spacer()
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 6)
-        .background(Color.metacityBackground.opacity(0.35))
+        .padding(.vertical, 5)
+        .background(Color.white.opacity(0.04))
     }
 
     @ViewBuilder
@@ -1302,20 +2011,20 @@ private struct GlobalSearchDropdown: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(result.name)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color.metacityTextPrimary)
+                    .foregroundStyle(Color.white.opacity(0.95))
                     .lineLimit(1)
                 Text(result.subtitle)
                     .font(.system(size: 10))
-                    .foregroundStyle(Color.metacityTextTertiary)
+                    .foregroundStyle(Color.white.opacity(0.40))
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
-            Image(systemName: "chevron.right")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(Color.metacityTextTertiary)
+            Image(systemName: "arrow.right")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(Color(red: 0.20, green: 0.82, blue: 0.65).opacity(0.60))
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.vertical, 9)
     }
 }
 

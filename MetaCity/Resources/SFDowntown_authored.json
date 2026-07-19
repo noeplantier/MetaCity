@@ -1,0 +1,36 @@
+{
+  "overrides": [
+    {
+      "nameMatch": "San Francisco Ferry Building",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 71.0
+    },
+    {
+      "nameMatch": "Transamerica Pyramid",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 260.0
+    },
+    {
+      "nameMatch": "Old Saint Mary's Cathedral",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Saints Peter and Paul Church",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Huntington Park",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Palace Hotel",
+      "style": "government",
+      "heightMeters": 55.0
+    }
+  ]
+}

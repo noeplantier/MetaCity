@@ -2,7 +2,8 @@ import Foundation
 
 enum PlaceType: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
-    case neighborhood, beach, mountain, cultural, culinary, religious, nature, nightlife, heritage
+    case neighborhood, beach, mountain, cultural, culinary, religious, nature, nightlife, heritage,
+         wellness, shopping
 
     var displayName: String {
         switch self {
@@ -15,6 +16,8 @@ enum PlaceType: String, Codable, CaseIterable, Identifiable {
         case .nature:       return "Nature"
         case .nightlife:    return "Nightlife"
         case .heritage:     return "Heritage"
+        case .wellness:     return "Wellness"
+        case .shopping:     return "Shopping"
         }
     }
 
@@ -29,6 +32,8 @@ enum PlaceType: String, Codable, CaseIterable, Identifiable {
         case .nature:       return "leaf.fill"
         case .nightlife:    return "moon.stars.fill"
         case .heritage:     return "building.columns.fill"
+        case .wellness:     return "heart.fill"
+        case .shopping:     return "bag.fill"
         }
     }
 }

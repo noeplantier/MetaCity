@@ -1,0 +1,36 @@
+{
+  "overrides": [
+    {
+      "osmID": "23973401",
+      "nameMatch": "Skyspace LA",
+      "style": "modernGlass",
+      "heightMeters": 310.0,
+      "comment": "US Bank Tower polygon misnamed in OSM as Skyspace LA (the observation deck). Correct: 310m glass supertall, not government."
+    },
+    {
+      "osmID": "496246723",
+      "nameMatch": "Wilshire Grand Building",
+      "heightMeters": 335.0,
+      "comment": "OSM name variant; real height 335m (Wilshire Grand Center, 2017). Fetch script used 'Wilshire Grand Center' key — OSM has 'Wilshire Grand Building'."
+    },
+    {
+      "nameMatch": "Los Angeles City Hall",
+      "style": "government",
+      "roofType": "flat",
+      "comment": "1928 Art Deco classical tower — correctly government, explicitly flat top."
+    },
+    {
+      "nameMatch": "Walt Disney Concert Hall",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 55.0,
+      "comment": "Frank Gehry stainless steel landmark (2003). Flat/irregular roof — no hip cap."
+    },
+    {
+      "nameMatch": "The Broad",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "comment": "Diller Scofidio veil facade (2015) — modernGlass correct, flat roof."
+    }
+  ]
+}

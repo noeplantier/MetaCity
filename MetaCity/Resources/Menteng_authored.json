@@ -1,0 +1,37 @@
+{
+  "districtId": "Menteng",
+  "overrides": [
+    {
+      "nameMatch": "Rumah Proklamasi",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 8.0
+    },
+    {
+      "nameMatch": "Tugu Proklamasi",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 17.0
+    },
+    {
+      "nameMatch": "Gereja Theresia",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Masjid Cut Meutia",
+      "style": "religious",
+      "roofType": "dome"
+    },
+    {
+      "nameMatch": "Kedutaan Besar",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Konsulat",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

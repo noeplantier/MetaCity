@@ -23,6 +23,40 @@ struct DistrictSearchResult: Identifiable {
     let localCentroid: SIMD3<Float>
 }
 
+/// 3-preset camera view selector — controls which camera mode the district 3D inspector is in.
+/// SURVOL frames the full district from near-overhead; OVERVIEW is the default bird's-eye;
+/// ZOOM is entered via building tap / pinch past 22% extent.
+enum ViewPreset: String, CaseIterable {
+    case ciel     // SURVOL — full-district overhead, districtExtent×0.30 horiz, ×1.35 height
+    case overview // OVERVIEW — bird's-eye at ~61°, districtDistance×0.60
+    case focus    // ZOOM — wide framing on selected building
+
+    var label: String {
+        switch self {
+        case .ciel:     return "SURVOL"
+        case .overview: return "OVERVIEW"
+        case .focus:    return "ZOOM"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .ciel:     return "binoculars.fill"
+        case .overview: return "viewfinder"
+        case .focus:    return "scope"
+        }
+    }
+}
+
+/// Data surfaced on the first-entry district reveal overlay (auto-dismissed after 3s).
+struct DistrictRevealContext {
+    let city: CityEntry
+    let district: DistrictEntry
+    let buildingCount: Int
+    let roadCount: Int
+    let activityCount: Int
+}
+
 /// A world-city autocomplete suggestion from MKLocalSearchCompleter.
 struct WorldCitySuggestion: Identifiable {
     let id: String
@@ -86,12 +120,16 @@ final class DiscoverViewModel: ObservableObject {
 
     // District 3D inspector controls — owned here so the values survive
     // back-and-forth navigation without resetting every time.
-    // Auto-rotation is off by default. Users orbit manually with a pan gesture.
+    @Published var activeViewPreset: ViewPreset = .overview
     @Published var isAutoRotating = false
     @Published var rotationSpeed: Double = 1.0
+    @Published var isNightMode: Bool = false
     /// Bumped by `resetCamera()`. `DistrictRealityView` observes changes and flies the
     /// camera back to the default orbit position without requiring a gesture.
     @Published private(set) var cameraResetToken: Int = 0
+    /// Bumped by `setViewPreset(.focus)` when a building is already selected.
+    /// Signals the coordinator to re-trigger `flyToBuildingWithFraming` for the current building.
+    @Published private(set) var viewFocusToken: Int = 0
     /// Bumped by `startBuildingOrbit()`. Signals the 3D coordinator to begin a smooth
     /// 360° orbit around the currently inspected building.
     @Published private(set) var buildingOrbitToken: Int = 0
@@ -103,6 +141,10 @@ final class DiscoverViewModel: ObservableObject {
     /// to compute the approach position from the POI's lat/lon + approachBearing and call flyCamera.
     /// Set back to nil when the venue is dismissed — coordinator returns to orbit.
     @Published private(set) var venueTargetPOIId: String? = nil
+    // MARK: - First-entry district reveal
+    /// Non-nil only during the 3s wow-moment window after a district is opened for the first time.
+    /// Keyed by `reveal_<districtId>` in UserDefaults so it only shows once per install.
+    @Published private(set) var districtRevealContext: DistrictRevealContext? = nil
     // MARK: - District search bar
     /// Live query text from the search bar overlay. Two characters minimum before results appear.
     @Published var districtSearchQuery: String = ""
@@ -126,8 +168,7 @@ final class DiscoverViewModel: ObservableObject {
     var instantCityResults: [GlobalSearchResult] {
         let q = globalSearchQuery.trimmingCharacters(in: .whitespaces).lowercased()
         guard !q.isEmpty else { return [] }
-        let allCities = manifest.allCities
-        return allCities
+        return visibleCities
             .filter { city in
                 city.displayName.lowercased().contains(q) &&
                 city.districts.contains(where: \.dataBundled)
@@ -155,10 +196,10 @@ final class DiscoverViewModel: ObservableObject {
 
     let manifest: CityManifest
 
-    // Western-Europe overview: 47°N/7°E at 3 000 km — Paris, London, Madrid, Rome all in frame.
-    private static let europeCamera = MapCamera(
+    // Europe overview: 47°N/7°E at 3 200 km — Paris/London/Madrid/Rome all visible at a glance.
+    private static let defaultCamera = MapCamera(
         centerCoordinate: CLLocationCoordinate2D(latitude: 47.0, longitude: 7.0),
-        distance: 3_000_000,
+        distance: 3_200_000,
         heading: 0,
         pitch: 0
     )
@@ -167,12 +208,27 @@ final class DiscoverViewModel: ObservableObject {
     private let searchCompleterBridge = SearchCompleterBridge()
     private var cancellables = Set<AnyCancellable>()
 
-    /// Display names of the 5 vitrine showcase cities — used for the "Vitrine disponible" badge.
-    static let vitrineCityNames: Set<String> = ["Paris", "Tokyo", "Vancouver", "Jakarta", "Canggu", "Bali", "Denpasar"]
+    /// All city IDs shown in the UI — Europe + Tokyo + North America + Indonesia (Phase 6 re-integration).
+    static let visibleCityIds: Set<String> = [
+        "paris", "bordeaux", "london", "madrid", "rome",
+        "tokyo", "newyork", "losangeles", "vancouver", "sanfrancisco",
+        "jakarta", "bandung", "denpasar", "yogyakarta"
+    ]
+
+    /// Kept for any call-sites that haven't been renamed yet — aliases visibleCityIds.
+    static var europeFocusCityIds: Set<String> { visibleCityIds }
+
+    /// Display names of vitrine showcase cities — used for the "Vitrine disponible" badge.
+    static let vitrineCityNames: Set<String> = ["Paris", "Londres", "Tokyo", "New York", "Madrid", "Rome", "Vancouver", "Jakarta", "Bali"]
+
+    /// All cities visible in the Discover UI (map, globe, search).
+    var visibleCities: [CityEntry] {
+        manifest.allCities.filter { Self.visibleCityIds.contains($0.id) }
+    }
 
     init(manifest: CityManifest = .shared) {
         self.manifest = manifest
-        self.cameraPosition = .camera(DiscoverViewModel.europeCamera)
+        self.cameraPosition = .camera(DiscoverViewModel.defaultCamera)
         setupSearchCompleter(manifest: manifest)
         applyUITestOverrides(manifest: manifest)
     }
@@ -315,7 +371,31 @@ final class DiscoverViewModel: ObservableObject {
     }
 
     func resetCamera() {
+        activeViewPreset = .overview
+        isAutoRotating = false
         cameraResetToken += 1
+    }
+
+    /// Applies a named camera preset. SURVOL = full-district overhead; OVERVIEW = bird's-eye ~61°;
+    /// ZOOM = fly to selected building (requires a prior building tap).
+    func setViewPreset(_ preset: ViewPreset) {
+        activeViewPreset = preset
+        switch preset {
+        case .ciel:
+            isAutoRotating = false
+            cameraResetToken += 1
+        case .overview:
+            isAutoRotating = false
+            cameraResetToken += 1
+        case .focus:
+            guard selectedBuilding != nil else {
+                activeViewPreset = .overview
+                isAutoRotating = false
+                cameraResetToken += 1
+                return
+            }
+            viewFocusToken += 1
+        }
     }
 
     /// Starts a 360° auto-orbit around the currently selected building. Enables
@@ -333,6 +413,7 @@ final class DiscoverViewModel: ObservableObject {
 
     func clearSelectedBuilding() {
         selectedBuilding = nil
+        activeViewPreset = .overview
         cameraResetToken += 1
     }
 
@@ -350,35 +431,43 @@ final class DiscoverViewModel: ObservableObject {
 
     // MARK: - Search
 
-    /// Returns up to 10 global results matching `globalSearchQuery` across all cities, districts,
-    /// bundled buildings, and POI collections. Minimum 2 characters before any results are shown.
-    func globalSearchResults() -> [GlobalSearchResult] {
+    /// District-only results from the first character typed — up to 5 matches across all cities.
+    var globalDistrictResults: [GlobalSearchResult] {
         let q = globalSearchQuery.trimmingCharacters(in: .whitespaces).lowercased()
-        guard q.count >= 2 else { return [] }
+        guard !q.isEmpty else { return [] }
         var results: [GlobalSearchResult] = []
-
-        for island in manifest.islands {
+        outer: for island in manifest.islands {
             for city in island.cities {
-                if city.displayName.lowercased().contains(q) {
-                    results.append(GlobalSearchResult(
-                        id: "city_\(city.id)", name: city.displayName,
-                        subtitle: island.displayName,
-                        icon: "building.2.fill", kind: .city(city)
-                    ))
-                }
                 for district in city.districts {
+                    guard results.count < 5 else { break outer }
                     if district.displayName.lowercased().contains(q) {
                         results.append(GlobalSearchResult(
                             id: "dist_\(district.id)", name: district.displayName,
-                            subtitle: city.displayName,
-                            icon: "map.fill", kind: .district(district, city)
+                            subtitle: city.displayName, icon: "map.fill",
+                            kind: .district(district, city)
                         ))
                     }
+                }
+            }
+        }
+        return results
+    }
+
+    /// Building + POI results — requires 2 characters, up to 8 matches across bundled districts.
+    var globalPlaceResults: [GlobalSearchResult] {
+        let q = globalSearchQuery.trimmingCharacters(in: .whitespaces).lowercased()
+        guard q.count >= 2 else { return [] }
+        var results: [GlobalSearchResult] = []
+        outer: for island in manifest.islands {
+            for city in island.cities {
+                for district in city.districts {
+                    guard results.count < 8 else { break outer }
                     guard district.dataBundled else { continue }
                     if let data = District.load(named: district.id) {
-                        for building in data.buildings
-                        where building.name?.lowercased().contains(q) == true {
-                            guard let name = building.name else { continue }
+                        for building in data.buildings {
+                            guard results.count < 8 else { break }
+                            guard let name = building.name,
+                                  name.lowercased().contains(q) else { continue }
                             results.append(GlobalSearchResult(
                                 id: "b_\(building.osmID ?? name)_\(district.id)",
                                 name: name,
@@ -389,7 +478,9 @@ final class DiscoverViewModel: ObservableObject {
                         }
                     }
                     if let col = CangguPOICollection.load(for: district.id) {
-                        for poi in col.pois where poi.name.lowercased().contains(q) {
+                        for poi in col.pois {
+                            guard results.count < 8 else { break }
+                            guard poi.name.lowercased().contains(q) else { continue }
                             results.append(GlobalSearchResult(
                                 id: "poi_\(poi.id)", name: poi.name,
                                 subtitle: "\(district.displayName), \(city.displayName)",
@@ -401,7 +492,12 @@ final class DiscoverViewModel: ObservableObject {
                 }
             }
         }
-        return Array(results.prefix(10))
+        return results
+    }
+
+    /// Flat combined list for the submit-on-enter handler — first 10 across districts + places.
+    func globalSearchResults() -> [GlobalSearchResult] {
+        Array((globalDistrictResults + globalPlaceResults).prefix(10))
     }
 
     /// Called when the user taps a `WorldCitySuggestion` row.
@@ -420,11 +516,23 @@ final class DiscoverViewModel: ObservableObject {
         isGlobalSearchActive = false
         switch result.kind {
         case .city(let city):
-            selectCity(city)
+            // Jump to the first bundled district at OVERVIEW bird's-eye
+            if let firstDistrict = city.districts.first(where: \.dataBundled) {
+                selectDistrict(firstDistrict, in: city)
+                setViewPreset(.overview)
+            } else {
+                selectCity(city)
+            }
         case .district(let district, let city):
             selectDistrict(district, in: city)
-        case .building(_, let district, let city):
+        case .building(let building, let district, let city):
+            // Navigate to district, then fly to the building in wide-framing BÂTIMENT view.
+            // selectDistrict clears selectedBuilding; selectBuilding re-sets it so setViewPreset
+            // can guard on it and fire viewFocusToken. The fresh coordinator sees the token delta
+            // and calls flyToBuildingWithFraming on its first update() cycle.
             selectDistrict(district, in: city)
+            selectBuilding(building)
+            setViewPreset(.focus)
         case .poi(let poi, let district, let city):
             selectVenuePOI(poi, in: district, city: city)
         }
@@ -487,6 +595,34 @@ final class DiscoverViewModel: ObservableObject {
         withAnimation(.easeInOut(duration: 0.35)) {
             state = .districtExplore(city, district)
         }
+        // First-entry reveal: show once per district install-lifetime.
+        let key = "reveal_\(district.id)"
+        if !UserDefaults.standard.bool(forKey: key) {
+            UserDefaults.standard.set(true, forKey: key)
+            let d = District.load(named: district.id)
+            // Activity count: try district-level file first (Bali); fall back to city-level.
+            let distActs = CityActivities.load(for: district.id.lowercased())
+            let cityActs = distActs.isEmpty ? CityActivities.load(for: city.id) : []
+            let ctx = DistrictRevealContext(
+                city: city, district: district,
+                buildingCount: d?.buildings.count ?? 0,
+                roadCount: d?.roads.count ?? 0,
+                activityCount: distActs.count + cityActs.count
+            )
+            // 0.7s delay so the 3D scene finishes its cinematic entry before the card appears.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+                withAnimation(.spring(response: 0.45, dampingFraction: 0.82)) {
+                    self?.districtRevealContext = ctx
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) { [weak self] in
+                    withAnimation(.easeOut(duration: 0.35)) { self?.districtRevealContext = nil }
+                }
+            }
+        }
+    }
+
+    func dismissDistrictReveal() {
+        withAnimation(.easeOut(duration: 0.25)) { districtRevealContext = nil }
     }
 
     /// Transitions directly from the world map to a district's 3D view with the camera already
@@ -503,6 +639,7 @@ final class DiscoverViewModel: ObservableObject {
     }
 
     func back() {
+        isNightMode = false   // reset night mode when leaving a district
         switch state {
         case .districtExplore(let c, _):
             withAnimation(.easeInOut(duration: 0.35)) { state = .cityFocused(c) }
@@ -517,10 +654,17 @@ final class DiscoverViewModel: ObservableObject {
         case .cityFocused:
             withAnimation(.easeInOut(duration: 0.5)) {
                 state = .worldMap
-                cameraPosition = .camera(DiscoverViewModel.europeCamera)
+                cameraPosition = .camera(DiscoverViewModel.defaultCamera)
             }
         case .worldMap:
             break
+        }
+    }
+
+    func resetToWorldMap() {
+        withAnimation(.easeInOut(duration: 0.5)) {
+            state = .worldMap
+            cameraPosition = .camera(DiscoverViewModel.defaultCamera)
         }
     }
 }

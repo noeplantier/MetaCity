@@ -1,0 +1,85 @@
+{
+  "districtId": "SudirmanThamrin",
+  "pois": [
+    {
+      "id": "bundaran_hi",
+      "name": "Bundaran HI",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.1944,
+      "longitude": 106.8230,
+      "description": "Jakarta's iconic central roundabout featuring the Welcome Monument (Selamat Datang). The symbolic heart of the city and a popular gathering point.",
+      "partnerURL": null
+    },
+    {
+      "id": "wisma46",
+      "name": "Wisma 46",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.2093,
+      "longitude": 106.8198,
+      "description": "One of Jakarta's most distinctive skyscrapers at 262m, with its iconic pencil-shaped spire. Headquarters of Bank BNI and a defining feature of the SCBD skyline.",
+      "partnerURL": null
+    },
+    {
+      "id": "menara_bca",
+      "name": "Menara BCA",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.2000,
+      "longitude": 106.8190,
+      "description": "230m glass tower, one of the tallest buildings in Indonesia and the tallest in the Grand Indonesia complex.",
+      "partnerURL": null
+    },
+    {
+      "id": "grand_indonesia",
+      "name": "Grand Indonesia",
+      "category": "shopping",
+      "tier": "featured",
+      "latitude": -6.1975,
+      "longitude": 106.8205,
+      "description": "Jakarta's premier luxury shopping mall complex spanning 557,000m² — the largest mall in Southeast Asia. Home to over 600 international and local brands.",
+      "partnerURL": null
+    },
+    {
+      "id": "masjid_istiqlal",
+      "name": "Masjid Istiqlal",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -6.1702,
+      "longitude": 106.8320,
+      "description": "The largest mosque in Southeast Asia, inaugurated in 1978. A masterpiece of modern Islamic architecture with a 45m silver dome, symbolising Indonesian independence.",
+      "partnerURL": null
+    },
+    {
+      "id": "plaza_indonesia",
+      "name": "Plaza Indonesia",
+      "category": "shopping",
+      "tier": "standard",
+      "latitude": -6.1930,
+      "longitude": 106.8217,
+      "description": "Upmarket shopping centre anchoring the Thamrin Boulevard corridor, home to luxury labels and flagship restaurants.",
+      "partnerURL": null
+    },
+    {
+      "id": "katedral_jakarta",
+      "name": "Katedral Jakarta",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -6.1702,
+      "longitude": 106.8312,
+      "description": "Jakarta Cathedral (1901), one of the city's finest examples of Gothic Revival architecture. Its twin neo-Gothic spires face the Istiqlal Mosque across the square.",
+      "partnerURL": null
+    },
+    {
+      "id": "hotel_indonesia_roundabout",
+      "name": "Monumen Selamat Datang",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -6.1944,
+      "longitude": 106.8231,
+      "description": "The Welcome Monument at Bundaran HI — two bronze figures welcoming visitors, designed by Edhi Sunarso and inaugurated by Sukarno in 1962.",
+      "partnerURL": null
+    }
+  ]
+}

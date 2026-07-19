@@ -26,6 +26,11 @@ struct PlacesView: View {
                     selectedTab: $selectedTab
                 )
             }
+            .task(id: discoverViewModel.focusedCity?.id) {
+                if let city = discoverViewModel.focusedCity {
+                    await viewModel.refreshLivePlaces(for: city)
+                }
+            }
         }
     }
 
@@ -199,6 +204,8 @@ private struct PlaceCard: View {
         case .nightlife:    return .indigo
         case .heritage:     return Color(red: 0.6, green: 0.4, blue: 0.2)
         case .neighborhood: return Color.metacityPrimary
+        case .wellness:     return Color(red: 0.3, green: 0.8, blue: 0.6)
+        case .shopping:     return Color(red: 0.8, green: 0.3, blue: 0.7)
         }
     }
 }

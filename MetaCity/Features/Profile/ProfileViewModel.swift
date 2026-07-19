@@ -114,4 +114,90 @@ final class ProfileViewModel: ObservableObject {
             city.districts.contains(where: { visitedIds.contains($0.id) })
         }.count
     }
+
+    // MARK: - Voyageur personality
+
+    /// Computed personality archetype from visited district mood keys.
+    /// Updates automatically as `preferences.visitedDistrictIds` changes.
+    var voyageurPersonality: VoyageurPersonality {
+        let visitedIds = preferences.visitedDistrictIds
+        guard !visitedIds.isEmpty else { return .newExplorer }
+
+        // Tally mood theme counts from manifest district entries
+        var tropical = 0, futurist = 0, european = 0, mediterranean = 0, heritage = 0
+        for city in CityManifest.shared.allCities {
+            for d in city.districts where visitedIds.contains(d.id) {
+                switch d.moodKey {
+                case "beachResort", "sacredSite": tropical += 2
+                case "shibuyaNeon", "nycDusk", "laSunset": futurist += 2
+                case "skyscraperCorridor":         futurist += 1
+                case "parisianCore", "rennesMedieval", "bordeauxWaterfront": european += 2
+                case "madridAfternoon", "romanGoldenHour": mediterranean += 2
+                case "londonSilver":               mediterranean += 1
+                case "colonialSquare":             heritage += 2
+                case "highlandMorning":            heritage += 1
+                default: break
+                }
+            }
+        }
+
+        let scores = [
+            (tropical, VoyageurPersonality.tropicalNomad),
+            (futurist, .urbanFuturist),
+            (european, .europeanFlaneur),
+            (mediterranean, .mediterraneanVoyager),
+            (heritage, .heritageSeekerl)
+        ]
+        // Dominant theme wins; tie → europeenFlaneur as default for this app's audience
+        if let top = scores.max(by: { $0.0 < $1.0 }), top.0 > 0 { return top.1 }
+        return .eclecticExplorer
+    }
+}
+
+// MARK: - VoyageurPersonality
+
+enum VoyageurPersonality {
+    case newExplorer        // 0 districts visited
+    case tropicalNomad      // beach/Bali dominant
+    case urbanFuturist      // glass towers / Shibuya / NYC dominant
+    case europeanFlaneur    // Paris / Bordeaux / Rennes dominant
+    case mediterraneanVoyager // Madrid / Rome / London dominant
+    case heritageSeekerl    // Colonial Jakarta / Javanese dominant
+    case eclecticExplorer   // mixed, all low
+
+    var title: String {
+        switch self {
+        case .newExplorer:         return "NOUVEAU VOYAGEUR"
+        case .tropicalNomad:       return "NOMADE TROPICAL"
+        case .urbanFuturist:       return "ARCHITECTE FUTURISTE"
+        case .europeanFlaneur:     return "FLÂNEUR EUROPÉEN"
+        case .mediterraneanVoyager:return "VOYAGEUR MÉDITERRANÉEN"
+        case .heritageSeekerl:     return "HISTORIEN DU BÂTI"
+        case .eclecticExplorer:    return "EXPLORATEUR ÉCLECTIQUE"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .newExplorer:         return "TOURISME 3D & RA · PRÊT À EXPLORER"
+        case .tropicalNomad:       return "BALI · NATURE · ARCHITECTURE VERNACULAIRE"
+        case .urbanFuturist:       return "VERRE · ACIER · SKYLINES DU FUTUR"
+        case .europeanFlaneur:     return "HAUSSMANN · PARIS · PATRIMOINE URBAIN"
+        case .mediterraneanVoyager:return "SIENNA · OCRE · LUMIÈRE DU SUD"
+        case .heritageSeekerl:     return "COLONIALE · JAVA · MÉMOIRE ARCHITECTURALE"
+        case .eclecticExplorer:    return "EXPLORER SANS FRONTIÈRES · TOURISME 3D"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .newExplorer:         return "globe.europe.africa.fill"
+        case .tropicalNomad:       return "sun.max.fill"
+        case .urbanFuturist:       return "building.2.crop.circle.fill"
+        case .europeanFlaneur:     return "archivebox.fill"
+        case .mediterraneanVoyager:return "water.waves"
+        case .heritageSeekerl:     return "building.columns.fill"
+        case .eclecticExplorer:    return "map.fill"
+        }
+    }
 }

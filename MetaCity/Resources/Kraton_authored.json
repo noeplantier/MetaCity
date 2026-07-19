@@ -1,0 +1,40 @@
+{
+  "districtId": "Kraton",
+  "overrides": [
+    {
+      "nameMatch": "Kraton",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Keraton",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Sultan",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Taman Sari",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Masjid Gedhe",
+      "style": "religious",
+      "roofType": "dome"
+    },
+    {
+      "nameMatch": "Gereja",
+      "style": "religious",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Museum Sonobudoyo",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "districtId": "SudirmanThamrin",
+  "overrides": [
+    {
+      "nameMatch": "Wisma 46",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 262.0
+    },
+    {
+      "nameMatch": "Menara BCA",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 230.0
+    },
+    {
+      "nameMatch": "Grand Indonesia",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 56.0
+    },
+    {
+      "nameMatch": "Menara Imperium",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 200.0
+    },
+    {
+      "nameMatch": "Plaza Indonesia",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 46.0
+    },
+    {
+      "nameMatch": "Senayan City",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 40.0
+    },
+    {
+      "nameMatch": "Masjid Istiqlal",
+      "style": "religious",
+      "roofType": "dome",
+      "heightMeters": 45.0
+    },
+    {
+      "nameMatch": "Katedral Jakarta",
+      "style": "religious",
+      "roofType": "dome",
+      "heightMeters": 61.0
+    },
+    {
+      "nameMatch": "Gereja Immanuel",
+      "style": "religious",
+      "roofType": "dome",
+      "heightMeters": 28.0
+    },
+    {
+      "nameMatch": "Kementerian Keuangan",
+      "style": "government",
+      "roofType": "flat"
+    }
+  ]
+}

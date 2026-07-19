@@ -1,0 +1,86 @@
+{
+  "cityId": "london",
+  "activities": [
+    {
+      "id": "london_gherkin_orbit",
+      "name": "Vol orbital — 30 St Mary Axe 180 m",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "La caméra orbitale fait le tour des 41 étages du Gherkin (Norman Foster, 2003) à 30 m de distance : la peau en verre triangulé composée de 5 500 panneaux rhomboïdes, les 6 puits d'air hélicoïdaux et la couronne spiralée apparaissent dans leur logique constructive. Vue impossible depuis la rue dans la canyonnisation de la City.",
+      "area": "City of London",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 51.5146,
+      "longitude": -0.0803,
+      "districtId": "CityOfLondon",
+      "fragmentAssetKey": "london_city.gherkin"
+    },
+    {
+      "id": "london_st_pauls_dome_ra",
+      "name": "Expérience RA — Dôme de Saint Paul",
+      "category": "experienceRA",
+      "tier": "premium",
+      "description": "Depuis le parvis de Ludgate Hill, la couche RA superpose les plans de Wren (1673) sur l'état actuel : les 111 mètres de coupole Portland stone, la Whispering Gallery à 30 m de haut, la Golden Gallery à 85 m. L'algorithme mesure en temps réel la distance entre le piéton et la croix de la lanterne.",
+      "area": "City of London",
+      "priceRange": "Free",
+      "duration": "12 min",
+      "latitude": 51.5138,
+      "longitude": -0.0984,
+      "districtId": "CityOfLondon",
+      "fragmentAssetKey": "london_city.st_pauls"
+    },
+    {
+      "id": "london_cheesegrater_nuit",
+      "name": "Immersion nocturne — Skyline financière",
+      "category": "immersionSensorielle",
+      "tier": "premium",
+      "description": "Le mode nuit allume la skyline londonSilver : 22 Bishopsgate (278 m), Leadenhall 'Cheesegrater' (224 m), Tower 42 (183 m) s'éclairent progressivement. La simulation audio restitue le vrombissement des serveurs des salles de trading — la City traite 43% du marché des changes mondial depuis ces tours.",
+      "area": "City of London",
+      "priceRange": "Free",
+      "duration": "8 min",
+      "latitude": 51.5139,
+      "longitude": -0.0817,
+      "districtId": "CityOfLondon"
+    },
+    {
+      "id": "london_westminster_abbey_guided",
+      "name": "Visite guidée — Westminster & Parlament",
+      "category": "visiteGuidee",
+      "tier": "premium",
+      "description": "Le focus séquentiel fait le tour du compound Westminster : l'Abbaye (gothique perpendiculaire 1065–1745), le Palais de Westminster (néo-gothique Barry & Pugin, 1840), Victoria Tower (98 m, tour gothique Revival la plus haute au monde en 1860), et Big Ben rénové (96 m, Elizabeth Tower). Fiches historiques sur chaque monarque couronné.",
+      "area": "Westminster",
+      "priceRange": "Free",
+      "duration": "18 min",
+      "latitude": 51.4994,
+      "longitude": -0.1272,
+      "districtId": "Westminster",
+      "fragmentAssetKey": "london_westminster.parliament"
+    },
+    {
+      "id": "london_brick_lane_lifestyle",
+      "name": "Lifestyle — Brick Lane & East End",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "L'East End de la City est le marqueur de toutes les migrations londoniennes : huguenots (XVIIe), juifs ashkénazes (XIXe), bangladais (XXe). La 3D identifie la même rue Fournier où se succèdent une chapelle huguenote (1743), une synagogue (1898), et une mosquée (1976). Carte des street-food vendors en temps réel.",
+      "area": "Shoreditch / East End",
+      "priceRange": "$",
+      "duration": "20 min",
+      "latitude": 51.5215,
+      "longitude": -0.0717,
+      "districtId": "CityOfLondon"
+    },
+    {
+      "id": "london_tower_bridge_scan",
+      "name": "Scan historique — Tower Bridge",
+      "category": "experienceRA",
+      "tier": "standard",
+      "description": "Le scan décompose les 244 m de Tower Bridge (Horace Jones & John Wolfe Barry, 1894) : les deux pylônes néo-gothiques en acier habillés de granit Cornwall, les travées latérales en fonte, et les passerelles vitrées à 42 m de hauteur. La RA superpose les mécanismes hydrauliques de basculement invisibles sous la chaussée.",
+      "area": "South Bank / City border",
+      "priceRange": "Free",
+      "duration": "8 min",
+      "latitude": 51.5055,
+      "longitude": -0.0754,
+      "districtId": "CityOfLondon"
+    }
+  ]
+}

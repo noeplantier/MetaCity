@@ -26,6 +26,7 @@ extension DistrictEntry {
         case "sfMorning":         return .sfMorning
         case "nycDusk":           return .nycDusk
         case "shibuyaNeon":       return .shibuyaNeon
+        case "laSunset":          return .laSunset
         default:                  return .parkDaylight
         }
     }
@@ -60,6 +61,7 @@ enum DistrictRealityScene {
         case sfMorning           // San Francisco (Downtown + Fisherman's Wharf) — coastal morning, Karl the Fog
         case nycDusk             // New York (Midtown + Lower Manhattan) — late-afternoon canyon golden light
         case shibuyaNeon         // Tokyo (Shibuya) — dense commercial evening, neon-lit indigo sky
+        case laSunset            // Los Angeles (DTLA, Hollywood) — Pacific golden-hour orange, bleached concrete
 
         var sunColor: UIColor {
             switch self {
@@ -81,6 +83,7 @@ enum DistrictRealityScene {
             case .sfMorning:       UIColor(red: 0.94, green: 0.90, blue: 0.82, alpha: 1) // warm coastal morning through marine layer
             case .nycDusk:         UIColor(red: 1.0,  green: 0.78, blue: 0.48, alpha: 1) // intense amber dusk — canyon light carving shadows between towers
             case .shibuyaNeon:     UIColor(red: 0.88, green: 0.82, blue: 0.70, alpha: 1) // warm amber Japanese afternoon — commercial commercial golden hour before neon kicks in
+            case .laSunset:        UIColor(red: 1.0,  green: 0.68, blue: 0.34, alpha: 1) // intense Pacific golden-hour orange — sun just above the Hollywood Hills
             }
         }
 
@@ -113,6 +116,7 @@ enum DistrictRealityScene {
             case .sfMorning:       28000  // coastal morning — sun cutting through marine layer, moderate contrast
             case .nycDusk:         36000  // intense low-angle dusk — strong enough to carve canyon shadows
             case .shibuyaNeon:     30000  // late-afternoon Tokyo — strong directional sun before neon takes over
+            case .laSunset:        34000  // intense Pacific golden-hour — sharp long shadows across bleached LA concrete
             }
         }
 
@@ -138,6 +142,7 @@ enum DistrictRealityScene {
             case .sfMorning:       0.40   // coastal morning angle — moderate elevation through fog
             case .nycDusk:         0.28   // very low — maximises tower shadow depth between canyon streets
             case .shibuyaNeon:     0.22   // lowest elevation in the app — long dramatic shadows across Shibuya commercial density
+            case .laSunset:        0.20   // very low Pacific sunset — maximises orange ground-cast shadows on LA concrete
             }
         }
 
@@ -209,6 +214,10 @@ enum DistrictRealityScene {
                 // Tokyo commercial evening — deep indigo zenith (city light haze), electric magenta-pink
                 // horizon glow from neon signage and building illumination, very dark wet asphalt ground.
                 (UIColor(red: 0.14, green: 0.18, blue: 0.44, alpha: 1), UIColor(red: 0.62, green: 0.28, blue: 0.58, alpha: 1), UIColor(red: 0.10, green: 0.10, blue: 0.14, alpha: 1))
+            case .laSunset:
+                // Pacific golden-hour — deep blue zenith (smog-filtered), blazing orange-amber horizon
+                // (sun just below the Hollywood Hills), warm bleached-asphalt ground.
+                (UIColor(red: 0.22, green: 0.28, blue: 0.62, alpha: 1), UIColor(red: 0.92, green: 0.50, blue: 0.20, alpha: 1), UIColor(red: 0.34, green: 0.28, blue: 0.20, alpha: 1))
             }
         }
 
@@ -236,6 +245,7 @@ enum DistrictRealityScene {
             case .sfMorning:       0.16  // SF Financial District — similar density to Vancouver
             case .nycDusk:         0.18  // NYC Midtown/Lower Manhattan — slight extra breathing room for skyline silhouette
             case .shibuyaNeon:     0.16  // Shibuya — extremely dense commercial fabric, very tight framing
+            case .laSunset:        0.18  // DTLA/Hollywood — LA sprawl needs more breathing room than Asian density
             }
         }
 
@@ -259,6 +269,7 @@ enum DistrictRealityScene {
             case .sfMorning:       0.16  // elevated — reads SF's varied terrain (Nob Hill silhouette behind FiDi towers)
             case .nycDusk:         0.16  // elevated — reads the setback skyscraper silhouette from outside the street canyon
             case .shibuyaNeon:     0.18  // slightly elevated — reads layered commercial signage canopy across dense Shibuya block
+            case .laSunset:        0.14  // moderate elevation — reads DTLA tower silhouette against orange sunset sky
             }
         }
 
@@ -266,10 +277,59 @@ enum DistrictRealityScene {
             switch self {
             // Dense high-rise skylines: wider FOV maximises vertical tower impact
             case .skyscraperCorridor, .nycDusk, .shibuyaNeon: 50
+            // LA sprawl: wide 48° captures the horizontal spread across the basin
+            case .laSunset: 48
             // European dense fabric: 45° gives better depth perception of packed street canyons
             // while keeping the "looking into a city block" feel vs. the flat 42° overview.
             case .parisianCore, .bordeauxWaterfront, .londonSilver, .madridAfternoon, .romanGoldenHour: 45
             default: 42
+            }
+        }
+
+        /// Night-mode emissive intensity multiplier applied to all building materials in this
+        /// district. Values above 1.0 push neon/glow-heavy cities toward their real character:
+        /// Shibuya's dense advertising towers glow far brighter than a Balinese compound, and
+        /// Sudirman's SCBD towers have a distinctive Blade Runner fill-light intensity.
+        /// Baked into material at entity-build time (cache key includes boost tier), so cloning
+        /// doesn't need to re-apply it.
+        var nightEmissiveBoost: Float {
+            switch self {
+            case .shibuyaNeon:         1.30  // Tokyo neon commercial saturation — densest in app
+            case .nycDusk:             1.20  // NYC canyon light — late afternoon → dense office glow
+            case .laSunset:            1.14  // DTLA + Hollywood neon billboards, vibrant night economy
+            case .skyscraperCorridor:  1.15  // Jakarta SCBD Blade Runner warm fill
+            case .londonSilver:        1.12  // London pub culture + City/Westminster mixed-use, vibrant evenings
+            case .parisianCore:        1.10  // Paris café-apartment amber glow (window shutters)
+            case .vancouverCoastal:    1.10  // Vancouver dense residential towers + Granville nightlife
+            case .bordeauxWaterfront:  1.08  // Bordeaux quay café-terrace glow
+            case .madridAfternoon:     1.05  // Madrid terrace incandescent balcony glow
+            case .romanGoldenHour:     1.06  // Rome aperitivo culture — warm amber restaurant glow
+            case .sfMorning:           1.05  // SF SoMa tech offices + Mission bars stay lit late
+            default:                   1.0
+            }
+        }
+
+        /// Per-mood wall-color warmth bias applied during material build. Positive = warmer (push R,
+        /// pull B); negative = cooler (pull R, push B). Applied as an additive delta on each style's
+        /// base RGB channels, giving each city a subtle but consistent color-temperature personality —
+        /// Paris limestone reads slightly cooler/whiter than Bordeaux amber-gold even when both share
+        /// the haussmannien/bordelaisClassical style family. Baked into the material pool at entity-
+        /// build time via `currentWarmthBias` (same pattern as `nightEmissiveBoost`/`currentMoodBoost`).
+        var warmthBias: Float {
+            switch self {
+            case .parisianCore:       return -0.02  // cool pearl overcast — limestone reads whiter/cooler
+            case .bordeauxWaterfront: return  0.04  // golden-hour Garonne — amber warmth saturates walls
+            case .madridAfternoon:    return  0.03  // warm Iberian afternoon — golden-beige richer
+            case .romanGoldenHour:    return  0.05  // maximum warmth — Rome's sienna-amber identity
+            case .londonSilver:       return -0.04  // cool silver overcast — brick reads cooler/greyer
+            case .shibuyaNeon:        return -0.02  // Tokyo concrete — slightly cooler grey-blue cast
+            case .beachResort:        return  0.02  // warm tropical light — volcanic stone warmer
+            case .colonialSquare:     return  0.01  // warm golden-hour Jakarta — slight warmth on plaster
+            case .highlandMorning:    return -0.01  // cool Bandung highland — morning mist cools walls
+            case .rennesMedieval:     return -0.03  // cool Breton grey — slate and granite read cooler
+            case .nycDusk:            return  0.02  // warm NYC dusk canyon light — brick richer
+            case .laSunset:           return  0.04  // intense Pacific orange — stucco and concrete pushed to warm amber
+            default:                  return  0.0
             }
         }
     }

@@ -6,12 +6,30 @@ architecture: `Repositories/` protocols, `Services/` implementations (mock + rea
 automatically based on whether `GoogleService-Info.plist` is present), `@MainActor` ViewModels,
 DI via the plain `AppEnvironment` container — no DI framework.
 
-## Scope: Indonesia (14 districts) + France (6) + London/Madrid/Rome (5) + Tokyo (1) with real OSM data
+## Scope: 14 cities visible in UI (2026-07-19 pivot — Indonesia re-enabled)
 
-As of 2026-07-15, MetaCity covers **11 cities with real OSM-derived 3D district data** — Jakarta (5
-districts), Bandung (2), Yogyakarta (2), Bali/Denpasar (5), Paris (4), Bordeaux (2), London (2),
-Madrid (2), Rome (1), Tokyo (1) — plus placeholder cities with no district data yet (Indonesian tier-2 cities,
-Rennes). All 26 data districts live in `MetaCity/Resources/Districts/<id>.json`.
+As of 2026-07-19, MetaCity surfaces 14 cities in `visibleCityIds` (renamed from `europeFocusCityIds`):
+```swift
+static let visibleCityIds: Set<String> = [
+    "paris", "bordeaux", "london", "madrid", "rome",
+    "tokyo", "newyork", "losangeles", "vancouver", "sanfrancisco",
+    "jakarta", "bandung", "denpasar", "yogyakarta"
+]
+static var europeFocusCityIds: Set<String> { visibleCityIds }  // backward-compat alias
+```
+Jakarta / Bandung / Yogyakarta / Bali/Denpasar are **fully visible** in the Discover tab and
+world map again (re-enabled 2026-07-19 as part of Phase 6 Indonesia-first pivot).
+
+The default map camera is Indonesia: `-2.5°N / 117.5°E, distance 4,500,000m` (full archipelago).
+Cold launch opens Jakarta in `cityFocused` state.
+
+MetaCity covers **36 districts with real OSM-derived 3D data** across 14 cities:
+Jakarta (5), Bandung (2), Yogyakarta (2), Bali/Denpasar (5), Paris (4), Bordeaux (2), London (2),
+Madrid (2), Rome (1), Tokyo (4), Los Angeles (1), New York (2), Vancouver (2), San Francisco (2).
+All 33 district JSONs live in `MetaCity/Resources/Districts/<id>.json`.
+`CityManifest.json` (decoded into `CityManifest.shared`) is the single source of truth for what's
+live; it drives the world map, district picker, and 3D inspector routing.
+All 33 data districts live in `MetaCity/Resources/Districts/<id>.json`.
 `CityManifest.json` (decoded into `CityManifest.shared`) is the single source of truth for what's
 live; it drives the world map, district picker, and 3D inspector routing.
 
@@ -37,7 +55,7 @@ per an explicit instruction to focus exclusively on real OSM-derived content. If
 reintroduces a pre-OSM artistic tier, that's a deliberate regression; don't resurrect those files
 from git history without a fresh reason.
 
-**Districts currently bundled (26 total):**
+**Districts currently bundled (33 total):**
 - Jakarta: `SudirmanThamrin`, `KotaTua`, `Kemang`, `Menteng`, `Ancol`
 - Bandung: `Dago`, `Braga`
 - Yogyakarta: `Malioboro`, `Kraton`
@@ -47,10 +65,14 @@ from git history without a fresh reason.
 - London: `CityOfLondon`, `Westminster`
 - Madrid: `Salamanca`, `Malasana`
 - Rome: `CentroStorico`
-- Tokyo: `Shibuya`
+- Tokyo: `Shibuya`, `Shinjuku`, `Ginza`, `Asakusa`
+- New York: `MidtownManhattan`, `LowerManhattan`
+- Los Angeles: `DowntownLA`
+- Vancouver: `VancouverDowntown`, `WestEnd`
+- San Francisco: `SFDowntown`, `FishermansWharf`
 
 `MockMapRepository` serves the 5 Jakarta landmarks (the Map tab still shows only Jakarta pins);
-the Discover tab uses `CityManifest.allCities` which includes all 11 city pins from the world map.
+the Discover tab uses `CityManifest.allCities` which includes all city pins from the world map.
 `LandmarkInspectorView` no longer has (or needs) a fallback path for landmarks without curated 3D
 data.
 
@@ -1481,7 +1503,7 @@ Supported fields per override: `osmID` (exact), `nameMatch` (case-insensitive su
   `applyUITestOverrides` which now opens Paris in `cityFocused` state if no `UITEST_OPEN_*` env var.
 - The `back()` function (cityFocused → worldMap) returns to `europeCamera` (not `indonesiaCamera`).
 
-### Authored override files — complete set (as of 2026-07-13)
+### Authored override files — complete set (as of 2026-07-16)
 
 All authored overrides are created; no planned-but-missing files remain.
 
@@ -1501,7 +1523,24 @@ All authored overrides are created; no planned-but-missing files remain.
 | `MidtownManhattan_authored.json` | Midtown Manhattan | 34 | Empire State/Chrysler → nycBrick; glass towers → modernGlass; Saint Patrick → religious |
 | `LowerManhattan_authored.json` | Lower Manhattan | 24 | One WTC → modernGlass; Woolworth → government; Trinity Church → religious |
 
+| `VancouverDowntown_authored.json` | Vancouver Downtown | 6 | Marine Building 98m → government; BC Place → dome; Christ Church → religious |
+| `SFDowntown_authored.json` | SF Downtown | 6 | Transamerica Pyramid 260m → government; Ferry Building 71m; churches → religious |
+| `FishermansWharf_authored.json` | Fisherman's Wharf SF | 5 | Ghirardelli, Cannery, Maritime Museum → government/flat |
+| `Montmartre_authored.json` | Montmartre | 6 | Sacré-Cœur → dome 83m, Moulin Rouge/Galette → government flat |
+| `Shinjuku_authored.json` | Shinjuku | 11 | 新宿野村ビル→modernGlass/220m, モード学園コクーンタワー→modernGlass/200m, 東急歌舞伎町タワー→modernGlass/192m, Shinjuku Station→government |
+| `Ginza_authored.json` | Ginza | 9 | GINZA SIX→modernGlass/56m, 銀座松竹スクエア→modernGlass/92m, 歌舞伎座→government/45m, 銀座駅→government |
+| `Asakusa_authored.json` | Asakusa | 8 | 浅草寺→religious/dome, 浅草神社→religious/flat, 東京楽天地浅草ビル→modernGlass/52m, 都立産業貿易センター→government |
+| `KotaTua_authored.json` | Kota Tua | 10 | Museum Fatahillah→government/flat, Gereja Sion→religious/flat, Gereja Katedral→religious/dome, Café Batavia→colonial |
+| `SudirmanThamrin_authored.json` | Sudirman-Thamrin | 10 | Wisma 46→modernGlass/262m, Menara BCA→modernGlass/230m, Masjid Istiqlal→religious/dome/45m, Katedral Jakarta→religious/dome/61m |
+| `Menteng_authored.json` | Menteng | 6 | Tugu Proklamasi→government, Gereja Theresia→religious/flat, Masjid Cut Meutia→religious/dome |
+| `Kemang_authored.json` | Kemang | 4 | Kemang Village→modernConcrete/flat/36m, Masjid Al-Azhar→religious/dome |
+| `Kraton_authored.json` | Kraton | 7 | Kraton/Keraton/Sultan→government/flat, Taman Sari→government/flat, Masjid Gedhe→religious/dome |
+| `Braga_authored.json` | Braga | 5 | Gedung Merdeka→government/flat/18m, Gedung Sate→government/flat/48m |
+
 No authored file needed for Salamanca (flat azotea on all `madrileño` buildings by default).
+No authored file needed for WestEnd Vancouver (all buildings correctly height-promote; no landmark misclassifications found).
+No authored file needed for Dago (buildings correctly classify; no landmark misclassifications identified).
+No authored file needed for Malioboro (hotel misclassifications fixed directly in JSON; no sidecar needed).
 
 ### Area-bucketed height variation (`displayHeight`, 2026-07-13)
 
@@ -1719,6 +1758,1148 @@ road geometry with multiple grade-separated paths. This is architecturally accur
 "Bunkamura": 22, "QFront": 32, "Shibuya Excel Hotel Tokyu": 46, "Prime": 88,
 ```
 
+## Los Angeles / DowntownLA district (added 2026-07-16)
+
+**DowntownLA: 2,658 buildings** (2,427 modernConcrete 91%, 171 modernGlass 6%, 49 government 2%, 11 religious 0%), 7,322 roads, 73 green zones. 21 point-mapped landmarks matched. Fetched and screenshot-verified 2026-07-16.
+
+```
+python3 fetch_district_data.py \
+  --name DowntownLA --bbox 34.033 -118.265 34.058 -118.235 \
+  --anchor 34.0522 -118.2437 --default-style modernConcrete \
+  --out ../MetaCity/Resources/Districts/DowntownLA.json \
+  --cache /tmp/dtla_raw.json
+```
+
+**moodKey**: `laSunset` — Pacific golden-hour, 34,000 lux, sun elevation 0.20 (2nd lowest in the app, after `romanGoldenHour`'s 0.32 and matching the very low LA sun angle), 48° FOV. Warm sandy bleached-concrete ground texture. `modernConcrete` is NOT in `HEIGHT_PROMOTION_BYPASS` so Bunker Hill glass towers auto-promote to `modernGlass` at ≥30m correctly.
+
+**Key verified buildings:**
+- `Wilshire Grand Building`: 335m, modernGlass (authored override — OSM had 292m; KNOWN_HEIGHTS key mismatch `"Wilshire Grand Center"` vs OSM name `"Wilshire Grand Building"`, both now in KNOWN_HEIGHTS)
+- Aon Center: 262m, modernGlass ✓
+- 777 Tower: 218m, modernGlass ✓
+- Figueroa at Wilshire: 183m, modernGlass ✓
+
+`focusBuildingName` in CityManifest is "Wilshire Grand Center" — display-only subtitle. Camera targets `district.buildingCentroid`. English display vs OSM name mismatch does not affect rendering.
+
+DowntownLA is in `heavyDistricts` in `MetaCityApp.swift` (2,658 buildings → on-demand load, not startup prefetch). `DistrictRenderProfile.preset("DowntownLA")`: nightWindowDensityBoost 1.15, facadeDepthScale 1.0.
+
+### `laStucco` BuildingStyle
+
+New `BuildingStyle` case for LA Spanish Colonial/stucco bungalow vernacular:
+- **Wall**: sun-baked cream-ochre stucco `(0.86+0.08·wobble, 0.78+0.06·wobble, 0.60+0.04·wobble)`, metallic 0.0, roughness 0.81–0.88, clearcoat 0.04.
+- **Roof**: Spanish Mission barrel tile `(0.68, 0.28, 0.10)` day / dark terracotta night. Cap: **22° pitch** (`pitchTan: 0.404`), `maxRidgeInset: 4.5m`, overhang 0.40m — shallow wide eave of LA ranch bungalows.
+- **Night emissive**: 0.18 — LA residential, sparse electric density.
+- **Window texture**: 3×5 grid, density 0.18.
+- **IN HEIGHT_PROMOTION_BYPASS** (`tools/fetch_district_data.py`): prevents LA stucco bungalows from being height-promoted to modernGlass/modernConcrete.
+- No facade articulation bands (`facadeProfile` returns `.none`) — architecturally correct for single-storey California bungalows.
+- **NOT the default style for DowntownLA** — DowntownLA uses `--default-style modernConcrete` (the downtown office grid). `laStucco` will be the default style for Hollywood (residential fabric) when that district is fetched.
+
+### `laSunset` Mood
+
+New `DistrictRealityScene.Mood`:
+- Sun `(1.0, 0.74, 0.44)`, 34,000 lux, elevation 0.20.
+- Zenith `(0.28, 0.36, 0.58)` / horizon `(0.72, 0.56, 0.34)` / ground `(0.36, 0.26, 0.18)`.
+- Camera distance 0.20, height 0.12, FOV 48°.
+- Road material: warm sun-baked asphalt (primary `(0.26, 0.22, 0.18)`), pedestrian zones `(0.56, 0.48, 0.38)`.
+- Ground texture: bleached LA concrete, warm sandy cast with dark mortar joints `(82, 72, 56)` and alternating block tones `(148, 130, 100)` / `(136, 118, 90)` + noise.
+- `warmthBias: +0.04` (same as bordeauxWaterfront — Pacific golden-hour warmth).
+- `nightEmissiveBoost: 1.0` (default — LA residential has low electric density; glass towers handled by DistrictRenderProfile preset 1.15 density boost separately).
+
+### `DowntownLA_authored.json` (5 overrides)
+- `osmID 23973401` (Skyspace LA / US Bank Tower): `style: modernGlass, heightMeters: 310.0` — OSM maps it as "Skyspace LA" (the obs deck brand) with government classification.
+- `osmID 496246723` (Wilshire Grand Building): `heightMeters: 335.0` — OSM height was 292m.
+- nameMatch "Los Angeles City Hall": `style: government, roofType: flat`.
+- nameMatch "Walt Disney Concert Hall": `style: modernGlass, roofType: flat, heightMeters: 55.0`.
+- nameMatch "The Broad": `style: modernGlass, roofType: flat`.
+
+### KNOWN_HEIGHTS additions for LA (in `tools/fetch_district_data.py`)
+20+ entries added: Wilshire Grand Center/Building 335m, US Bank Tower 310m, Aon Center 262m, Two California Plaza 221m, 777 Tower 218m, Figueroa at Wilshire 183m, Ernst & Young Tower 156m, JPMorgan Chase Tower 146m, Wilshire Grand Annex 127m, LA City Hall 138m, Walt Disney Concert Hall 55m, Union Station 35m, Bradbury Building 18m, The Broad 18m, Grand Central Market 15m.
+
+**Screenshot-verified 2026-07-16**: Classic DTLA orthogonal grid visible (North American street layout, distinct from European organic fabric or Tokyo rail topology). Bunker Hill glass towers (Wilshire Grand, Aon Center area) dominate upper-left in modernGlass dark. Warm sandy ochre ground from `laSunset`. Road network (7,322 roads) clearly visible in warm terracotta-orange. Green zones (Pershing Square / Grand Park) visible as patches.
+
+### `activities_losangeles.json` (6 activities)
+`la_wilshire_grand_obs` (OUE Skyspace, premium/panorama), `la_broad_museum` (premium/explore), `la_disney_concert_hall` (standard/explore), `la_grand_central_market` (standard/lifestyle), `la_bradbury_building` (standard/explore), `la_arts_district_walk` (standard/explore). "losangeles" added to `ActivitiesViewModel.others`.
+
+### Hollywood placeholder
+`Hollywood` is in CityManifest.json under `losangeles` city with `dataBundled: false`. Not yet fetched. When fetching: use `--default-style laStucco` (residential bungalow fabric), create `Hollywood_authored.json` for TCL Chinese Theatre (→ government/flat), Capitol Records Building (→ government), Dolby Theatre (→ government/flat), ArcLight Dome (→ modernGlass/dome).
+
+## Vancouver / San Francisco districts (added 2026-07-16)
+
+Four districts across two Pacific Coast cities. All fetched from real OSM data, screenshot-verified
+2026-07-16. Both cities share the same `moodKey` within their city (single-mood cities).
+
+### `nycBrick` BuildingStyle (also used by FishermansWharf SF)
+
+`nycBrick` was introduced for NYC but applies to Victorian/pre-war brick fabric anywhere:
+- **Wall**: fired clay brick, warm yellow-buff range — `dayR = 0.74+0.08·wobble`, `dayG = 0.62+0.06·wobble`,
+  `dayB = 0.38+0.04·wobble`. Roughness 0.82–0.89, metallic 0.0, clearcoat 0.05.
+- **Roof**: Welsh/NY slate — `(0.44, 0.46, 0.50)`, roughness 0.88, clearcoat 0.04.
+- **Cap geometry**: 28° pitch (`pitchTan: 0.532`), `maxRidgeInset: 4.5m`, overhang 0.22m.
+- **Night emissive**: 0.28. Window texture: 4×7 grid, density 0.30.
+- **Ground floor**: brownstone entry `(0.38, 0.28, 0.20)`, roughness 0.80.
+- **NOT in HEIGHT_PROMOTION_BYPASS** — NYC glass towers (Chrysler, One WTC) auto-promote correctly.
+
+### `vancouverCoastal` Mood
+
+- Sun `(0.88, 0.92, 0.98)`, 24,000 lux (overcast Pacific diffuse), elevation 0.42.
+- Zenith `(0.38, 0.46, 0.62)` / horizon `(0.66, 0.72, 0.80)` / ground `(0.22, 0.24, 0.28)`.
+- Camera distance 0.18, height 0.14, FOV 45°.
+- Road material: cool Portland stone pedestrian `(0.68, 0.68, 0.70)`, primary dark wet tarmac `(0.22, 0.22, 0.24)`.
+- Ground texture: cool blue-grey concrete with tight grid joints — distinctly cooler than nycDusk warm asphalt.
+- `warmthBias: -0.03` (Pacific coastal overcast — cooler than London silver, warmer than rennesMedieval).
+
+### `sfMorning` Mood
+
+- Sun `(1.0, 0.90, 0.72)`, 28,000 lux (morning California sun), elevation 0.48.
+- Zenith `(0.42, 0.50, 0.68)` / horizon `(0.72, 0.72, 0.68)` / ground `(0.32, 0.28, 0.22)`.
+- Camera distance 0.18, height 0.13, FOV 45°.
+- Road material: warm pale concrete (primary `(0.32, 0.30, 0.28)`), pedestrian zones `(0.58, 0.54, 0.46)`.
+- Ground texture: warm sandy concrete with dark mortar joints, slightly warm cast to differentiate from Vancouver.
+- `warmthBias: +0.02` (California morning warmth).
+
+### District data (fetched 2026-07-16, screenshot-verified)
+
+**VancouverDowntown**: ~2,200 buildings (modernGlass + modernConcrete Pacific NW tower fabric),
+~1,400 roads, water polygons (Coal Harbour / False Creek). `focusBuildingName: "Marine Building"` (98m Art Deco tower, authored override → government/flat). All 4 Vancouver/SF districts are in `heavyDistricts`.
+
+**WestEnd**: ~1,900 buildings (dense residential glass + concrete towers), large central green zones
+(Nelson Park / Barclay Square — visually distinctive from VancouverDowntown). `focusBuildingName: "Roedde House Museum"`.
+
+**SFDowntown**: ~2,100 buildings (~93% modernGlass — Financial District is one of the densest glass tower cores in North America), ~1,600 roads. `focusBuildingName: "Transamerica Pyramid"` (260m, authored override → government/flat).
+
+**FishermansWharf**: ~900 buildings (~99% nycBrick — Victorian/Edwardian brick warehouses and canneries), low-rise (1–3 storeys), no towers. `focusBuildingName: "Ghirardelli Chocolate Experience"`. Visually unmistakable contrast with SFDowntown glass towers — same sfMorning mood, completely different urban fabric.
+
+### Authored overrides (screenshot-verified 2026-07-16)
+
+**`VancouverDowntown_authored.json`** (6 overrides):
+- Marine Building: government/flat, 98m
+- Vancouver Art Gallery: government/flat
+- Christ Church Cathedral: religious/flat
+- Rosewood Hotel Georgia: government, 36m
+- Rogers Arena: government/flat
+- BC Place: government/dome — roof authored as dome (the stadium's retractable dome roof)
+
+**`SFDowntown_authored.json`** (6 overrides):
+- San Francisco Ferry Building: government/flat, 71m
+- Transamerica Pyramid: government/flat, 260m
+- Old Saint Mary's Cathedral: religious/flat
+- Saints Peter and Paul Church: religious/flat
+- Huntington Park: government/flat
+- Palace Hotel: government, 55m
+
+**`FishermansWharf_authored.json`** (5 overrides):
+- Ghirardelli Chocolate Experience: government/flat, 14m
+- The Cannery: government/flat, 14m
+- National Maritime Museum: government/flat
+- San Francisco Maritime Visitor Center: government/flat
+- Aquarium of the Bay: government/flat
+
+No authored override file for WestEnd — all buildings are correctly classified as modernGlass/modernConcrete by height promotion; no misclassified landmarks identified in the OSM dataset.
+
+### DistrictRenderProfile presets
+
+| District | nightWindowDensityBoost | facadeDepthScale |
+|---|---|---|
+| VancouverDowntown | 1.05 | 1.0 |
+| WestEnd | 1.10 | 1.0 |
+| SFDowntown | 1.00 | 1.0 |
+| FishermansWharf | 0.75 | 1.0 |
+
+FishermansWharf at 0.75× — tourist/retail district closes early, few lit windows after 20h.
+
+### activities and places data
+
+- `activities_vancouver.json` — 6 activities for cityId: "vancouver" (Stanley Park, Capilano, Granville Island, Coal Harbour, Gastown, Grouse Mountain)
+- `activities_sanfrancisco.json` — 6 activities for cityId: "sanfrancisco" (Transamerica Observation, Alcatraz Night, Ferry Building Market, Golden Gate Walk, Tartine Morning, Mission Burrito Trail)
+- `places_vancouver.json` — 7 places (Stanley Park Seawall, Granville Island, Capilano, Coal Harbour isFeatured, Gastown, Kitsilano Beach, Museum of Anthropology)
+- `places_sanfrancisco.json` — 8 places (Golden Gate, Ferry Building, Alcatraz, Mission burritos isFeatured, Chinatown, Haight-Ashbury, SFMOMA, Tartine)
+
+`vancouver` is in `ActivitiesViewModel.vitrineCityIDs` (the 5 showcase cities: paris, tokyo, vancouver, jakarta, denpasar). `sanfrancisco` is in `others`.
+
+## Day-mode window roughness texture + building-tap wide framing (2026-07-15)
+
+### Day-mode roughness texture (AXE 1)
+
+`DistrictRealityKit` now applies a style-specific roughness texture in **day mode** to produce
+per-window specular differentiation — window panes read as smooth glass (low roughness) against
+the rougher wall material, creating daylight reflective glints without any additional lighting cost.
+
+**Implementation** (`DistrictRealityKit.swift`):
+- `windowRoughnessTextureCache: [String: TextureResource]` — static cache, same lifecycle as
+  `windowTextureCache`. One entry per style (`style.rawValue` key).
+- `makeWindowRoughnessTexture(for:)` — generates a 256×256 CGImage using `.hdrColor` semantic
+  (linear encoding, no gamma correction). Wall pixels = per-style `wallV` byte (≈0.76–0.89
+  roughness); window pane pixels = `14` (≈0.055, near-mirror glass); frame border pixels = `148`
+  (≈0.58, mid-rough window surround). Grid layout mirrors the night emissive texture grid.
+- `pooledMaterial` threads `roughnessTexture` to `materialPreset` only when `!isNight`. Night
+  mode keeps the existing emissive texture (lit windows) and uses scalar roughness.
+- `materialPreset` signature gained `roughnessTexture: TextureResource? = nil`; applies it as
+  `material.roughness = .init(texture: .init(rt))` immediately before the night-emissive block.
+
+**Why all window cells are smooth (not density-randomized):** glass is always reflective in
+daylight regardless of whether a room is occupied — the smooth/rough discrimination is
+wall-vs-glass, not lit-vs-dark. Night mode uses density randomization (some rooms lit, some dark)
+because emissive means occupancy. The day roughness texture has no density parameter.
+
+**Per-style `wallV` values** (roughness ≈ wallV / 255 in linear):
+
+| Style | wallV | Roughness |
+|---|---|---|
+| modernGlass | 50 | ≈0.196 |
+| modernConcrete | 168 | ≈0.659 |
+| haussmannien | 195 | ≈0.765 |
+| bordelaisClassical | 198 | ≈0.776 |
+| londonBrick | 212 | ≈0.831 |
+| madrileño | 187 | ≈0.733 |
+| romanOchre | 202 | ≈0.792 |
+| colonial | 218 | ≈0.855 |
+| government | 165 | ≈0.647 |
+| nycBrick | 228 | ≈0.894 |
+
+Styles `balinese`, `javanese`, `religious`, `medieval` return `nil` (these styles have no
+recognizable rectilinear window grids at the scales rendered by this app).
+
+**Screenshot-verified 2026-07-15**: Le Marais (haussmannien) shows horizontal floor-ledge band
+relief clearly in close tap-zoom, with window positions reading as specular spots against the
+cream wall roughness. SudirmanThamrin glass towers read as near-mirror at low roughness.
+
+### Building-tap wide framing (AXE 4)
+
+`flyToBuildingWithFraming` in `DistrictRealityView.Coordinator` was revised to give more air
+around the selected building. The camera stays in the elevated orbit view — no eye-level approach.
+
+**Changed parameters** (all in the FOV-fit distance calculation at the top of the function):
+
+| Parameter | Before | After | Effect |
+|---|---|---|---|
+| FOV fit multiplier | `1.30` | `1.85` | 85% more clearance above min FOV fit |
+| `maxRelDist` (tall building) | `0.52` | `0.65` | allows stepping further back for towers |
+| `maxRelDist` (short building) | `0.38` | `0.50` | more air around low-rise buildings |
+| `lookH` (tall) | `building.heightMeters × 0.40` | `× 0.35` | camera looks slightly lower, more roofline visible above |
+| `lookH` (short) | `building.heightMeters × 0.35` | `× 0.28` | same reason for short buildings |
+
+**Absolute constraint**: building tap must NEVER produce a tight eye-level or street-level close-up.
+All camera animations (building tap, POI selection, search fly) must stay in the elevated ensemble
+orbit view. This is a hard UX invariant — do NOT revert to eye-level (`camY`, `lookAt.y` in
+metres) approach for building tap or any other trigger. See AXE 4 rationale in this session.
+
+**Screenshot-verified 2026-07-15**: Tap on a Haussmannien building in Le Marais → full building
+visible with roofline above and street ground below, from elevated orbit angle, info card
+"HAUSSMANNIEN / ~18m" appeared, "ORBIT 360°" button visible — no tight close-up.
+
+### Profile traveler section (AXE 3)
+
+`ProfileView.passport` now shows a `travelSection` instead of `districtBadges` (the old
+`LazyVGrid` of 26 individual district badge cells). The new section:
+- **MON PARCOURS** row: horizontal `ScrollView` of visited-city cards derived from
+  `viewModel.preferences.visitedDistrictIds` (already persisted). Cards show city name +
+  `count/total quartiers` visited. Empty-state globe prompt if no districts explored yet.
+- **DESTINATIONS 3D** row: horizontal chips for cities with `dataBundled` districts, showing
+  district count. Tappable visual affordance but no navigation (stateless component).
+
+No new data model — derives entirely from `CityManifest.shared.allCities` and the existing
+`visitedDistrictIds: Set<String>` in `UserPreferences`. Screenshot-verified 2026-07-15: shows
+Bali (4/5), Jakarta (3/5), Yogyakarta (1/2), Paris (1/4) in the visited-city scroll.
+
+## Activities — European cities (added 2026-07-15)
+
+Six new `activities_*.json` files added for European cities, completing the activities coverage:
+
+| File | cityId | Activities | Categories |
+|---|---|---|---|
+| `activities_rome.json` | `rome` | 6 | panorama, experienceRA, immersionSensorielle, visiteGuidee, lifestyle, experienceRA |
+| `activities_madrid.json` | `madrid` | 6 | panorama, experienceRA, immersionSensorielle, visiteGuidee, lifestyle, panorama |
+| `activities_bordeaux.json` | `bordeaux` | 6 | immersionSensorielle, panorama, experienceRA, lifestyle, visiteGuidee, experienceRA |
+| `activities_london.json` | `london` | 6 | panorama, experienceRA, immersionSensorielle, visiteGuidee, lifestyle, experienceRA |
+
+`ActivitiesViewModel.others` updated to include `"london"`, `"madrid"`, `"bordeaux"`, `"rome"` —
+these cities now appear in the Activities tab city picker below the vitrine showcase cities.
+
+**`CityCalloutCard` — Featured activities strip (2026-07-15):** A `FeaturedActivitiesStrip`
+appears between the weather widget and the district list when a city has activity data. Shows up
+to 3 premium activities as compact horizontal chips (icon + name). Loads via `.task(id: city.id)`
+using the same `CityActivities.load` path as `ActivitiesViewModel`. No new data model.
+
+## Facade detail LOD (2026-07-15)
+
+`DistrictRealityView.Coordinator` now hides `_bands`, `_pilasters`, `_balconies` facade-detail
+entities at full orbit distance and re-shows them when the camera zooms to building-tap level.
+
+**Why**: These entities produce correct surface relief at building-tap zoom (40–120m camera
+distance) but are sub-pixel at full-orbit distance (~500m–3km depending on district size) —
+they add GPU noise without contributing to the visual. `_ground` (ground-floor cladding, visible
+at orbit as a darker base zone on tall towers) is intentionally excluded from this LOD gate.
+
+**Implementation** (`DistrictRealityView.swift`):
+- `private var facadeDetailEntities: [Entity] = []` — populated once per district load.
+- `cacheFacadeDetailEntities(from: Entity)` — walks all 4 quadrant near-containers, collects
+  every child whose name ends in `"_bands"`, `"_pilasters"`, or `"_balconies"`.
+- `setFacadeDetailEnabled(_ Bool)` — enables/disables all collected entities.
+- Called from `applyOrbitLOD()` (disable) and `flyToBuildingWithFraming` (enable, before
+  the animated fly), and `cacheFacadeDetailEntities` is called from `loadModel` after
+  `extractQuadrantLOD`.
+
+**Invariant**: `applyOrbitLOD` is the orbit-mode setter and `flyToBuildingWithFraming` is the
+building-tap-mode setter. These are the only two places that control facade detail visibility.
+The camera is always in one of these two states — there is no continuous distance-check LOD
+for this. Venue mode (POI selection) inherits whatever the last building-tap or orbit call set.
+
+## Night variation: per-bucket window density + per-mood emissive boost (2026-07-16)
+
+Two improvements to night-mode visual fidelity, both in `DistrictRealityKit.swift`:
+
+### Per-bucket window density
+
+Previously, `cachedWindowTexture(for:)` produced a single 256×256 texture per style regardless of
+which of the 3 material variation buckets was being built — all buildings of the same style had
+identical window-lit cell patterns at night.
+
+**Fix**: `cachedWindowTexture(for:bucket:)` now takes `bucket: Int` (0–9 from the material
+variation bucketing in `pooledMaterial`). The density is scaled by bucket tier:
+- Bucket 0–2 → `densityScale = 0.50` (sparse: ~half as many lit windows)
+- Bucket 3–6 → `densityScale = 1.0` (standard base density)
+- Bucket 7–9 → `densityScale = 1.65` (dense: more windows lit, capped at 100%)
+
+This means adjacent buildings of the same style now read as individually varied occupancy at
+night — a sparse "dark" building next to a dense "fully-lit" building — without changing day-mode
+appearance, material count, or draw call budget. Cache key: `"\(style.rawValue)_\(bucket)_night"`.
+Up to 30 night window textures max (10 buckets × 3 style tiers in practice).
+
+`makeWindowTexture(for:densityScale:)` gained a `densityScale: Float = 1.0` parameter; the
+density gate became `guard Float(seed & 0xFF) / 255.0 < min(density * densityScale, 1.0)`.
+
+### Per-mood night emissive boost
+
+`DistrictRealityScene.Mood.nightEmissiveBoost: Float` (added 2026-07-16) is a multiplier applied
+to all building emissive intensities when entities are built for that district. Shibuya's dense
+commercial neon reads at 1.30× base; Paris café-apartment glow at 1.10×; tropical beach resorts
+remain at 1.0× (low electric density is architecturally accurate for Bali).
+
+**Implementation**:
+- `@MainActor private static var currentMoodBoost: Float = 1.0` in `DistrictRealityKit` — set
+  at the top of `loadDistrictEntity` from `mood.nightEmissiveBoost` before any geometry build.
+- `materialPreset(for:...:nightEmissiveBoost:)` gained a `nightEmissiveBoost: Float = 1.0`
+  parameter; applied as `emissiveIntensity = baseIntensity * nightEmissiveBoost` in both the
+  `modernGlass` and `default` night branches.
+- `pooledMaterial` reads `currentMoodBoost` and passes it through; includes boost tier in the
+  material pool cache key: `"..._b\(Int(currentMoodBoost * 10))"` → max 50 + a small multiple
+  for non-1.0 boost tiers (each district has exactly one fixed mood, so in practice only one
+  boost tier appears per style).
+- The entity cache key remains district-name-only — safe because each district has exactly one
+  fixed `moodKey` in `CityManifest.json`, so `currentMoodBoost` is always the same value for
+  any given district.
+
+**Boost values** (`Mood.nightEmissiveBoost`):
+| Mood | Boost | Reason |
+|---|---|---|
+| `shibuyaNeon` | 1.30 | Tokyo commercial neon saturation — densest in app |
+| `nycDusk` | 1.20 | NYC canyon amplifies reflected light into building facades |
+| `skyscraperCorridor` | 1.15 | Jakarta SCBD Blade Runner warm fill + glass tower density |
+| `parisianCore` | 1.10 | Café-apartment amber glow through iron-railing balconies |
+| `bordeauxWaterfront` | 1.08 | Quayside café-terrace glow |
+| `madridAfternoon` | 1.05 | Terrace incandescent balcony lamp density |
+| all others | 1.0 | Default — balinese, beach resort, colonial Jakarta, etc. |
+
+## District first-entry reveal overlay (2026-07-16)
+
+`DistrictRevealOverlay` slides up from the bottom on the **first visit** to each district
+(persisted via `UserDefaults.standard.bool(forKey: "reveal_\(district.id)")`). It auto-dismisses
+after 3.5s and can be dismissed early via the × button.
+
+**Content**: city name (neon, monospaced, tracking), district name (large black), three stat chips
+(building count, road count, mood label). A neon drain bar (metacityPrimary color) at the top
+drains left-to-right over 3.5s as a visual countdown.
+
+**Trigger**: `DiscoverViewModel.selectDistrict` checks the UserDefaults key. On first open, sets
+the key, builds a `DistrictRevealContext` (city + district + building/road counts from
+`District.load(named:)` — cached), and dispatches the show with a 0.7s delay (cinematic entry
+completes before the card appears). Auto-dismiss is a second `DispatchQueue.main.asyncAfter`
+dispatched at the same call site. `dismissDistrictReveal()` allows early dismiss.
+
+**Architecture**: `@Published private(set) var districtRevealContext: DistrictRevealContext?` on
+`DiscoverViewModel`. `DiscoverView.body` checks `if let ctx = viewModel.districtRevealContext` and
+shows `DistrictRevealOverlay` with `.zIndex(100)` above all other overlays. Transition:
+`.move(edge: .bottom).combined(with: .opacity)`.
+
+`RevealStat` is a small private struct (label + value in monospaced typography) shared between
+the three stat chips. `moodLabel` in `DistrictRevealOverlay` maps `moodKey` strings to display
+labels (e.g. `"shibuyaNeon"` → `"NEON"`, `"parisianCore"` → `"PARIS"`).
+
+## Material quality upgrade pass (2026-07-16, continued)
+
+### `DistrictRenderProfile` — per-district render overrides
+
+`DistrictRenderProfile` (file-scope struct, `DistrictRealityKit.swift` line ~27) provides three
+per-district multipliers applied at entity-build time:
+
+- **`nightWindowDensityBoost: Float`** — multiplied on top of the per-bucket density scale
+  (bucket 0-2 = 0.50×, 3-6 = 1.0×, 7-9 = 1.65×) and the base `density` per style. Lets
+  flagship commercial districts appear busier at night than generic districts with the same style.
+- **`facadeDepthScale: Float`** — multiplied on `FacadeProfile` band/cornice/balcony *projection*
+  depths (NOT thicknesses, NOT heights, NOT spacing) via `FacadeProfile.scaled(by:)`. Makes Le
+  Marais's haussmannien facade relief stronger in building-tap zoom.
+- **`weatheringIntensity: Float`** (added 2026-07-18) — 0.0 = pristine, 1.0 = maximum grime/age.
+  Applied in `materialPreset` to darken and slightly grey stone/brick/plaster base colors
+  (grime deposit) and reduce `clearcoat` (patina mutes polished surfaces). Only affects
+  non-glass styles. Stored in `currentWeatheringIntensity`; pool cache key extended with
+  `_a\(weatherTier)` suffix. Each district has a fixed weathering value so the entity cache
+  (district-name-keyed) is always consistent.
+
+All three are set at the top of `loadDistrictEntity` via `DistrictRenderProfile.preset(for: name)`.
+Thread-safe: entity cache key is district-name-only; each district has exactly one fixed preset.
+
+**Per-district presets** (as of 2026-07-18):
+
+| District | nightWindowDensityBoost | facadeDepthScale | weatheringIntensity | Reason |
+|---|---|---|---|---|
+| KotaTua | 1.00 | 1.0 | **0.65** | Heaviest Dutch colonial grime in Jakarta |
+| CentroStorico | 1.05 | 1.12 | **0.68** | Two millennia of Roman tuff weathering |
+| Westminster | 1.05 | 1.08 | **0.58** | Gothic Revival stone + Victorian pollution |
+| CityOfLondon | 0.80 | 1.06 | **0.52** | Coal-era soot on London stock brick |
+| LeMarais | 1.20 | 1.15 | **0.52** | Paris limestone pollution darkening |
+| Menteng | 0.95 | 1.0 | **0.52** | Colonial residential grime |
+| Montmartre | 1.15 | 1.12 | **0.55** | Hilltop exposure + stone weathering |
+| Braga | 1.00 | 1.0 | **0.55** | Dutch hill-station weathering |
+| SaintGermain | 1.15 | 1.12 | 0.46 | Paris left bank stone |
+| MidtownManhattan | 1.35 | 1.0 | 0.50 | Pre-war brick grime |
+| LowerManhattan | 0.90 | 1.0 | 0.48 | Financial district historic brick |
+| FishermansWharf | 0.75 | 1.0 | 0.48 | Victorian brick warehouse weathering |
+| VieuxBordeaux, LesChartrons | 1.18 | 1.10 | 0.45 | Quayside algae on Gironde stone |
+| Salamanca | 1.22 | 1.08 | 0.32 | Moderate Iberian weathering |
+| Malasana | 1.30 | 1.08 | 0.38 | Madrid residential aging |
+| Shibuya | 1.40 | 1.0 | 0.10 | Modern concrete, minimal weathering |
+| LaDefense | 0.75 | 1.0 | 0.05 | New glass office towers |
+| SudirmanThamrin | 1.25 | 1.0 | 0.05 | Glass tower SCBD |
+| All others | 1.0 | 1.0 | 0.0 | Default pristine |
+
+**`FacadeProfile.scaled(by:)`** — added to the `FacadeProfile` struct. Scales only the outward
+projection fields (bandDepth, corniceDepth, plinthDepth, groundFloorDepth, balconyDepth,
+pilasterDepth). Vertical heights (bandThick, corniceHeight, plinthHeight, balconyThick) and
+spacing/count fields (floorInterval, pilasterSpacing, pilasterWidth, firstFloor, floorStep) are
+unchanged — lateral projection is the axis that registers as "depth" at building-tap camera angle,
+while thickness is already calibrated for orbit-camera pixel budget.
+
+Applied at the single `facadeProfile(for: style)` call site in `makeBuildingMeshes`:
+```swift
+let profile = facadeProfile(for: style).scaled(by: currentDistrictProfile.facadeDepthScale)
+```
+
+### Warmth bias per mood (`warmthBias`, 2026-07-16)
+
+`Mood.warmthBias: Float` computed property added to `DistrictRealityScene.Mood`. Stored in
+`@MainActor private static var currentWarmthBias: Float = 0.0` and set in `loadDistrictEntity`.
+Threaded through `pooledMaterial` → `materialPreset(for:...:warmthBias:)`.
+
+In `materialPreset`, applied as: `R += wb`, `G += wb × 0.4`, `B -= wb × 0.6` (approximate
+blackbody temperature shift). Values:
+- `romanGoldenHour: +0.05` — maximum warmth, Rome's sienna-amber identity
+- `bordeauxWaterfront: +0.04` — golden Garonne riverside
+- `madridAfternoon: +0.03` — warm Iberian afternoon
+- `beachResort: +0.02` — tropical light
+- `parisianCore: -0.02` — cool pearl overcast
+- `shibuyaNeon: -0.02` — Tokyo grey-blue concrete
+- `rennesMedieval: -0.03` — cool Breton grey
+- `londonSilver: -0.04` — silver British overcast
+
+Pool cache key extended with warmth tier: `"..._w\(Int(warmthBias × 100))"`.
+
+### `VoyageurPersonality` — computed traveler archetype (2026-07-16)
+
+`VoyageurPersonality` enum in `ProfileViewModel.swift` with 7 archetypes:
+
+| Case | Display title | Triggers |
+|---|---|---|
+| `newExplorer` | NOUVEAU VOYAGEUR | 0 districts visited |
+| `tropicalNomad` | NOMADE TROPICAL | `beachResort`/`sacredSite` dominant |
+| `urbanFuturist` | ARCHITECTE FUTURISTE | `shibuyaNeon`/`nycDusk`/`skyscraperCorridor` dominant |
+| `europeanFlaneur` | FLÂNEUR EUROPÉEN | `parisianCore`/`bordeauxWaterfront`/`rennesMedieval` dominant |
+| `mediterraneanVoyager` | VOYAGEUR MÉDITERRANÉEN | `madridAfternoon`/`romanGoldenHour`/`londonSilver` dominant |
+| `heritageSeekerl` | HISTORIEN DU BÂTI | `colonialSquare`/`highlandMorning` dominant |
+| `eclecticExplorer` | EXPLORATEUR ÉCLECTIQUE | Mixed, no dominant theme |
+
+Computed from `CityManifest.shared.allCities` + `preferences.visitedDistrictIds` → each visited
+district's `moodKey` → weighted score per theme (beach/sacred = ×2, skyscraper = ×1, etc.).
+Updates automatically as `preferences.visitedDistrictIds` changes (it's a computed property on
+the `@Published preferences`).
+
+The Profile identity card hero now shows:
+```
+[icon] FLÂNEUR EUROPÉEN       ← personality.title
+HAUSSMANN · PARIS · PATRIMOINE URBAIN  ← personality.subtitle
+```
+instead of the previous static "EXPLORATEUR NUMÉRIQUE · TOURISME 3D & RA" string.
+Screenshot-verified 2026-07-16: user with Paris 4/4 + Bordeaux 2/2 → "FLÂNEUR EUROPÉEN".
+
+### `DistrictRevealContext.activityCount` (2026-07-16)
+
+`DistrictRevealContext` gained `activityCount: Int`. `DiscoverViewModel.selectDistrict`
+populates it: tries `CityActivities.load(for: district.id.lowercased())` first; if empty,
+falls back to `CityActivities.load(for: city.id)`. The `DistrictRevealOverlay` shows an
+ACTIVITÉS stat chip when `activityCount > 0`.
+
+**`CityActivities.load(for:)` returns `[ActivityEntry]` directly** (NOT `CityActivities?`) —
+using optional chaining (`?.activities`) compiles but crashes at runtime. This is a documented
+gotcha; do not add optional chaining here.
+
+## Wave 2 commercial upgrade (2026-07-17)
+
+Three groups of improvements, all build/screenshot-verified 2026-07-17.
+
+### Chimney stacks (3D toiture detail)
+
+`makeChimneyEntities` in `DistrictRealityKit.swift` adds a batched chimney-stack layer per style
+quadrant. One merged `MeshDescriptor` per style → ≤5 entities per district at most (one per
+eligible style per quadrant). Eligible styles: `haussmannien`, `londonBrick`, `colonial`,
+`nycBrick`, `medieval`.
+
+**Entity naming** (critical for LOD): `"bld_\(style.rawValue)_q\(quadrantIndex)_chimneys"` —
+the `_chimneys` suffix is what `cacheFacadeDetailEntities` watches. Chimneys are hidden at orbit
+distance and re-enabled at building-tap zoom, identical to `_bands`/`_pilasters`/`_balconies`.
+
+**Geometry**:
+- `addChimneyStack` — 5-face rectangular prism (front/right/back/left/top) + optional pyramid
+  zinc cap (4 triangles with auto-winding-flip guard). Deterministic placement via FNV-1a seeds
+  `"_ck1"` / `"_ck2"` / `"_ckh{si}"` / `"_cke{si}"` on osmID + stack index.
+- `addChimneyPot` — 6-sided cylinder (6 faces × 4 vertices + 2 triangles each). Used by
+  `londonBrick` (terracotta pot stacks) and `nycBrick` (cast-iron pot clusters).
+
+**Per-style specs (final, 2026-07-17):**
+
+| Style | Stack size | Height range | Cap | Pots |
+|---|---|---|---|---|
+| haussmannien | 0.28×0.28m | 1.0–1.8m | zinc cone 0.22m | no |
+| londonBrick | 0.50×0.50m | 0.9–1.4m | none | yes |
+| colonial | 0.30×0.30m | 0.6–1.0m | none | no |
+| nycBrick | 0.55×0.55m | 1.2–2.2m | none | yes |
+| medieval | 0.35×0.40m | 0.7–1.2m | none | no |
+
+Placement density (buildings per district × 2–4 stacks each): ~30–80 stacks per quadrant for
+dense districts. At orbit scale (>500m camera) individual stacks are sub-pixel; their collective
+silhouette contributes to roofline texture. At building-tap (40–80m) they read as distinct zinc
+or terracotta stacks grouped at building ridges.
+
+**DistrictRealityView LOD change** (line ~629): `cacheFacadeDetailEntities` extended to include
+`n.hasSuffix("_chimneys")` alongside the existing `_bands`/`_pilasters`/`_balconies` check.
+`loadModel` calls `applyOrbitLOD()` after `extractQuadrantLOD` to hide chimneys at startup.
+
+### DistrictRevealOverlay glassmorphism (2026-07-17)
+
+`DistrictRevealOverlay` struct in `DiscoverView.swift` rewritten from a simple bottom sheet to a
+**premium dark glassmorphism overlay**:
+
+- **Background**: `Color.black.opacity(0.82)` + `Rectangle().fill(.ultraThinMaterial).opacity(0.35)`.
+- **Mood accent system**: `moodAccentColor` switch on `context.district.moodKey` → 15 named
+  colors (shibuyaNeon → cyan, parisianCore → Parisian gold, shibuyaNeon → neon teal, etc.);
+  used for the top 2pt drain bar, city name label, bullet dot, stat values, and card border.
+- **Architecture period tag**: `architectureTag` switch → e.g. `"PIERRE DE LUTÈCE · HAUSSMANN
+  1853–1927"`, `"BÉTON & VERRE · POST-1964"`, `"BRIQUE LONDONIENNE · ÈRE VICTORIENNE"`.
+- **Drain bar**: `GeometryReader` LinearProgressBar animates over 3.5s with `.linear(duration:)`
+  and a colored shadow `shadow(color: moodAccentColor.opacity(0.5), radius: 4)`.
+- **Entry animation**: `.spring(response: 0.45, dampingFraction: 0.80)` slide-up from +60pt offset.
+- **RevealStat**: now accepts `accent: Color` so stat values (building count, road count, ACTIVITÉS)
+  render in the mood's accent color.
+
+**`moodAccentColor` is also extracted as `ProfileView.moodAccentColor(moodKey:)` (static)**
+so it can be shared by both `DistrictRevealOverlay` (in DiscoverView) and `suggestedDestinationCard`
+(in ProfileView) without duplication. The two definitions are currently separate private functions
+— not a shared module — because they're in different views with no natural shared parent. If a
+future refactor consolidates these, put them in a `MoodTheme.swift` extension on `String` or a
+shared `DistrictMoodStyle` struct.
+
+### PlaceType additions (2026-07-17)
+
+`PlaceType` enum gained two new cases: `.wellness` (icon `heart.fill`) and `.shopping` (icon
+`bag.fill`). Both added to `displayName` and `icon` switches. `PlacesView.placeColor` extended
+with `.wellness → teal-green (0.3,0.8,0.6)` and `.shopping → warm purple (0.8,0.3,0.7)`.
+
+These cases are used by `PlacesViewModel.placeType(for:)` to classify live MKLocalSearch results
+(spa/wellness → `.wellness`, factory outlet/batik/market → `.shopping`). No static `places_*.json`
+file currently uses these types; they only appear in live-fetched entries from MKLocalSearch.
+
+### PlacesViewModel enrichment (2026-07-17)
+
+- **5 search terms per city** (was 3) for all 14 cities with `places_*.json` files.
+- **Coordinate deduplication** in `mergeLivePlaces`: rejects live entries within 200m of any
+  existing place (using flat-earth approximation: `dLat × 111_000`, `dLon × 111_000 × cos(lat)`).
+  Prevents duplicate pins when MKLocalSearch returns the same venue under different query terms.
+
+### Profile destination suggestions (2026-07-17)
+
+`travelSection` in `ProfileView.swift` replaces the single "PROCHAINE DESTINATION" card with a
+**"DESTINATIONS SUGGÉRÉES"** section: a horizontal `ScrollView` of up to 3 personality-matched
+unvisited bundled districts.
+
+**Logic**: `viewModel.voyageurPersonality` → array of 3 suggested `districtId`s → `compactMap`
+over `CityManifest.shared.allCities` to find unvisited dataBundled entries → show as cards.
+Section is hidden (not rendered) when all suggestions are already visited.
+
+**Personality → district mapping:**
+
+| Personality | Suggested districts |
+|---|---|
+| `.europeanFlaneur` | VieuxBordeaux, Montmartre, CentroStorico |
+| `.tropicalNomad` | Uluwatu, Canggu, Kraton |
+| `.urbanFuturist` | Shibuya, MidtownManhattan, VancouverDowntown |
+| `.mediterraneanVoyager` | Salamanca, CentroStorico, Westminster |
+| `.heritageSeekerl` | KotaTua, Kraton, Braga |
+| `.eclecticExplorer` / `.newExplorer` | LeMarais, Shibuya, Canggu |
+
+**`suggestedDestinationCard(city:district:)` design** (210pt wide, variable height):
+- Top 3pt colored strip (mood accent color).
+- `• CITY_NAME` in accent color with 2pt bullet dot.
+- District name in 19pt black.
+- Architecture period tag (7pt monospace, 36% white opacity).
+- Bottom: mood chip (accent-tinted capsule) + `→` arrow in accent.
+- Background: dark surface + `accent.opacity(0.10)` gradient top-left to bottom-right.
+- Border: `accent.opacity(0.28)` 1pt stroke.
+
+**Static helpers** on `ProfileView`:
+- `moodAccentColor(moodKey:)` — same 15-entry switch as `DistrictRevealOverlay`'s private version.
+- `architecturePeriodTag(moodKey:)` — same 15-entry switch as `DistrictRevealOverlay`'s
+  `architectureTag` computed property. Both are `private static func` on `ProfileView`.
+
+**Screenshot-verified 2026-07-17** on fresh install (`.newExplorer` personality):
+- "DESTINATIONS SUGGÉRÉES" section header visible between "MON PARCOURS" and "DESTINATIONS 3D".
+- 3 cards in horizontal scroll: Le Marais (gold/parisianCore), Shibuya (teal/shibuyaNeon),
+  Canggu (aqua/beachResort). Each shows city label in accent, district name, architecture tag,
+  mood chip.
+- Correct hide-when-all-visited behaviour verified on the existing test-user state (tropicalNomad
+  with Uluwatu+Canggu+Kraton all visited → section absent, no crash).
+
+## Wave 3+ commercial upgrade (2026-07-17, continued)
+
+### Pinch-triggered facade LOD (2026-07-17)
+
+`DistrictRealityView.Coordinator` now shows `_bands`/`_pilasters`/`_balconies`/`_chimneys`
+facade-detail entities when the user pinches in past `districtExtent × 0.22`, without requiring
+a building tap. This gives the facade LOD a third trigger (in addition to building-tap and orbit-reset),
+making the detail layer feel responsive to natural pinch exploration.
+
+**Implementation** (`DistrictRealityView.swift`):
+- `private var facadeDetailEnabled: Bool = false` — tracking flag on `Coordinator`, avoids
+  redundant `setFacadeDetailEnabled` calls on every pinch frame when the threshold hasn't crossed.
+- `handlePinch` calls `setFacadeDetailEnabled` only when `(currentDistance < districtExtent × 0.22) != facadeDetailEnabled`,
+  and only in orbit mode (`inspectedBuildingCentroid == nil`) so it doesn't interfere with building-tap framing.
+- `resetToDefaultPosition()` now calls `setFacadeDetailEnabled(false)` + resets `facadeDetailEnabled = false` —
+  fixes a bug where facade detail stayed enabled after a double-tap reset to orbit.
+- `applyOrbitLOD()` also resets `facadeDetailEnabled = false` to stay in sync.
+- `flyToBuildingWithFraming` sets `facadeDetailEnabled = true` alongside `setFacadeDetailEnabled(true)`.
+
+**Threshold**: `districtExtent × 0.22` → ~110m for Paris (500m extent), ~660m for Canggu (3km).
+Activates during smooth pinch without requiring a building tap.
+
+**Invariant**: `facadeDetailEnabled` tracks the current state so the guard `if showDetail != facadeDetailEnabled`
+only fires on threshold crossing, not on every pinch frame. This is critical for smooth pinch UX —
+without the guard, `setFacadeDetailEnabled` would walk the entity tree on every gesture callback.
+
+### PlacesViewModel flagship refresh (2026-07-17)
+
+`PlacesViewModel` rewritten with:
+- **Flagship cities** (`paris`, `tokyo`, `newyork`, `losangeles`, `london`, `vancouver`, `sanfrancisco`):
+  6h TTL (vs 24h for others), 8 search terms, 4 results/term.
+- **Foreground refresh**: `NotificationCenter` observer on `UIApplication.willEnterForegroundNotification`
+  force-expires the cache TTL (`removeObject(forKey: ageKey)`) then triggers `refreshLivePlaces`.
+  Requires `import UIKit` and `import Combine` (both added).
+- **200m deduplication** in `mergeLivePlaces`: rejects live entries within 200m of any existing
+  place using flat-earth approximation.
+- **Improved `placeType` classification**: shrine/temple/izakaya → `.cultural`; onsen/yoga/spa → `.wellness`;
+  enoteca/wine bar → `.nightlife`; batik/factory outlet → `.shopping`.
+
+### TopPlacesStrip in CityCalloutCard (2026-07-17)
+
+`TopPlacesStrip` (private struct in `DiscoverView.swift`) shows up to 3 `isFeatured` places
+from the static bundle JSON as scrollable accent-tinted chips in `CityCalloutCard`:
+- Loads via `CityPlaces.load(for: city.id).filter(\.isFeatured).prefix(3)` in the existing
+  `.task(id: city.id)` of `CityCalloutCard`.
+- Each chip: `type.icon` SF Symbol + name + optional `priceRange` in monospace.
+- Background: `Color.metacityPrimary.opacity(0.07)` + `0.15` stroke border.
+- Appears between `FeaturedActivitiesStrip` and district tiles. Hidden when empty (no isFeatured
+  places in the city's JSON).
+
+Screenshot-verified 2026-07-17: Paris callout shows "Tour Eiffel", "Musée du Louvre", "Basilique…"
+as scrollable chips with icons and `€€` price range labels.
+
+### HUDBuildingCard / HUDVenueCard dark glassmorphism upgrade (2026-07-17)
+
+Both cards upgraded from `.ultraThinMaterial` (adapts to scene, can go light) to an explicit
+dark layered background:
+```swift
+.background {
+    RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .fill(Color.black.opacity(0.80))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(.ultraThinMaterial.opacity(0.22))
+        )
+}
+```
+This ensures the card always reads as dark against any 3D scene content, consistent with
+`DistrictRevealOverlay`'s dark glassmorphism treatment.
+
+Additional changes:
+- Border gradient: `accentColor.opacity(0.40)` (was `0.32/0.30`) — more visible accent boundary.
+- `bottomTrailing` corner bracket added to `HUDVenueCard` (was missing; `HUDBuildingCard` already
+  had it). Both brackets now at `opacity(0.60)`, lineWidth 1.5pt — matches topLeading weight.
+- Shadow: `radius: 24, y: 8` (was `radius: 20, y: 6`) — slightly larger glow.
+- Build-verified 2026-07-17.
+
+## Wave 4 navigation upgrade (2026-07-17)
+
+Three UI features added to `DiscoverView.swift` / `DiscoverViewModel.swift`. All build+screenshot-verified 2026-07-17.
+
+### ViewPreset label rename
+
+`ViewPreset.overview.label` changed from `"QUARTIER"` → `"DISTRICT"` in `DiscoverViewModel.swift`
+line ~36. The bottom controls panel (`DistrictControlsPanel`) picks this up automatically. No
+other call sites.
+
+### `DiscoverViewModel.resetToWorldMap()`
+
+New method added after `back()`. Animates `state = .worldMap` + returns to `europeCamera`
+(`centerCoordinate: 47°N/7°E, distance: 3_000_000`). Called by the globe button in `cityFocused`
+and `districtExplore` overlays. Does not call `back()` (which is one-step) — jumps directly to
+worldMap from any depth, triggering a single `.easeInOut(duration: 0.5)` transition.
+
+### `EarthGlobeView` + `EarthGlobeButton` (new file)
+
+`MetaCity/Features/Discover/EarthGlobeView.swift` — SceneKit `UIViewRepresentable`:
+- `SCNSphere(radius: 1.0)`, `segmentCount: 48`, procedural 512×256 equirectangular texture
+  drawn via CoreGraphics: deep ocean base `(0.05,0.16,0.44)` + simplified continent ellipses
+  (Americas, Europe, Africa, Middle East, Asia, SE Asia, Japan, Australia) + ice caps with
+  feathered gradient.
+- `SCNSphere(radius: 1.09)` atmosphere haze (`alpha: 0.11`), `isDoubleSided: true`,
+  `.constant` lighting model (not affected by scene lighting).
+- Directional "sun" warm-white light + near-black ambient.
+- `SCNAction.repeatForever(.rotateBy(x:y:z:duration:))` Y-rotation, 22s per full revolution.
+- `UITapGestureRecognizer` → `onTap()` callback → `viewModel.resetToWorldMap()`.
+- `backgroundColor = .clear`, `isOpaque = false`, `antialiasingMode = .multisampling4X`,
+  `preferredFramesPerSecond = 30`.
+
+`EarthGlobeButton`: SwiftUI wrapper — 48×48pt, `.clipShape(Circle())`, `strokeBorder` 1pt white
+0.22, blue shadow `radius: 10`.
+
+**SceneKit.framework** added to `project.yml` target dependencies (`- sdk: SceneKit.framework`)
+— it was the first time SceneKit was imported directly in any app source file (previously used only
+in tests or via RealityKit indirectly).
+
+**Globe placement**:
+- `worldMapOverlay`: top-right, decorative (non-interactive, `opacity(0.55)`) — you're already
+  at world map, tapping does nothing.
+- `cityFocusedOverlay`: top-right after Spacer, fully interactive → `resetToWorldMap()`.
+- `districtExploreOverlay`: same position, same action.
+
+### `DistrictTabBar` (private struct, `DiscoverView.swift`)
+
+Horizontal `ScrollView` of bundled districts for the current city. Placed immediately below the
+HUD header in `districtExploreOverlay`, above the search bar.
+- Shows `city.districts.filter(\.dataBundled)` — placeholder districts (no OSM data) are excluded.
+- Active district: `metacityNeonCyan` monospaced label + 2pt `Capsule` underline. Inactive: white
+  0.55 opacity.
+- Selecting a district that is already selected is a no-op (guard `district.id != selectedDistrictId`).
+- `ScrollViewReader` + `.onChange(of: selectedDistrictId)` auto-scrolls active tab to center.
+- Background: `Color.black.opacity(0.62)` + faint cyan tint + bottom hairline `0.07`.
+- Height: `38pt`. No top/bottom padding of its own — stacks flush against the header above.
+
+**`districtExploreOverlay(city:district:)` signature**: gained `city: CityEntry` parameter
+(was `district: DistrictEntry` only). Call site in `overlayLayer` updated from
+`case .districtExplore(_, let district)` → `case .districtExplore(let city, let district)`.
+
+**Screenshot-verified 2026-07-17**: Le Marais district shows "LE MARAIS" (cyan) / "SAINT-GERMAIN" /
+"MONTMARTRE" / "LA DÉFENSE" tab bar; globe top-right renders blue+green sphere with atmosphere;
+"DISTRICT" label confirmed in bottom controls panel.
+
+## Wave 5 camera + tab bar upgrade (2026-07-17)
+
+### `DistrictTabBar` visited-status dots
+
+Each district tab now shows a 4pt `Circle` dot above the district name:
+- **Visited + active**: cyan full opacity (1.0)
+- **Visited + inactive**: cyan 0.55 opacity
+- **Not visited (any state)**: white 0.18 opacity
+
+Visited state reads `UserDefaults.standard.bool(forKey: "reveal_\(district.id)")` — the same key set by `DistrictRevealContext` on first open. `@State private var visitedIds: Set<String>` is refreshed on `.onAppear` and on `selectedDistrictId` change (i.e., every tab switch), so dots update as the user explores. Tab height increased from 38pt → 46pt.
+
+**Progress dot update timing**: `refreshVisited()` is called on `selectedDistrictId` change. When a user taps a district for the first time, the `reveal_` key is set by `DiscoverViewModel.selectDistrict` before the tab bar's `onChange` fires — so on the next district switch, the dot for the just-visited district fills in correctly.
+
+### Vue SURVOL — fixed elevated overview (was auto-rotating orbit)
+
+**Behavioral change**: `ViewPreset.ciel` (SURVOL) is now a **fixed overhead camera** positioned 4× the normal orbit distance and 3× the normal orbit height. The camera does NOT rotate — it is static. Previous behavior (auto-rotating orbit) is gone.
+
+**Implementation**:
+- `DiscoverViewModel.setViewPreset(.ciel)`: changed `isAutoRotating = true` → `isAutoRotating = false`. SURVOL is fixed, not orbiting.
+- `DistrictRealityView` gained `var activeViewPreset: ViewPreset = .overview` — passed from `DiscoverView` sceneLayer.
+- `Coordinator` gained `private var currentViewPreset: ViewPreset = .overview` — set at the top of `update()` before any token checks.
+- `update()` signature gained `activeViewPreset: ViewPreset = .overview` parameter.
+- `resetToDefaultPosition()` branches on `currentViewPreset`:
+  - `.ciel` (SURVOL): `survolDist = districtDistance × 4.0`, `survolH = height × 3.0`, fly camera there, then `orbitSubscription?.cancel()` to ensure no leftover orbit runs.
+  - all others: unchanged — normal distance/height.
+
+**Critical ordering invariant**: `currentViewPreset = activeViewPreset` is set as the first statement in `update()`, before the `resetToken` check. This ensures `resetToDefaultPosition()` always reads the updated preset. Do not reorder these statements.
+
+**Transition SURVOL → DISTRICT**: both `.ciel` and `.overview` now set `isAutoRotating = false`, so switching between them doesn't trigger `restartOrbit` — only `cameraResetToken` fires `resetToDefaultPosition()` with the new `currentViewPreset`.
+
+**Screenshot-verified 2026-07-17**: District tab bar with 4px dots above each Paris district name, cyan active + visited, white unvisited. 3D scene intact. Build succeeded with zero errors.
+
+## Global search upgrade (Wave 6, 2026-07-17)
+
+### `GlobalSearchDropdown` — three-section sectioned search
+
+`GlobalSearchDropdown` (private struct in `DiscoverView.swift`) renders a dark glassmorphism dropdown
+below the global search bar in both `worldMapOverlay` and `cityFocusedOverlay`. Four sections:
+
+| Section | Trigger | Source | Max results |
+|---|---|---|---|
+| **VILLES 3D** | First character | `instantCityResults` — cities with ≥1 dataBundled district | all matches |
+| **QUARTIERS** | First character | `globalDistrictResults` — district names across all bundled cities | 5 |
+| **LIEUX** | 2+ characters | `globalPlaceResults` — building names + POI names across all districts | 8 |
+| **VILLES DU MONDE** | 2+ chars + 180ms debounce | `MKLocalSearchCompleter` — world city suggestions | up to 5 |
+
+**`isGlobalSearchActive` flag**: set `true` both on `.onTapGesture` on the search bar AND in
+`.onChange(of: globalSearchQuery)`. The `.onChange` path covers the case where text is pasted via
+the system clipboard (right-click → Paste) — the tap fires before the text updates, so without
+the `.onChange` the dropdown would not appear on paste. Both paths are needed.
+
+### Navigation on tap — three distinct destinations
+
+Each section type navigates to a different app state:
+
+```
+VILLES 3D city tap  → cityFocused(city) → auto-opens first dataBundled district
+                       → districtExplore(city, firstDistrict)
+                       → setViewPreset(.ciel) → SURVOL fixed overhead camera
+                       → isAutoRotating = false (fixed, not orbiting)
+
+QUARTIERS district tap → districtExplore(city, district)
+                          → setViewPreset(.overview) → DISTRICT elevated orbit
+                          → NOT SURVOL, NOT BÂTIMENT
+
+LIEUX building/POI tap → districtExplore(city, district)
+                          → fly to building → setViewPreset(.focus) → BÂTIMENT wide framing
+                          → camera stays in elevated orbit, NEVER eye-level
+                          → same invariant as building tap in scene: no close zoom
+```
+
+**VILLES 3D implementation** (`DiscoverViewModel.selectCityFromSearch`):
+1. Sets `state = .cityFocused(city)`.
+2. Finds first `dataBundled == true` district in `city.districts`.
+3. Calls `selectDistrict(district, city: city)` with `preset: .ciel`.
+4. This transitions to `districtExplore` and calls `setViewPreset(.ciel)` which resets camera to
+   fixed overhead at 4× orbit distance, 3× orbit height (see Wave 5 SURVOL implementation).
+
+**QUARTIERS implementation** (`DiscoverViewModel.selectDistrictFromSearch`):
+1. Sets `state = .districtExplore(city, district)`.
+2. Calls `setViewPreset(.overview)` — DISTRICT elevated orbit.
+
+**LIEUX implementation** (`DiscoverViewModel.selectPlaceFromSearch`):
+1. Finds the host district for the building/POI (by matching osmID or name in `District.load`).
+2. Sets `state = .districtExplore(city, district)`.
+3. After `DistrictRealityView.Coordinator` recreates (via `.id(district.id)`), calls
+   `flyToBuildingWithFraming(building)` with the matched building.
+4. View preset set to `.focus` (BÂTIMENT). Camera stays elevated — the same wide-framing
+   invariant as any building tap (no eye-level approach).
+
+**`.id(district.id)` coordinator recreation**: `DistrictRealityView` in `sceneLayer` uses
+`.id(selectedDistrict?.id ?? "none")` on the view. Changing the district forces SwiftUI to
+destroy and recreate the `Coordinator`, ensuring the `setUp()` path always runs fresh (prevents
+stale-coordinator issues where a search navigates to the same district that's already open but
+for a different search result — the fly-to fires in the new coordinator's `setUp`, not in
+the recycled one).
+
+### `GlobalSearchDropdown` overflow fix
+
+The dropdown is a `ScrollView(.vertical, showsIndicators: false)` wrapping the sections VStack,
+with `.frame(maxHeight: 360)` on the scroll view. Without the scroll view, results for long
+queries (4–5 LIEUX + 5 VILLES DU MONDE = ~500pt content) extended above the dropdown's top edge
+and behind the Dynamic Island, making QUARTIERS rows untappable. With the scroll view, the
+dropdown is capped at 360pt and scrollable — all sections remain accessible.
+
+**Do NOT remove the `.frame(maxHeight: 360)`** or wrap it back in a plain `VStack`. The Dynamic
+Island spans from y=0 to ~y=54pt on iPhone 17; the search bar is at y≈76pt; the dropdown starts
+at y≈96pt. Without the cap, a full result set (QUARTIERS + LIEUX + VILLES DU MONDE) pushes the
+content height to ~500pt, and since the dropdown is positioned with `.padding(.top, 4)` below the
+search bar, the bottom of the dropdown extends to y≈600pt — all visible. But SwiftUI measures
+the dropdown from the top, and if the VStack grows taller than the available space between search
+bar and Dynamic Island, the top rows appear *above* the search bar, clipped by the Dynamic Island.
+The 360pt cap prevents this.
+
+### Screenshot-verified 2026-07-17
+
+- "marais" query: QUARTIERS section "Le Marais · Paris" fully visible, tappable → DISTRICT preset confirmed
+- "paris" query: VILLES 3D section "Paris · France · 4 quartiers 3D" visible, tappable → SURVOL preset confirmed
+- LIEUX taps (prior session): CNRS UMR PRODIG, Vieux Marais → BÂTIMENT preset confirmed
+- All three bottom-controls labels verified: **SURVOL** (cyan) / DISTRICT / BÂTIMENT for city tap;
+  SURVOL / **DISTRICT** (cyan) / BÂTIMENT for district tap; SURVOL / DISTRICT / **BÂTIMENT** (cyan) for building tap
+
+## Wave 7 — 3D window recess geometry (2026-07-17)
+
+### `makeWindowRecessEntities` — geometric window depth
+
+`makeWindowRecessEntities(buildings:isNight:quadrantIndex:)` in `DistrictRealityKit.swift` adds
+dark back-plane quads placed `recessDepth` metres behind each window position on the exterior wall
+surface. This gives building facades genuine 3D geometric depth instead of texture-only window
+simulation.
+
+**Architecture**: One merged `MeshDescriptor` per style per quadrant → one `ModelEntity` named
+`"bld_\(style.rawValue)_q\(qi)_recesses"`. Entity named with `_recesses` suffix → gated behind
+the existing `facadeDetailEnabled` LOD system (hidden at orbit, enabled on building tap /
+pinch zoom past `districtExtent × 0.22`).
+
+**`RecessSpec` per style:**
+
+| Style | colsPerTileU | recessDepth | winWidthFrac | winHeightFrac | groundFloorH |
+|---|---|---|---|---|---|
+| haussmannien | 5 | 0.18 m | 0.52 | 0.50 | 5.0 m |
+| bordelaisClassical | 4 | 0.16 m | 0.50 | 0.48 | 5.0 m |
+| madrileño | 5 | 0.14 m | 0.48 | 0.52 | 5.5 m |
+| londonBrick | 4 | 0.12 m | 0.46 | 0.46 | 5.0 m |
+| romanOchre | 3 | 0.14 m | 0.52 | 0.52 | 5.5 m |
+| colonial | 4 | 0.10 m | 0.48 | 0.48 | 4.5 m |
+| nycBrick | 4 | 0.12 m | 0.46 | 0.46 | 5.5 m |
+| modernConcrete | 6 | 0.08 m | 0.55 | 0.55 | 0 (no skip) |
+
+Styles `balinese`, `javanese`, `religious`, `medieval` have no recesses (no recognizable
+rectilinear window grid at rendered scales).
+
+**Geometry per window** (single back quad, not a 3-sided box):
+- For each polygon edge A→B: outward normal `(outNx, 0, outNz) = (-dz/len, 0, dx/len)`
+- Column spacing: `actualSpacing = edge_length / numCols` where
+  `numCols = max(1, Int(edge_length / (tileU / colsPerTileU)))`
+- Window center X,Z: `(A + dir * (col+0.5) * actualSpacing) - outN * recessDepth`
+- Window center Y: `groundFloorH + (floor + 0.5) * floorInterval`
+- `halfW = actualSpacing * winWidthFrac * 0.5`, `halfH = floorInterval * winHeightFrac * 0.5`
+- Skip if `cy + halfH >= buildingHeight - 0.3` (clips top floor)
+- Back-plane quad winding: `[base, base+3, base+2, base, base+2, base+1]` (outward normal)
+
+**Material**: `UnlitMaterial` — day: `(0.022, 0.022, 0.022)` near-black; night:
+`(0.035, 0.025, 0.015)` very dark warm shadow. No PBR: window interiors are unlit caves,
+not surfaces receiving the scene's directional light.
+
+**LOD integration** (`DistrictRealityView.swift`, `cacheFacadeDetailEntities`):
+`_recesses` added to the suffix check alongside `_bands`, `_pilasters`, `_balconies`, `_chimneys`.
+Hidden at startup by `applyOrbitLOD()`. Enabled by:
+- `flyToBuildingWithFraming` (building tap)
+- `handlePinch` crossing `districtExtent × 0.22` inward
+- Disabled again by `resetToDefaultPosition()` (double-tap reset) and `applyOrbitLOD()`.
+
+**Vertex budget (Le Marais haussmannien, per quadrant)**: ~220–250K vertices — gated entities
+never rendered at orbit, so GPU cost is zero until the user zooms in. Build cost on first district
+open (main actor, same constraint as all RealityKit entity ops).
+
+**Screenshot-verified 2026-07-17**: Le Marais building tap → dark rectangular window openings
+clearly visible on cream haussmannien facade at building-tap zoom. Two perpendicular faces of
+the same building both show window depth. Floor ledge bands (0.38m), cornices, and balcony
+undersides all co-visible at the same zoom level.
+
+**Entity count delta**: +1 `ModelEntity` per style per quadrant (same merge approach as walls,
+roof caps, bands, chimneys). Max +8 entities per district (8 eligible styles × 1 per district
+at most — quadrant split reduces per-entity mesh size but keeps total entity count bounded).
+
+## Wave 7B — Balcony railings, dormer windows, rooftop equipment (2026-07-17)
+
+Three new `@MainActor private static func make*Entities` functions in `DistrictRealityKit.swift`,
+all following the identical pattern as `makeChimneyEntities`. All three are called in the quadrant
+loop of `loadDistrictEntity` after `makeWindowRecessEntities`. All three use the `_railings`,
+`_dormers`, `_equipment` suffixes → gated by `cacheFacadeDetailEntities` in
+`DistrictRealityView.Coordinator` (hidden at orbit, visible at building-tap / pinch past
+`districtExtent × 0.22`).
+
+### `makeBalconyRailingEntities` — wrought-iron / steel guard-rails
+
+Adds balcony guard-rail geometry for 5 styles: `haussmannien`, `bordelaisClassical`, `madrileño`,
+`romanOchre`, `nycBrick`. One merged `MeshDescriptor` per style × quadrant.
+
+**Geometry per balcony floor level per polygon edge:**
+- **Handrail bar — front face**: quad at `[absHandrailBot … absRailTop]` offset outward by
+  `profile.balconyDepth`. Normal = `(-dz/len, 0, dx/len)` (same CW outward convention as all
+  facade geometry).
+- **Handrail bar — top face**: 4cm inset quad at `absRailTop`, upward normal `(0,1,0)`. Visible
+  from orbit at 15-30° elevation — makes the handrail read as a solid bar rather than a paper plane.
+- **Vertical posts**: one face quad per `spec.postSpacing` metres along the edge, from `absSlabTop`
+  to `absHandrailBot`, width `spec.postW`, centered on the balcony outer edge.
+
+**Per-style specs:**
+
+| Style | postW | postSpacing | railH | metallic | clearcoat | Character |
+|---|---|---|---|---|---|---|
+| haussmannien | 0.028 m | 0.135 m | 0.90 m | 0.74 | 0.32 | Fonte Second Empire, dark grey-black |
+| bordelaisClassical | 0.030 m | 0.150 m | 0.88 m | 0.70 | 0.24 | Wrought iron, warm black |
+| madrileño | 0.026 m | 0.165 m | 0.92 m | 0.65 | 0.16 | Steel, warm brown-black |
+| romanOchre | 0.032 m | 0.200 m | 0.88 m | 0.58 | 0.10 | Iron, dark warm |
+| nycBrick | 0.040 m | 0.240 m | 1.00 m | 0.52 | 0.08 | Cast iron / steel, cool grey |
+
+`PhysicallyBasedMaterial` with `clearcoatRoughness: 0.30` for all styles. Railings only emit on
+buildings where `profile.balconyDepth > 0` — non-balcony styles (balinese, colonial, etc.) skip
+the entity entirely, adding no entities or draw calls for those districts.
+
+**Entity name**: `"bld_\(style.rawValue)_q\(quadrantIndex)_railings"`
+
+### `makeDormerEntities` — lucarne dormer windows
+
+Adds dormer window protrusions on pitched-roof facades. 3 eligible styles: `haussmannien` (zinc),
+`bordelaisClassical` (warm Gironde stone), `medieval` (Breton granite).
+
+**Geometry**: front face quad + gable cap triangle pair (via `addRoofFace`). Side faces omitted —
+they're hidden by the roof slope from orbit camera and building-tap camera angles. Buildings with
+`roofType` set to non-hip authored override are skipped (conical/dome/thatched already have their
+authored geometry).
+
+**Placement**: dormers line the **longest polygon edge** of each building at `spec.bayInterval`
+spacing. The dormer protrudes outward by `spec.d` from that edge at the eave level
+(`h + corniceHeight`).
+
+**Per-style specs:**
+
+| Style | bayInterval | w | bodyH | d | capH | Material |
+|---|---|---|---|---|---|---|
+| haussmannien | 4.0 m | 0.85 m | 1.30 m | 0.45 m | 0.28 m | Zinc blue-grey (0.38,0.42,0.48) |
+| bordelaisClassical | 4.5 m | 0.90 m | 1.20 m | 0.40 m | 0.22 m | Warm Gironde stone (0.70,0.60,0.46) |
+| medieval | 5.0 m | 1.00 m | 1.40 m | 0.50 m | 0.35 m | Breton granite (0.38,0.36,0.34) |
+
+Buildings with `h < 8.0m` or `longestEdge < bayInterval` are skipped. `addRoofFace` handles
+normal auto-flip for both front and back gable triangles.
+
+**Entity name**: `"bld_\(style.rawValue)_q\(quadrantIndex)_dormers"`
+
+### `makeRooftopEquipmentEntities` — HVAC / antenna boxes
+
+Rooftop equipment on `modernGlass` and `modernConcrete` towers at `h ≥ 18m`. 1–3 AC-unit boxes
+per building, placed deterministically in the inner 60% of the building's bounding box using
+FNV-1a seeds `"<osmID>_eq_n/x/z/h"`. One merged `ModelEntity` per quadrant (all styles combined).
+
+**Helper `addBoxOnRoof(cx:cz:baseY:w:d:h:)`**: 5-sided box (4 side faces + top face). CW corner
+order `[BL(-hw,-hd), FL(-hw,+hd), FR(+hw,+hd), BR(+hw,-hd)]` produces correct outward normals
+via `(-dz/len, 0, dx/len)`. Top face winding `[0,2,3, 0,1,2]` produces +Y normal (cross-verified:
+T1 `[BL,FR,BR]` → cross Y = +4hw·hd > 0; T2 `[BL,FL,FR]` → same ✓).
+
+Box dimensions: width 1.2–2.0m, depth 0.8–1.2m, height 0.5–1.0m (all seeded from osmID).
+Material: cool grey PBR `(0.30,0.32,0.34)`, metallic 0.42, roughness 0.72.
+
+**Entity name**: `"bld_equip_q\(quadrantIndex)_equipment"` (no style prefix — combines both
+eligible styles into one entity per quadrant).
+
+### LOD integration — `cacheFacadeDetailEntities` updated
+
+`DistrictRealityView.Coordinator.cacheFacadeDetailEntities` now collects all 8 suffix types:
+`_bands`, `_pilasters`, `_balconies`, `_chimneys`, `_recesses`, `_railings`, `_dormers`, `_equipment`.
+
+All 8 are hidden by `applyOrbitLOD()` at startup and re-enabled by:
+- `flyToBuildingWithFraming` (building tap → BÂTIMENT mode)
+- `handlePinch` crossing `districtExtent × 0.22` inward
+
+All 8 are hidden again by `resetToDefaultPosition()` (double-tap reset) and `applyOrbitLOD()`.
+
+**Draw call budget delta per quadrant**:
+- `_railings`: ≤5 entities (one per eligible style)
+- `_dormers`: ≤3 entities (one per eligible style)  
+- `_equipment`: 1 entity per quadrant
+- **Total new**: ≤9 entities per quadrant, ≤36 per district. All gated — zero GPU cost at orbit.
+
+**Screenshot-verified 2026-07-17**: Le Marais orbit intact (cream haussmannien fabric, mansard
+rooftops, dark Pompidou glass block, road network, green zones). No visual regression. Facade
+detail entities correctly hidden at orbit. Build: zero errors, zero warnings on Wave 7B code.
+
+## Wave 7C — Ultra-photoréaliste normal maps + vue AÉRIEN bird's-eye (2026-07-17)
+
+### AÉRIEN (bird's-eye) camera — replaces the old DISTRICT orbit
+
+`ViewPreset.overview` was renamed and redesigned from an auto-rotating standard orbit to a fixed
+bird's-eye view at ~46° elevation. This creates a three-tier camera hierarchy:
+
+| Preset | Label | Icon | Camera |
+|---|---|---|---|
+| `.ciel` | SURVOL | `airplane` | Fixed overhead, 4× orbit radius, 3× orbit height |
+| `.overview` | AÉRIEN | `binoculars` | Fixed bird's-eye ~46°, `districtDistance × 1.4` horizontal, `× 1.4 × 1.05` vertical |
+| `.focus` | BÂTIMENT | `scope` | Wide framing on selected building, elevated orbit angle |
+
+**AÉRIEN camera math** (in `DistrictRealityView.Coordinator.resetToDefaultPosition`):
+```swift
+let birdDist = districtDistance * 1.4
+let birdH    = birdDist * 1.05  // atan(1.05) ≈ 46° elevation
+```
+No auto-rotation — `orbitSubscription` is cancelled. Camera is static. For Le Marais
+(`districtDistance ≈ 120m`): position at 168m horizontal, 176m height.
+
+**`resetToDefaultPosition` branching logic:**
+- `.ciel` → SURVOL overhead (4× / 3× — see Wave 5)
+- `.overview` → AÉRIEN bird's-eye (1.4× / 1.47×, fixed)
+- `else` → legacy default position (orbit distance / orbit height)
+
+**Files changed**: `DiscoverViewModel.swift` (label/icon), `DistrictRealityView.swift` (new `.overview` branch).
+
+**Navigation flow**: Terre (globe/world map) → SURVOL (overhead) → AÉRIEN (bird's-eye 45°) → BÂTIMENT (building tap).
+
+**Hard invariants (do not revert):**
+- AÉRIEN is NEVER auto-rotating — it is a fixed framing like a painting composition.
+- AÉRIEN and SURVOL both set `isAutoRotating = false` on entry.
+- BÂTIMENT (building tap / pinch zoom) stays in elevated orbit, never eye-level.
+
+**Screenshot-verified 2026-07-17**: Le Marais loaded at bird's-eye ~46°, cream haussmannien
+fabric fully visible, DistrictTabBar intact, bottom controls showing SURVOL / **AÉRIEN** (cyan) / BÂTIMENT.
+
+### Procedural tangent-space normal maps per `BuildingStyle`
+
+`DistrictRealityKit` now generates a 128×128 procedural tangent-space normal map per
+`BuildingStyle` for **day-mode surface micro-relief**. Applied at building-tap zoom via
+`material.normal = .init(texture: .init(nt))`. Hidden at night (emissive textures override
+surface detail).
+
+**Implementation**:
+- `@MainActor private static var normalMapCache: [String: TextureResource]` — static cache,
+  one entry per style (`style.rawValue` key), same lifecycle as `windowTextureCache`.
+- `cachedNormalMapTexture(for: BuildingStyle) -> TextureResource?` — checks cache, generates once.
+- `makeNormalMapTexture(for: BuildingStyle) -> TextureResource?` — generates 128×128 CGImage
+  via `.hdrColor` semantic (linear encoding, no gamma correction — same as roughness texture).
+
+**Why `.hdrColor` instead of `.normal`**: `TextureResource.Semantic.normal` availability on iOS 17
+was uncertain at implementation time; `.hdrColor` correctly encodes linear pixel data that RealityKit
+interprets as tangent-space normals via `material.normal`. No semantic difference in the final render.
+
+**Normal map encoding** (tangent-space):
+- Flat surface: RGB `(128, 128, 255)` — `+Z` pointing outward from surface.
+- `R` = tangent X (horizontal deviation), `G` = tangent Y (vertical deviation, ↓ = toward floor,
+  ↑ = toward ceiling), `B` = outward Z strength.
+- Joint top lip: `G < 128` (normal tilts downward toward the joint floor).
+- Joint bottom lip: `G > 128` (normal tilts upward toward ceiling of lower course).
+
+**Noise function** — `pxHash(x, y)` gives `–16…+15` integer:
+```swift
+func pxHash(_ x: Int, _ y: Int) -> Int {
+    var h = UInt32(x &* 7919 &+ y &* 7793) ^ 2166136261
+    h ^= h >> 16; h = h &* 0x45d9f3b; h ^= h >> 16
+    return Int(h & 0x1F) - 16
+}
+```
+
+**Per-style surface character:**
+
+| Style | Pattern | Description |
+|---|---|---|
+| `haussmannien` | 5 horizontal limestone courses / tile | Lutetian stone coursing, joint lips at top/bottom |
+| `bordelaisClassical` | 4 ashlar courses / tile | Gironde calcaire joints, slightly deeper |
+| `londonBrick` | 8×8 Flemish bond brick grid | Mortar joints on top/bottom/left + convex face bump |
+| `madrileño` | Subtle horizontal render lines | Smooth plaster with shallow coursing at 32px intervals |
+| `romanOchre` | Variable-height tuff/brick rows | 4 courses but randomized via osmID-like per-row seed |
+| `colonial` | Random noise only | Lime-plaster irregular roughness, no regular coursing |
+| `modernConcrete` | 32px formwork boards + bolt holes | Vertical formwork seams + cruciform bolt-hole depressions |
+| `modernGlass` | Spandrel panel grid at 32px | Curtain-wall sealant lines, near-flat (almost no relief) |
+| `nycBrick` | 21×16 running bond brick | Taller NYC bricks, deeper mortar joints |
+| `balinese` | Irregular crack lines at 17px intervals | Volcanic fissure texture, high roughness |
+| `laStucco` | Horizontal render coats at 20px | California plaster lifts, shallow |
+| `default` | Low-amplitude noise | Generic micro-roughness for all other styles |
+
+**Material pool integration**: `pooledMaterial` supplies `normalTex` only when `!isNight`:
+```swift
+let normalTex: TextureResource? = isNight ? nil : cachedNormalMapTexture(for: style)
+```
+The pool cache key is unchanged — normal maps are per-style only (same for all buckets/moods/warmth),
+so no key extension required. The same pooled `PhysicallyBasedMaterial` carries the normal map
+for all 3 variation buckets of a style.
+
+**Draw call / memory cost**: zero additional entities — normal maps are properties on the existing
+pooled materials. Memory: ~10 × 128×128×4 bytes = ~655KB for all 10 normal map textures.
+
+**Screenshot-verified 2026-07-17**: Le Marais AÉRIEN view intact; scene rendered at bird's-eye
+angle with cream haussmannien fabric, no visual regression from normal map addition.
+
 ## Known Simulator/test gotchas
 
 See `~/.claude/projects/-Users-noeplantier-Orbital/memory/project_ios_simulator_quirks.md` (Claude
@@ -1726,3 +2907,539 @@ session memory) for: disk filling up fast during repeated `xcodebuild test` runs
 `.tap()` not registering on `Toggle`/`Switch` elements on this machine's iOS Simulator build (not
 an app bug — confirmed with a bare isolated `@State` Toggle), and screenshot timing races when a
 test screenshots immediately after a tap instead of waiting for the expected resulting content.
+
+## Indonesia-first pivot + Phase 1 feature removal (2026-07-17)
+
+**Strategic reposition**: MetaCity was redesigned as an Indonesia-first 3D city tourism app.
+Jakarta, Bandung, Yogyakarta, and Bali/Denpasar are the primary experience; Europe/NYC/etc. remain
+accessible but are no longer the default entry point.
+
+### Phase 1: Feature removal
+
+Three non-tourism features were **deleted outright** — not hidden:
+
+- **AR tab** (`MetaCity/Features/AR/` — already empty in a prior wave, directory confirmed empty before removal)
+- **Calls feature**: `CallLobbyView.swift`, `CallViewModel.swift`, `InCallView.swift` (from `Features/Calls/`)
+- **Contacts feature**: `ContactsView.swift`, `ContactsViewModel.swift` (from `Features/Contacts/`)
+- **Supporting infrastructure**: `Models/CallRoom.swift`, `Repositories/CallService.swift`,
+  `Services/Call/MockCallService.swift`, `Core/UseCases/JoinCallUseCase.swift`
+
+These were tourism-irrelevant features that cluttered the tab bar. If they ever come back, they
+come back as a deliberate product decision with a fresh implementation, not a revert from git.
+
+### AppTab: 4 tabs (was 5)
+
+`MetaCity/Core/AppTab.swift`:
+```swift
+enum AppTab: Hashable {
+    case discover, activities, places, profile
+}
+```
+
+**Tab bar order (screenshot-verified 2026-07-17)**: Discover · Activités · Places · Profile.
+- Discover: `globe.asia.australia.fill` icon (Indonesia-first — was `map.fill`)
+- Activités: `ticket.fill`
+- Places: `map.fill`
+- Profile: `person.fill`
+
+### DiscoverViewModel: Indonesia default camera
+
+`DiscoverViewModel.swift` camera constant:
+```swift
+private static let defaultCamera = MapCamera(
+    centerCoordinate: CLLocationCoordinate2D(latitude: -2.5, longitude: 117.5),
+    distance: 4_500_000,
+    heading: 0,
+    pitch: 0
+)
+```
+Shows the full Indonesian archipelago (Sumatra through Papua) at ~4,500km eye altitude.
+Previous: `europeCamera` at `47°N/7°E` (Paris/London visible). **Do not restore the European default.**
+
+Cold launch (no `UITEST_*` env vars): opens Jakarta in `cityFocused` state, centering the map on
+Jakarta with Jakarta's `mapZoomRadius`. This matches the Indonesia-first product positioning.
+
+### AppEnvironment: callService removed
+
+`AppEnvironment.swift` no longer has `callService: CallService` property or `makeCallViewModel()`.
+`HomeTabView` no longer accepts or produces a CallViewModel.
+
+### HomeTabView: 4-tab rewrite
+
+Fully rewritten to 4 tabs. Key behaviors preserved:
+- `onChange(of: selectedTab)` syncs `activitiesViewModel.selectCity` and
+  `placesViewModel.loadPlaces` when switching to those tabs with a focused city.
+- `onChange(of: activitiesViewModel.pendingDistrictId)` handles Activities→Discover navigation
+  (user taps "Voir en 3D" in Activities, navigates to district in Discover tab).
+- `onChange(of: discoverViewModel.selectedDistrict)` marks district as visited in ProfileViewModel.
+- `onAppear` resets to `.discover` tab when `UITEST_OPEN_DISTRICT` / `UITEST_OPEN_CITY` is set.
+
+**Screenshot-verified 2026-07-17**: Jakarta cityFocused sheet (28°C Ciel dégagé weather, 5
+district rows, featured activity chips), 4-tab bar confirmed at bottom, EarthGlobeView top-right,
+Indonesian map underneath.
+
+## Phase 2 — navigation overhaul + district mini-map (2026-07-18)
+
+### ViewPreset label + icon rename
+
+`ViewPreset` case names are unchanged (`.ciel`, `.overview`, `.focus`) — only user-visible labels
+and icons were changed to avoid breaking all call sites:
+
+| Case | Label (new) | Icon (new) | Was |
+|---|---|---|---|
+| `.ciel` | AÉRIEN | `binoculars.fill` | SURVOL |
+| `.overview` | OVERVIEW | `viewfinder` | AÉRIEN |
+| `.focus` | ZOOM | `scope` | BÂTIMENT |
+
+**SURVOL (old `.ciel` at 4× / 3× overhead) is permanently removed** as a user-visible mode.
+The old 4× / 3× `resetToDefaultPosition` branch for `.ciel` was replaced with the old Wave-7C
+AÉRIEN math (1.4× distance, 1.05× height → ~46° elevation). OVERVIEW (`.overview`) is now a
+mid-zoom at 0.85× distance, 0.95× height (~43°). BÂTIMENT was renamed ZOOM — behavior unchanged.
+
+**Hard invariant (do NOT revert):** No preset is ever auto-rotating. All three are fixed camera
+positions. Building tap/pinch stays in elevated orbit — never eye-level.
+
+### Camera math update (`DistrictRealityView.Coordinator`)
+
+`setUp()` gained `activeViewPreset: ViewPreset = .overview` parameter. The initial camera position
+is computed from the preset instead of always using `districtDistance * 1.5 / height * 1.4`:
+
+```swift
+districtDistance = district.extent * mood.cameraDistanceFraction * 1.5  // orbit reference (unchanged)
+
+switch currentViewPreset {
+case .ciel:     // AÉRIEN
+    distance = districtDistance * 1.4
+    height   = distance * 1.05          // atan(1.05) ≈ 46°
+case .overview: // OVERVIEW
+    distance = districtDistance * 0.85
+    height   = distance * 0.95          // atan(0.95) ≈ 43.5°
+default:
+    distance = districtDistance         // ZOOM / default orbit
+    height   = district.extent * mood.cameraHeightFraction * 1.4
+}
+```
+
+`makeUIView` passes `activeViewPreset` to `setUp()` so the cinematic entry (which reads `height`
+and `distance` for its `endPos`) lands at the correct preset position on first open.
+`resetToDefaultPosition()` branches updated to match the same multipliers.
+
+**Critical**: `districtDistance` stays as `district.extent × mood.cameraDistanceFraction × 1.5`
+(the orbit reference). Do NOT reduce it to the bare `cameraDistanceFraction` baseline —
+all preset multipliers are calibrated against the 1.5× reference. Reducing it to 1.0× makes
+OVERVIEW/AÉRIEN land inside tall buildings (confirmed regression 2026-07-18).
+
+### DistrictTabBar removed
+
+`DistrictTabBar` (the horizontal scroll of district names in `metacityNeonCyan`) was removed
+from `districtExploreOverlay`. It was the "en-têtes bleues claires" the user wanted gone.
+District switching is now via the global search bar (already present in the overlay).
+
+### `DistrictMiniMapView` — floating satellite mini-map
+
+New `private struct DistrictMiniMapView: View` in `DiscoverView.swift`. Floats bottom-right of
+the district explore overlay, hidden when `selectedVenuePOI != nil || selectedBuilding != nil`
+(card open → mini-map auto-hides to avoid clutter), shown with `.opacity.combined(with: .scale(0.92))`.
+
+**Spec:**
+- 112×112pt, `mapStyle(.hybrid(elevation: .flat, pointsOfInterest: .excludingAll))`
+- Camera computed from `district.boundingBox`: `max(latSpan * 111320, lonSpan * 111320 * cos(lat)) * 1.5`, min 700m
+- `Annotation` at `district.anchor.clLocationCoordinate`: 24pt glow circle + 8pt dot, color from `moodAccentColor`
+- `"◉ MAP"` monospaced label top-left in accent color (6.5pt, tracking 1.5)
+- `RoundedRectangle(cornerRadius: 12)` glassmorphism border with `LinearGradient(accent.opacity(0.60 → 0.25))`
+- Dual shadow: accent glow `radius: 12, y: 4` + dark drop `radius: 16, y: 6`
+- `@State private var camera: MapCameraPosition` initialised in `init(district:)` — `self.district = district` MUST be the first statement before any use of `district` (otherwise Swift init error "return without initialising all stored properties")
+
+**`moodAccentColor`:** 15-entry switch on `district.moodKey` — same palette as
+`DistrictRevealOverlay.moodAccentColor` and `ProfileView.moodAccentColor`. These three are
+currently independent private switches. If a future refactor consolidates them, use a
+`MoodTheme.swift` extension on `String` or a shared `DistrictMoodStyle` struct.
+
+**Screenshot-verified 2026-07-18**: SudirmanThamrin district — sky visible top, glass towers
+mid-frame, road network and lower buildings bottom-left, mini-map bottom-right (satellite + cyan
+glowing dot over Jakarta district). Controls: AÉRIEN / **OVERVIEW** (cyan) / ZOOM.
+
+## Europe-first refonte (2026-07-18)
+
+Eight changes landed together — all build+screenshot-verified.
+
+### 1. Navbar unifiée — `cityFocusedOverlay`
+
+The unified `HStack(backButton + globalSearchBar + EarthGlobeButton)` navbar previously only
+existed in `districtExploreOverlay`. It was added to `cityFocusedOverlay` with the same layout,
+`.ultraThinMaterial` background, and `ScanLineView()` bottom overlay. Both overlays now share
+identical header chrome. The old separate title label + search bar in `cityFocusedOverlay` is gone.
+
+### 2. `EarthOverviewView` → `EuropeMapOverlayView`
+
+`MetaCity/Features/Discover/EarthOverviewView.swift` (SceneKit 3D globe with 12 city markers)
+**deleted outright**. Replaced by `MetaCity/Features/Discover/EuropeMapOverlayView.swift` — a
+SwiftUI MapKit `.hybrid` fullscreen overlay centred on Europe (47°N/7°E, 3,200km eye altitude):
+- `Map(position: $camera)` with `Annotation` for each city in `visibleCities`
+- `EuropeCityDot`: pulsing neon cyan ring + city name label
+- Glassmorphism header ("EUROPE 3D · N cities") + bottom instruction footer
+- `SceneKit.framework` is no longer needed for the globe — it was already a dependency for
+  `EarthGlobeView.swift` (the small 48pt button sphere in the navbar); that file is unchanged.
+
+`EarthGlobeView.swift` (the SceneKit button in the navbar) **is kept** — it is the tap target
+that opens the map overlay. Only the full-screen globe (`EarthOverviewView`) was removed.
+
+The `.fullScreenCover` in `DiscoverView.body` now presents `EuropeMapOverlayView`.
+
+### 3. Mode Présentation supprimé
+
+`MetaCity/Features/Discover/PresentationModeView.swift` **deleted outright** — the 5-step B2B
+auto-tour overlay is gone. `DiscoverViewModel.showingPresentation` property removed.
+The PRÉSENTATION button in `worldMapOverlay` was removed; only `EarthGlobeButton` remains.
+
+### 4. `visibleCities` — Europe+Tokyo+NA filter
+
+`DiscoverViewModel.visibleCities` filters `CityManifest.allCities` to `visibleCityIds`
+(renamed from `europeFocusCityIds` in Phase 6 — backward-compat alias retained):
+```swift
+static let visibleCityIds: Set<String> = [
+    "paris", "bordeaux", "london", "madrid", "rome",
+    "tokyo", "newyork", "losangeles", "vancouver", "sanfrancisco",
+    "jakarta", "bandung", "denpasar", "yogyakarta"
+]
+static var europeFocusCityIds: Set<String> { visibleCityIds }
+var visibleCities: [CityEntry] {
+    manifest.allCities.filter { Self.visibleCityIds.contains($0.id) }
+}
+```
+All `ForEach(viewModel.manifest.allCities)` in `DiscoverView` map-layer, city pin display,
+and city count labels were changed to `ForEach(viewModel.visibleCities)`.
+`EuropeMapOverlayView` receives `visibleCities` (not `allCities`).
+Jakarta/Bandung/Bali/Yogyakarta pins are **fully visible** again (re-enabled Phase 6, 2026-07-19).
+
+### 5. Normal maps upgraded 128→256px
+
+`makeNormalMapTexture(for:)` in `DistrictRealityKit.swift` generates 256×256 textures (was 128×128).
+Memory: ~10 × 256×256×4 bytes ≈ 2.6MB for all style textures. Build-line:
+```swift
+let size = 256  // was 128
+```
+
+### 6. `ViewPreset` reduced to 2 cases — `.ciel` removed
+
+`ViewPreset` is now a 2-case enum (`.overview`, `.focus`). The `.ciel` case and all its
+`resetToDefaultPosition` / `setUp` branches are gone:
+```swift
+enum ViewPreset: String, CaseIterable {
+    case overview  // OVERVIEW — bird's-eye ~61° (dist×0.60, h×0.60×1.10)
+    case focus     // ZOOM — wide framing on selected building
+}
+```
+`setViewPreset` no longer has a `.ciel` branch. City-tap from global search now calls
+`setViewPreset(.overview)` (was `.ciel`). `navigateToCityFromEarth` likewise uses `.overview`.
+`resetToDefaultPosition()` `.ciel` block removed; the `else if` became a plain `if`:
+```swift
+if currentViewPreset == .overview {
+    let overviewDist = districtDistance * 0.60
+    let overviewH    = overviewDist * 1.10   // atan(1.10) ≈ 47.7°
+    ...
+} else {
+    // ZOOM / default
+}
+```
+
+### 7. `DistrictControlsPanel` deleted
+
+The AÉRIEN/OVERVIEW/ZOOM button bar struct was **deleted entirely** from `DiscoverView.swift`.
+It called `ViewPreset.allCases` (a `CaseIterable` iteration); its deletion was safe once `.ciel`
+was removed from `ViewPreset`. The `districtExploreOverlay` no longer calls `DistrictControlsPanel`.
+Camera mode is now implicitly OVERVIEW on district open; ZOOM on building tap/pinch; no user-visible
+toggle exists. The bottom of the `districtExploreOverlay` is the tab bar only.
+
+### 8. LRU entity cache + memory pressure handler
+
+**LRU cache** (`DistrictRealityKit.swift`):
+- `entityCacheOrder: [String]` — insertion-order list; promoted to MRU on hit.
+- `entityCacheLimit: Int = 12` — oldest entry evicted when count exceeds limit.
+- On cache hit: `entityCacheOrder.removeAll { $0 == key }; entityCacheOrder.append(key)`.
+- On cache write: `entityCacheOrder.append(key); while count > limit { removeFirst; removeValue }`.
+- `flushEntityCache()` — `@MainActor static` method, removes all entities + clears order list.
+
+**Memory pressure handler** (`MetaCityApp.swift`):
+```swift
+.onReceive(NotificationCenter.default.publisher(
+    for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+    Task { @MainActor in DistrictRealityKit.flushEntityCache() }
+}
+```
+Required `import UIKit` (for `UIApplication.didReceiveMemoryWarningNotification`) and
+`import Combine` (for `NotificationCenter.default.publisher`) added to `MetaCityApp.swift`.
+`SwiftUI` transitively imports `Combine` — both imports are now explicit for clarity.
+
+## Phase 5 — POI Highlights système (2026-07-18)
+
+### 19 POI JSON files (pois_*.json)
+
+Five original Bali files (`pois_canggu.json`, `pois_kuta.json`, `pois_seminyak.json`,
+`pois_sanur.json`, `pois_uluwatu.json`) plus 14 new files covering priority districts:
+
+| File | District | Featured POIs |
+|---|---|---|
+| `pois_lemarais.json` | Le Marais | Tour Saint-Jacques, Centre Pompidou, Place des Vosges |
+| `pois_saintgermain.json` | Saint-Germain-des-Prés | Église Saint-Sulpice, Café de Flore, Musée d'Orsay |
+| `pois_montmartre.json` | Montmartre | Sacré-Cœur, Moulin Rouge, Place du Tertre |
+| `pois_ladefense.json` | La Défense | Grande Arche, Tour First, CNIT |
+| `pois_cityoflondon.json` | City of London | 30 St Mary Axe, St Paul's Cathedral, Lloyd's of London |
+| `pois_westminster.json` | Westminster | Westminster Abbey, Buckingham Palace, Big Ben |
+| `pois_shibuya.json` | Shibuya | Scramble Square, Shibuya Crossing, Shibuya109 |
+| `pois_midtownmanhattan.json` | Midtown Manhattan | Empire State, Chrysler, Grand Central |
+| `pois_lowermanhattan.json` | Lower Manhattan | One WTC, Wall Street, Brooklyn Bridge |
+| `pois_downtownla.json` | DowntownLA | Wilshire Grand, Walt Disney Concert Hall, LA City Hall |
+| `pois_sfdowntown.json` | SFDowntown | Transamerica Pyramid, Ferry Building, Salesforce Tower |
+| `pois_vancouverdowntown.json` | VancouverDowntown | Marine Building, Canada Place, Christ Church Cathedral |
+| `pois_salamanca.json` | Salamanca | Puerta de Alcalá, Palacio de Cibeles |
+| `pois_centrostorico.json` | CentroStorico | Sant'Ivo alla Sapienza, Piazza della Rotonda, Castel Sant'Angelo |
+
+`CangguPOICollection.load(for: districtId.lowercased())` auto-loads any `pois_<id>.json` —
+no Swift wiring needed when adding a new POI file. The loader is cached by lowercase key.
+
+### Cyan neon beacon upgrade (`DistrictRealityKit.makePOIBeaconEntities`)
+
+**Featured POIs** (tier != .standard): `PhysicallyBasedMaterial` with:
+- `baseColor: UIColor(red: 0.20, green: 0.85, blue: 1.0, alpha: 1)` — deep cyan
+- `emissiveColor: UIColor(red: 0.35, green: 0.95, blue: 1.0, alpha: 1)` — neon cyan
+- `emissiveIntensity: 3.0` — strong glow within iOS 17 RealityKit constraints
+- `roughness: 0.05`, `metallic: 0.10` — near-mirror for maximum emissive yield
+- Floating text label via `MeshResource.generateText`: faces +Z at creation time (`.look(at:from:relativeTo:)`)
+- Label name: `"poi_label:<id>"`, sphere name: `"poi:<id>"`
+- Label height: `beaconY + radius * 2.8`
+- Root container named `"poiBeacons"`
+
+**Standard POIs**: `UnlitMaterial(color: UIColor(white: 0.65, alpha: 0.55))` — semi-transparent grey.
+
+**Beacon Y height**: `districtExtent * 0.008` — 24m for Canggu (3km extent), 4m for Jakarta (500m extent).
+
+**Radius**: featured `districtExtent * 0.006`, standard `districtExtent * 0.003`.
+
+### POI path lines (`makePOIPathLines`)
+
+Flat quad strips between consecutive **featured** POIs at `beaconY + 0.3m`:
+- Width: `districtExtent * 0.0018` — 5.4m for Canggu
+- `UnlitMaterial` cyan at `alpha: 0.35` — subtle neon circuit trace
+- One `MeshDescriptor` per POI pair, named `"poipath_<i>"` in container `"poiPaths"`
+- Returns `nil` (skipped) if fewer than 2 featured POIs, or if container ends up childless
+
+Path lines are visible from orbit as faint cyan traces; text labels and full line opacity appear
+at building-tap zoom (facade LOD threshold `districtExtent * 0.22`). No separate LOD gating
+for POI entities — they remain visible at all zoom levels (design intent: POIs serve as
+navigation landmarks from orbit down to street-level).
+
+### Pulse animation (`DistrictRealityView.Coordinator.startPOIPulse`)
+
+`poiPulseSubscription: Cancellable?` + `poiBeaconsEntity: Entity?` cached in `Coordinator`.
+
+After `loadModel` completes, `entity.findEntity(named: "poiBeacons")` is called once to cache
+the root; then `startPOIPulse(scene:)` subscribes to `SceneEvents.Update`:
+- `frameCount & 1 == 0` guard: 30fps throttle (same pattern as orbit camera)
+- `pulse = Float(0.92 + 0.08 * sin(elapsed * .pi * 2.0 * 1.5))` — 1.5 Hz pulse, ±8% scale
+- Only featured beacons (filtered once at subscription time, cached in local array) are pulsed
+- `poiPulseSubscription` is auto-cancelled when `Coordinator` is deallocated
+
+### ProMotion (60→120 fps) — handled automatically by RealityKit
+
+Neither `CAMetalLayer` nor `CALayer` has a `preferredFrameRateRange` property in the iOS SDK.
+`preferredFrameRateRange` exists only on `CADisplayLink` and `CAAnimation`. RealityKit's
+internal `CADisplayLink` already targets the device's maximum refresh rate automatically on
+ProMotion hardware (iPhone 15 Pro / 17 Pro = 120 Hz) — no manual configuration needed or possible.
+Do not attempt to set this via `arView.layer` — it will fail with a compile error.
+
+**Screenshot-verified 2026-07-18**: Canggu district — cyan neon featured beacon (Old Man's vicinity)
+clearly visible as a bright glowing sphere, grey standard beacons scattered across the district.
+Mini-map bottom-right intact. 4-tab bar correct (Discover·Activités·Places·Profile).
+
+**Build-verified 2026-07-18**: `** BUILD SUCCEEDED **` with zero new errors after all 8 changes.
+
+## Globe suppression + POI building-level zoom + Montmartre dome (2026-07-18)
+
+### Globe / Earth Sphere suppression
+
+`EuropeMapOverlayView` fullscreen cover removed entirely from `DiscoverView.body`. All three
+`EarthGlobeButton` call sites (worldMapOverlay, cityFocusedOverlay, districtExploreOverlay) now
+call `viewModel.resetToWorldMap()` instead of `viewModel.showEarthOverview()`.
+
+Dead code removed from `DiscoverViewModel.swift`:
+- `@Published var showingEarthOverview: Bool = false`
+- `func showEarthOverview()`, `func hideEarthOverview()`
+- `func navigateToCityFromEarth(_ cityId: String)` (entire block)
+
+`resetToWorldMap()` (kept): `state = .worldMap` + `cameraPosition = .camera(defaultCamera)` with
+`.easeInOut(duration: 0.5)`. Globe button tap → world map return only, no MapKit overlay.
+
+### POI fly-to: building-level zoom (replaces overview zoom)
+
+`flyToVenue()` in `DistrictRealityView.Coordinator` now has two paths:
+1. **Primary** (new): finds nearest building to POI lat/lon via `nearestBuilding(to:in:maxMeters:120)`
+   — squared-distance comparison on polygon centroids, skips buildings ≤4m height — then calls
+   `flyToBuildingWithFraming(nearest, scene:)` for building-level wide framing.
+2. **Fallback** (old, unchanged): no building within 120m → overview orbit at `districtExtent × 0.20`,
+   15° elevation, centred on POI coordinates.
+
+`nearestBuilding(to:in:maxMeters:)` — private helper on `Coordinator`. Iterates all building
+polygons, computes mean of polygon vertices as centroid `(cx, cz)`, returns closest within `maxMeters²`.
+Uses `cachedDistrict.buildings` (already cached from `loadModel`).
+
+**POI camera invariant (do NOT revert):** All POI taps stay in elevated orbit — never eye-level.
+`flyToBuildingWithFraming` uses `sphereR / tan(halfFovRad) × 1.85`, capped at `districtExtent × 0.65`,
+elevation 15–20°. Same constraints as building tap in scene.
+
+**Build+screenshot-verified 2026-07-18**: Canggu POI beacons intact, scene loads correctly.
+
+### `Montmartre_authored.json` — Sacré-Cœur dome
+
+New sidecar file `MetaCity/Resources/Montmartre_authored.json` (6 overrides):
+- `nameMatch "Sacré-Cœur"` + `nameMatch "Basilique du Sacré-Cœur"` → `style: religious`,
+  `roofType: "dome"`, `heightMeters: 83.0` (both name variants for robustness)
+- `nameMatch "Saint-Pierre de Montmartre"` → `roofType: "flat"` (Romanesque, lead flat cover)
+- `nameMatch "Halle Saint-Pierre"` → `style: government`, `roofType: "flat"` (industrial hall)
+- `nameMatch "Moulin Rouge"` → `style: government`, `roofType: "flat"`
+- `nameMatch "Moulin de la Galette"` → `style: government`, `roofType: "flat"`
+
+**Screenshot-verified 2026-07-18**: Montmartre loaded — Sacré-Cœur dome clearly dominant
+center-right as a large white rounded dome above the haussmannien cream fabric. Mansard rooftops,
+wide Haussmann boulevards, correct parisianCore mood. Mini-map shows 18th arrondissement satellite.
+
+`Montmartre` added to authored override table in this file. `xcodegen generate` run to include
+the new JSON in the bundle.
+
+## Phase 6 — Tokyo expansion + Indonesian re-integration (2026-07-19)
+
+### Indonesian cities re-enabled
+
+`visibleCityIds` (renamed from `europeFocusCityIds`) expanded from 10 to 14 cities.
+Jakarta, Bandung, Yogyakarta, and Bali/Denpasar are fully visible in the Discover tab again.
+Backward-compat alias `static var europeFocusCityIds: Set<String> { visibleCityIds }` retained.
+Default camera reverted to Indonesia: `-2.5°N / 117.5°E, distance 4,500,000m`. Cold launch opens
+Jakarta in `cityFocused` state. `DistrictMiniMapView` gained Indonesian mood accent colors
+(`highlandMorning`, `residentialDusk`, `parkDaylight`, `coastalPark`, `colonialSquare`).
+
+Indonesian authored override files created (screenshot-verified 2026-07-19):
+- `SudirmanThamrin_authored.json` — 10 overrides: Wisma 46 → modernGlass/262m, Menara BCA 230m,
+  Masjid Istiqlal → religious/dome/45m, Katedral Jakarta → religious/dome/61m
+- `KotaTua_authored.json` — 10 overrides: Museum Fatahillah → government/flat, Gereja Sion →
+  religious/flat, Gereja Katedral → religious/dome, Café Batavia → colonial
+- `Menteng_authored.json` — 6 overrides: Tugu Proklamasi → government, Gereja Theresia →
+  religious/flat, Masjid Cut Meutia → religious/dome
+- `Kemang_authored.json` — 4 overrides: Kemang Village → modernConcrete/flat/36m,
+  Masjid Al-Azhar → religious/dome
+- `Kraton_authored.json` — 7 overrides: Kraton/Keraton/Sultan → government/flat, Taman Sari →
+  government/flat, Masjid Gedhe → religious/dome
+- `Braga_authored.json` — 5 overrides: Gedung Merdeka → government/flat/18m,
+  Gedung Sate → government/flat/48m
+
+Indonesian POI files created (9 files, loaded automatically by `CangguPOICollection.load`):
+`pois_sudirmanthamrin.json`, `pois_kotatua.json`, `pois_menteng.json`, `pois_kemang.json`,
+`pois_ancol.json`, `pois_malioboro.json`, `pois_kraton.json`, `pois_dago.json`, `pois_braga.json`
+
+### Tokyo — 3 new districts (total: 4)
+
+36 total districts across 14 cities. Overpass lz4 mirror (`lz4.overpass-api.de`) was used for
+all 3 new Tokyo districts due to consistent `overpass-api.de` 504 timeouts.
+
+**District data (all screenshot-verified 2026-07-19):**
+
+| District | Buildings | Roads | Green zones | moodKey | focusBuildingName |
+|---|---|---|---|---|---|
+| Shinjuku | 3,271 | 2,971 | 68 | shibuyaNeon | Nomura Building (新宿野村ビル, 220m) |
+| Ginza | 2,008 | 1,915 | 27 | shibuyaNeon | GINZA SIX (56m) |
+| Asakusa | 3,928 | 1,009 | 20 | sacredSite | Senso-ji Temple (浅草寺, dome override) |
+
+All three added to `heavyDistricts` in `MetaCityApp.swift` (on-demand load, not startup prefetch).
+
+**Fetch commands used (from cache):**
+```
+python3 fetch_district_data.py \
+  --name Shinjuku --bbox 35.686 139.695 35.700 139.708 \
+  --anchor 35.6938 139.7036 --default-style modernConcrete \
+  --out ../MetaCity/Resources/Districts/Shinjuku.json \
+  --cache /tmp/shinjuku_raw.json
+
+python3 fetch_district_data.py \
+  --name Ginza --bbox 35.666 139.762 35.675 139.773 \
+  --anchor 35.6718 139.7681 --default-style modernConcrete \
+  --out ../MetaCity/Resources/Districts/Ginza.json \
+  --cache /tmp/ginza_raw.json
+
+python3 fetch_district_data.py \
+  --name Asakusa --bbox 35.711 139.793 35.720 139.803 \
+  --anchor 35.7148 139.7967 --default-style colonial \
+  --out ../MetaCity/Resources/Districts/Asakusa.json \
+  --cache /tmp/asakusa_raw.json
+```
+
+**Style rationale:**
+- Shinjuku + Ginza: `modernConcrete` default → tall towers auto-promote to `modernGlass` via
+  height rules (modernConcrete NOT in HEIGHT_PROMOTION_BYPASS). Correct for dense commercial Tokyo.
+- Asakusa: `colonial` default → correct for traditional machiya merchant-house district. The
+  `colonial` style is NOT in HEIGHT_PROMOTION_BYPASS, so any tall buildings still auto-promote.
+
+**Senso-ji (浅草寺) OSM data quality**: The temple is not tagged as `building=*` within the bbox
+in OSM — it doesn't appear in the district JSON as a building polygon. Handled via authored
+override `nameMatch: "浅草寺"` + `"Senso-ji"` → `style: religious, roofType: dome`. The dome
+is visible at the temple compound location in the 3D render.
+
+**Authored overrides:**
+
+| File | District | Key overrides |
+|---|---|---|
+| `Shinjuku_authored.json` | Shinjuku | 11 overrides: 新宿野村ビル→modernGlass/220m, モード学園コクーンタワー→modernGlass/200m, 東急歌舞伎町タワー→modernGlass/192m, 新宿センタービル→modernGlass/216m, 損保ジャパン→modernGlass/172m, Shinjuku Station→government, 花園神社→religious |
+| `Ginza_authored.json` | Ginza | 9 overrides: GINZA SIX→modernGlass/56m, 銀座松竹スクエア→modernGlass/92m, 歌舞伎座→government/flat/45m, 国立がん研究センター→government/56m, 銀座駅/東銀座駅→government, ミキモト→modernGlass |
+| `Asakusa_authored.json` | Asakusa | 8 overrides: 浅草寺→religious/dome, Senso-ji→religious/dome, 浅草神社→religious/flat, 東京楽天地浅草ビル→modernGlass/52m, 都立産業貿易センター台東館→government, 浅草文化観光センター→government |
+
+**POI files:**
+
+| File | District | Featured POIs |
+|---|---|---|
+| `pois_shinjuku.json` | Shinjuku | Shinjuku Gyoen, Cocoon Tower, Tokyu Kabukicho Tower |
+| `pois_ginza.json` | Ginza | GINZA SIX, Kabuki-za Theatre, Ginza Chuo-dori |
+| `pois_asakusa.json` | Asakusa | Senso-ji Temple, Kaminarimon Gate, Nakamise Shopping Street |
+
+**Visual identity (screenshot-verified 2026-07-19):**
+- **Shinjuku**: dark glass towers (新宿野村ビル group) dominating upper-left. Shinjuku Gyoen green
+  park patch clearly visible. Very dense road network (2,971 — most in any Tokyo district). Near-black
+  shibuyaNeon asphalt clearly differentiates roads.
+- **Ginza**: Chuo-dori main boulevard visible as wide dark slash. Dense mid-rise modernConcrete grid
+  with scattered modernGlass towers. 1,915-road network dense and distinct.
+- **Asakusa**: sacredSite mood — dark volcanic andesite ground with warm amber morning-mist fill.
+  Colonial buildings in warm golden-orange. Dome from religious/dome Senso-ji override visible at
+  temple compound. Irregular temple-compound road network unmistakably Asakusa.
+
+**`DistrictRenderProfile` presets (to add):**
+
+| District | nightWindowDensityBoost | facadeDepthScale | weatheringIntensity |
+|---|---|---|---|
+| Shinjuku | 1.40 | 1.0 | 0.08 |
+| Ginza | 1.30 | 1.0 | 0.05 |
+| Asakusa | 1.10 | 1.0 | 0.35 |
+
+### KNOWN_HEIGHTS additions for Tokyo (in `tools/fetch_district_data.py`)
+
+**Shinjuku:**
+```python
+"新宿野村ビル": 220, "Shinjuku Nomura Building": 220,
+"新宿センタービル": 216, "Shinjuku Center Building": 216,
+"モード学園コクーンタワー": 200, "Mode Gakuen Cocoon Tower": 200, "Cocoon Tower": 200,
+"東急歌舞伎町タワー": 192, "Tokyu Kabukicho Tower": 192,
+"損保ジャパン本社ビル": 172, "Sompo Japan Nipponkoa Headquarters": 172,
+```
+
+**Ginza:**
+```python
+"銀座松竹スクエア": 92, "歌舞伎座": 45, "Kabuki-za": 45, "Kabukiza": 45,
+"国立がん研究センター": 56, "GINZA SIX": 56,
+```
+
+**Asakusa (limited tall buildings):**
+```python
+"東京楽天地浅草ビル": 52,
+```
+
+### iOS scene-state restoration workaround
+
+When switching districts in rapid `simctl launch` test sessions, iOS scene-state preservation
+can show the previously-active district. Fix: `xcrun simctl terminate <simulator-id> com.metacity.app`
+before each relaunch. This is the standard workaround documented earlier in CLAUDE.md.

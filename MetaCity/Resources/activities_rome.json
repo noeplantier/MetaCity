@@ -1,0 +1,87 @@
+{
+  "cityId": "rome",
+  "activities": [
+    {
+      "id": "rome_colosseum_orbit",
+      "name": "Vol orbital — Colisée 3D",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "La caméra orbitale tourne autour des 48 mètres du Colisée flavien depuis l'altitude d'un drône autorisé. Les 80 arches travertin du rez-de-chaussée, les ordres superposés dorique/ionique/corinthien et la velarium manquante deviennent lisibles en une rotation. Vue réservée aux archéologues et impossible depuis la rue.",
+      "area": "Centro Storico",
+      "priceRange": "Free",
+      "duration": "8 min",
+      "latitude": 41.8902,
+      "longitude": 12.4922,
+      "districtId": "CentroStorico",
+      "fragmentAssetKey": "rome_centro.colosseum"
+    },
+    {
+      "id": "rome_pantheon_dome_ra",
+      "name": "Expérience RA — Oculus du Panthéon",
+      "category": "experienceRA",
+      "tier": "premium",
+      "description": "Pointez votre téléphone vers le ciel depuis la piazza della Rotonda : la couche RA reconstitue le Panthéon d'Hadrien par-dessus la façade actuelle — colonnes d'origine, fronton gravé, pronaos en marbre Luna blanc. L'oculus de 8,7 m projette un cylindre de lumière calculé pour la date du jour.",
+      "area": "Centro Storico",
+      "priceRange": "Free",
+      "duration": "12 min",
+      "latitude": 41.8986,
+      "longitude": 12.4769,
+      "districtId": "CentroStorico",
+      "fragmentAssetKey": "rome_centro.pantheon"
+    },
+    {
+      "id": "rome_sant_angelo_nuit",
+      "name": "Immersion nocturne — Castel Sant'Angelo",
+      "category": "immersionSensorielle",
+      "tier": "premium",
+      "description": "Le mode nuit reconstruit l'Hadrien Mausolée tel qu'il était en 139 ap. J.-C. : revêtement travertin blanc, statue colossale, cyprès en couronne. La visite sonore guide de la base (48 m) au Passetto dell'Angelo — le couloir secret papal reliant le château au Vatican en cas de siège.",
+      "area": "Lungotevere",
+      "priceRange": "Free",
+      "duration": "15 min",
+      "latitude": 41.9031,
+      "longitude": 12.4663,
+      "districtId": "CentroStorico",
+      "fragmentAssetKey": "rome_centro.castel_sant_angelo"
+    },
+    {
+      "id": "rome_sant_ivo_focus",
+      "name": "Vertige baroque — Sant'Ivo alla Sapienza",
+      "category": "visiteGuidee",
+      "tier": "standard",
+      "description": "Le focus bâtiment positionne la caméra en contre-plongée sur la spirale borroméenne de la lanterne — 60 mètres de calcaire blanc torsadé vers le ciel. L'algorithme de reconnaissance identifie les 6 concavités-convexités alternées, signature géométrique unique de Borromini dans tout l'Occident.",
+      "area": "Campo Marzio",
+      "priceRange": "Free",
+      "duration": "6 min",
+      "latitude": 41.8987,
+      "longitude": 12.4727,
+      "districtId": "CentroStorico",
+      "fragmentAssetKey": "rome_centro.sant_ivo"
+    },
+    {
+      "id": "rome_trastevere_golden_hour",
+      "name": "Promenade — Lumière d'or de Trastevere",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "À 17h30 heure locale, la lumière romanGoldenHour reconstruit les facades en ochre-sienna de Trastevere : ocre rouge des tuiles coppo, enduit à la chaux passé, bougainvillées sur les ferronneries. Le temps réel ajuste la simulation solaire sur l'heure exacte de votre session.",
+      "area": "Trastevere",
+      "priceRange": "Free",
+      "duration": "20 min",
+      "latitude": 41.8898,
+      "longitude": 12.4696,
+      "districtId": "CentroStorico"
+    },
+    {
+      "id": "rome_piazza_navona_scan",
+      "name": "Scan temporel — Piazza Navona",
+      "category": "experienceRA",
+      "tier": "standard",
+      "description": "Le scan temporel superpose 3 couches historiques sur la piazza : le stade de Domitien 86 ap. J.-C. (courbe encore lisible dans le tracé au sol), la piazza baroque du XVIIe siècle avec les trois fontaines du Bernin, et l'état actuel. Switchez entre les ères d'un glissement de doigt.",
+      "area": "Centro Storico",
+      "priceRange": "Free",
+      "duration": "10 min",
+      "latitude": 41.8992,
+      "longitude": 12.4731,
+      "districtId": "CentroStorico"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "districtId": "Malioboro",
+  "pois": [
+    {
+      "id": "malioboro_street",
+      "name": "Jalan Malioboro",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -7.7956,
+      "longitude": 110.3659,
+      "description": "Yogyakarta's legendary 1km shopping boulevard — the most iconic street in Java. Batik shops, wayang puppets, silver filigree, and horse-drawn andong carriages line the royal axis between Kraton and Mount Merapi.",
+      "partnerURL": null
+    },
+    {
+      "id": "pasar_beringharjo",
+      "name": "Pasar Beringharjo",
+      "category": "shopping",
+      "tier": "featured",
+      "latitude": -7.7985,
+      "longitude": 110.3648,
+      "description": "Yogyakarta's oldest and most atmospheric traditional market, operating since the early Mataram Kingdom. Four floors of batik fabric, herbal jamu, fresh produce, and handicrafts — the market's 1926 Dutch-era building is itself a heritage landmark.",
+      "partnerURL": null
+    },
+    {
+      "id": "benteng_vredeburg",
+      "name": "Benteng Vredeburg",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": -7.7998,
+      "longitude": 110.3660,
+      "description": "18th-century Dutch colonial fortress built in 1760, now a national museum documenting the Indonesian independence struggle through life-size dioramas. The bastioned fort facing the Grand Mosque is one of Yogyakarta's finest colonial buildings.",
+      "partnerURL": null
+    },
+    {
+      "id": "kraton_entrance",
+      "name": "Alun-Alun Utara",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -7.8020,
+      "longitude": 110.3640,
+      "description": "The North Royal Square — a vast open field at the Kraton's northern entrance bordered by two sacred banyan trees. Traditional Javanese ceremonies and royal processions still use this space.",
+      "partnerURL": null
+    },
+    {
+      "id": "warung_malioboro",
+      "name": "Angkringan Row",
+      "category": "eat",
+      "tier": "standard",
+      "latitude": -7.7978,
+      "longitude": 106.3655,
+      "description": "The famous angkringan cart-food stalls running the length of Malioboro — open from dusk until midnight, serving nasi kucing (cat rice), sate, tempe, and sweet Javanese kopi joss coffee poured over glowing charcoal.",
+      "partnerURL": null
+    }
+  ]
+}

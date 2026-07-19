@@ -1,0 +1,83 @@
+{
+  "cityId": "newyork",
+  "activities": [
+    {
+      "id": "nyc_empire_obs",
+      "name": "Empire State Building — Observatoire 102e",
+      "category": "panorama",
+      "tier": "premium",
+      "description": "Vue à 360° sur Manhattan depuis le pont d'observation du 102e étage. Coucher de soleil sur l'Hudson recommandé.",
+      "area": "Midtown Manhattan",
+      "priceRange": "$$",
+      "duration": "1–2h",
+      "latitude": 40.7484,
+      "longitude": -73.9857,
+      "districtId": "MidtownManhattan"
+    },
+    {
+      "id": "nyc_high_line",
+      "name": "High Line — Promenade aérienne",
+      "category": "explore",
+      "tier": "standard",
+      "description": "Ancienne voie ferrée reconvertie en jardin suspendu de 2,3 km. Architecture industrielle et art contemporain au fil du parcours.",
+      "area": "Chelsea / Hudson Yards",
+      "priceRange": "Gratuit",
+      "duration": "1–3h",
+      "latitude": 40.7480,
+      "longitude": -74.0048,
+      "districtId": "MidtownManhattan"
+    },
+    {
+      "id": "nyc_moma_visit",
+      "name": "MoMA — Immersion art moderne",
+      "category": "explore",
+      "tier": "premium",
+      "description": "Collection permanente de Picasso, Pollock, Rothko et Warhol. Plus de 200 000 œuvres sur 6 étages au cœur de Midtown.",
+      "area": "Midtown Manhattan",
+      "priceRange": "$$$",
+      "duration": "2–4h",
+      "latitude": 40.7614,
+      "longitude": -73.9776,
+      "districtId": "MidtownManhattan"
+    },
+    {
+      "id": "nyc_wtc_memorial",
+      "name": "9/11 Memorial & Museum",
+      "category": "explore",
+      "tier": "premium",
+      "description": "Mémorial et musée sur le site du World Trade Center. Bassins de réflexion, archives historiques et témoignages.",
+      "area": "Lower Manhattan",
+      "priceRange": "$$",
+      "duration": "2–3h",
+      "latitude": 40.7115,
+      "longitude": -74.0134,
+      "districtId": "LowerManhattan"
+    },
+    {
+      "id": "nyc_brooklyn_bridge_walk",
+      "name": "Brooklyn Bridge — Traversée piétonne",
+      "category": "explore",
+      "tier": "standard",
+      "description": "Traversée à pied du pont suspendu de 1883 avec vue sur les deux skylines. Départ depuis Lower Manhattan recommandé au lever du soleil.",
+      "area": "Lower Manhattan / Brooklyn",
+      "priceRange": "Gratuit",
+      "duration": "30min–1h",
+      "latitude": 40.7061,
+      "longitude": -73.9969,
+      "districtId": "LowerManhattan"
+    },
+    {
+      "id": "nyc_chelsea_market",
+      "name": "Chelsea Market — Food Hall & Lifestyle",
+      "category": "lifestyle",
+      "tier": "standard",
+      "description": "Marché gastronomique installé dans l'ancienne usine Nabisco. 35 restaurants, épiceries fines et boutiques dans une halle industrielle préservée.",
+      "area": "Chelsea",
+      "priceRange": "$$",
+      "duration": "1–2h",
+      "latitude": 40.7425,
+      "longitude": -74.0059,
+      "districtId": "MidtownManhattan"
+    }
+  ]
+}

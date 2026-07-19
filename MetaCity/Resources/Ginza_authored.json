@@ -1,0 +1,54 @@
+{
+  "districtId": "Ginza",
+  "overrides": [
+    {
+      "nameMatch": "GINZA SIX",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 56.0
+    },
+    {
+      "nameMatch": "銀座松竹スクエア",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 92.0
+    },
+    {
+      "nameMatch": "歌舞伎座",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 45.0
+    },
+    {
+      "nameMatch": "Kabukiza",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "国立がん研究センター",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 56.0
+    },
+    {
+      "nameMatch": "東銀座駅",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "銀座駅",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "ミキモト",
+      "style": "modernGlass",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "伊東屋",
+      "style": "modernConcrete",
+      "roofType": "flat"
+    }
+  ]
+}

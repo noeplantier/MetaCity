@@ -1,0 +1,45 @@
+{
+  "districtId": "SFDowntown",
+  "pois": [
+    {
+      "id": "transamerica_pyramid",
+      "name": "Transamerica Pyramid",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 37.7952,
+      "longitude": -122.4028,
+      "description": "William Pereira's 1972 tapered tower (260m). San Francisco's most recognisable silhouette. The ground-floor Transamerica Redwood Park is free and open daily.",
+      "partnerURL": null
+    },
+    {
+      "id": "ferry_building",
+      "name": "Ferry Building Marketplace",
+      "category": "restaurant",
+      "tier": "featured",
+      "latitude": 37.7956,
+      "longitude": -122.3936,
+      "description": "A 1898 Beaux-Arts terminal (71m clocktower) reborn as SF's finest food hall. Farmers' market Tuesday/Thursday/Saturday. Slanted Door, Acme Bread, Recchiuti chocolate.",
+      "partnerURL": null
+    },
+    {
+      "id": "salesforce_tower",
+      "name": "Salesforce Tower",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 37.7900,
+      "longitude": -122.3969,
+      "description": "César Pelli's 326m tower (2018), SF's tallest building. The top-floor dome hosts a free arts programme — visible from the Bay Bridge. At dusk it glows through fog.",
+      "partnerURL": null
+    },
+    {
+      "id": "saints_peter_paul",
+      "name": "Saints Peter & Paul Church",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 37.8007,
+      "longitude": -122.4103,
+      "description": "1924 Roman-Italian Gothic twin-towered church in North Beach, where Joe DiMaggio had his wedding photos taken after marrying Marilyn Monroe in 1954.",
+      "partnerURL": null
+    }
+  ]
+}

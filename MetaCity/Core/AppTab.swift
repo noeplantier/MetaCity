@@ -1,5 +1,5 @@
 import Foundation
 
 enum AppTab: Hashable {
-    case discover, places, activities, contacts, profile
+    case discover, activities, places, profile
 }

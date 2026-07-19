@@ -1,0 +1,55 @@
+{
+  "districtId": "CityOfLondon",
+  "pois": [
+    {
+      "id": "gherkin",
+      "name": "30 St Mary Axe",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 51.5144,
+      "longitude": -0.0803,
+      "description": "Norman Foster's 2003 aerodynamic tower (180m), universally known as the Gherkin. Its spiralling diagrid structure reduces wind load by 50%.",
+      "partnerURL": null
+    },
+    {
+      "id": "st_pauls_cathedral",
+      "name": "St Paul's Cathedral",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 51.5138,
+      "longitude": -0.0984,
+      "description": "Wren's 1710 masterpiece (111m dome), rebuilt after the Great Fire. The Whispering Gallery carries a whisper 34m across. Wellington and Nelson are buried here.",
+      "partnerURL": null
+    },
+    {
+      "id": "tower_of_london",
+      "name": "Tower of London",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 51.5081,
+      "longitude": -0.0759,
+      "description": "William the Conqueror's 1078 fortress. Home of the Crown Jewels — the largest cut diamond in the world, Cullinan I, is mounted in the Sovereign's Sceptre here.",
+      "partnerURL": null
+    },
+    {
+      "id": "leadenhall_market",
+      "name": "Leadenhall Market",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": 51.5131,
+      "longitude": -0.0828,
+      "description": "Horace Jones's 1881 ornate Victorian iron-and-glass market. Harry Potter's Diagon Alley was filmed here. Pubs and restaurants under painted vaults.",
+      "partnerURL": null
+    },
+    {
+      "id": "monument",
+      "name": "The Monument",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 51.5101,
+      "longitude": -0.0860,
+      "description": "Wren's 1677 Doric column (62m) marking the origin of the 1666 Great Fire. Its height equals its exact distance from the bakery where the fire started.",
+      "partnerURL": null
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "districtId": "Dago",
+  "pois": [
+    {
+      "id": "dago_pakar",
+      "name": "Kawasan Dago Pakar",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -6.8580,
+      "longitude": 107.6268,
+      "description": "Bandung's elevated forest-edge zone at the foot of Tangkuban Perahu volcano — where the city grid gives way to pine forests, hillside cafés, and panoramic Bandung Basin views. The coolest part of an already-cool city.",
+      "partnerURL": null
+    },
+    {
+      "id": "babakan_siliwangi",
+      "name": "Babakan Siliwangi",
+      "category": "explore",
+      "tier": "featured",
+      "latitude": -6.8815,
+      "longitude": 107.6167,
+      "description": "Bandung's beloved urban forest park along the Cikapundung River — 'Baksil' to locals. Trails through bamboo groves and tropical secondary forest, with the river running below steep terraced banks.",
+      "partnerURL": null
+    },
+    {
+      "id": "dago_culinary_street",
+      "name": "Dago Café District",
+      "category": "eat",
+      "tier": "featured",
+      "latitude": -6.8840,
+      "longitude": 107.6148,
+      "description": "Jalan Ir. H. Juanda (Dago) and its side streets host Bandung's most concentrated strip of independent cafés — a mix of renovated Dutch villas and industrial-chic warehouses serving exceptional Indonesian coffee.",
+      "partnerURL": null
+    },
+    {
+      "id": "itb_campus",
+      "name": "Institut Teknologi Bandung",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": -6.8908,
+      "longitude": 107.6102,
+      "description": "Indonesia's most prestigious technical university (1920), with a striking blend of Art Deco and Sundanese architecture. The main Aula Barat and Aula Timur auditoriums were designed by Henri Maclaine Pont.",
+      "partnerURL": null
+    }
+  ]
+}

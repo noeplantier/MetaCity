@@ -1,0 +1,55 @@
+{
+  "districtId": "DowntownLA",
+  "pois": [
+    {
+      "id": "disney_concert_hall",
+      "name": "Walt Disney Concert Hall",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 34.0554,
+      "longitude": -118.2497,
+      "description": "Frank Gehry's 2003 stainless steel sculpture (55m). Home of the LA Philharmonic. The acoustics, by Yasuhisa Toyota, are among the finest in the world.",
+      "partnerURL": null
+    },
+    {
+      "id": "the_broad",
+      "name": "The Broad",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 34.0546,
+      "longitude": -118.2502,
+      "description": "Diller Scofidio + Renfro's 2015 contemporary art museum with a 'veil-and-vault' structure. Jeff Koons, Cindy Sherman, Jean-Michel Basquiat. Free admission.",
+      "partnerURL": null
+    },
+    {
+      "id": "la_city_hall",
+      "name": "Los Angeles City Hall",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 34.0537,
+      "longitude": -118.2427,
+      "description": "The 1928 Art Deco tower (138m) that dominated the LA skyline for 35 years due to building height laws. Featured in Dragnet and Blade Runner.",
+      "partnerURL": null
+    },
+    {
+      "id": "bradbury_building",
+      "name": "Bradbury Building",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 34.0505,
+      "longitude": -118.2484,
+      "description": "George Wyman's 1893 iron-and-glass commercial palace. The ornate atrium — inspired by a utopian novel — has appeared in Blade Runner and 500 Days of Summer.",
+      "partnerURL": null
+    },
+    {
+      "id": "grand_central_market",
+      "name": "Grand Central Market",
+      "category": "restaurant",
+      "tier": "standard",
+      "latitude": 34.0513,
+      "longitude": -118.2491,
+      "description": "LA's oldest public market (1917), spanning an entire Broadway block. 40 vendors — from egg tostadas to Salvadoran pupusas. Open daily 8am–10pm.",
+      "partnerURL": null
+    }
+  ]
+}
