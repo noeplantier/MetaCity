@@ -364,10 +364,10 @@ KNOWN_HEIGHTS_METERS = {
     "Stone Street": 10,                # historic district, low tavern row (2-3 storey)
 
     # -----------------------------------------------------------------------
-    # Tokyo — Shibuya benchmark district
-    # Verified from CTBUH, Wikipedia, and Tokyo Metropolitan Government data.
+    # Tokyo — Verified from CTBUH, Wikipedia, and Tokyo Metropolitan Government data.
     # Japanese OSM names use both kanji/kana and English — include both forms.
     # -----------------------------------------------------------------------
+    # Shibuya
     "Scramble Square": 230,                # 渋谷スクランブルスクエア East Tower (2019)
     "渋谷スクランブルスクエア": 230,
     "Shibuya Scramble Square": 230,
@@ -375,7 +375,7 @@ KNOWN_HEIGHTS_METERS = {
     "渋谷ヒカリエ": 182,
     "Hikarie": 182,
     "Shibuya Stream": 180,                 # 渋谷ストリーム (2018) — office/hotel tower
-    "渋谷ストリーム": 180,
+    "渋谷���トリーム": 180,
     "Cerulean Tower": 184,                 # セルリアンタワー東急ホテル (2001) — tallest hotel in Shibuya
     "Cerulean Tower Tokyo Hotel": 184,
     "セルリアンタワー東急ホテル": 184,
@@ -392,36 +392,46 @@ KNOWN_HEIGHTS_METERS = {
     "Tokyu Department Store": 28,          # 東急百貨店東横店 — 1956 flagship
     "東急百貨店": 28,
     "Prime": 88,                           # Shibuya Prime — commercial tower near station
-
-    # ── Los Angeles (Downtown LA / DTLA) ──────────────────────────────────────────────────────────
-    "Wilshire Grand Center": 335,          # tallest building in LA (2017), 73 floors
-    "Wilshire Grand": 335,
-    "Wilshire Grand Building": 335,        # OSM name variant used in the dataset
-    "US Bank Tower": 310,                  # formerly Library Tower (1989), 73 floors, iconic tapered crown
-    "Library Tower": 310,
-    "Aon Center": 262,                     # formerly First Interstate World Center (1973), 62 floors
-    "First Interstate World Center": 262,
-    "Two California Plaza": 221,           # CalPERS HQ, 52 floors
-    "777 Tower": 218,                      # Ellerbe Becket modernist tower (1991)
-    "Paul Hastings Tower": 215,            # formerly SunAmerica Center, 54 floors
-    "Wells Fargo Center": 209,             # tallest pair in Bunker Hill, north tower
-    "Ernst & Young Plaza": 189,            # aka 725 S Figueroa, 41 floors (1985)
-    "Figueroa at Wilshire": 183,           # mixed-use tower, 52 floors
-    "Gas Company Tower": 167,             # curved crown, 52 floors Bunker Hill
-    "City National Tower": 165,            # formerly Citicorp Center, 52 floors
-    "One California Plaza": 163,
-    "Walt Disney Concert Hall": 55,        # Frank Gehry stainless steel landmark (2003)
-    "Disney Concert Hall": 55,
-    "Union Station": 35,                   # historic Mission Revival terminal (1939)
-    "Los Angeles Union Station": 35,
-    "Bradbury Building": 18,               # cast-iron skylit atrium, 5 floors (1893)
-    "City Hall": 138,                      # LADWP classical tower with beacon (1928)
-    "Los Angeles City Hall": 138,
-    "Staples Center": 30,                  # now Crypto.com Arena, arena pavilion
-    "Crypto.com Arena": 30,
-    "Broad Museum": 20,                    # Diller Scofidio veil facade (2015), DTLA cultural anchor
-    "The Broad": 20,
-    "MOCA Grand Avenue": 16,              # Arata Isozaki low-rise contemporary art museum (1986)
+    # Shinjuku
+    "Tokyo Metropolitan Government Building": 243,
+    "Tokyo Metropolitan Building": 243,
+    "東京都庁舎": 243,
+    "Shinjuku Mitsui Building": 221,
+    "新宿三井ビルディング": 221,
+    "Shinjuku i-Land Tower": 217,
+    "Shinjuku NS Building": 234,
+    "Shinjuku Washington Hotel": 202,
+    "Park Hyatt Tokyo": 202,
+    "Hilton Tokyo": 190,
+    "Isetan Shinjuku": 68,
+    "伊勢丹新宿店": 68,
+    # Asakusa
+    "Senso-ji Temple Pagoda": 55,          # Five-storey pagoda
+    "浅草寺五重塔": 55,
+    "Senso-ji Main Hall": 28,
+    "浅草寺": 28,
+    "Nakamise Shopping Street": 7,
+    "仲見世": 7,
+    "Traditional Edo Machiya": 8,
+    # Chiyoda
+    "Tokyo Tower": 333,                # Main tower to roof (not antenna)
+    "東京タワー": 333,
+    "Tokyo Tower Main Deck": 150,
+    "Tokyo Tower Foot Town": 30,
+    "Imperial Palace": 15,
+    "皇居": 15,
+    "National Diet Building": 70,
+    "国会議事堂": 70,
+    "Supreme Court": 25,
+    # Ginza
+    "Ginza Sony Building": 33,
+    "銀座ソニービル": 33,
+    "Ginza Mitsukoshi": 32,
+    "銀座三越": 32,
+    "Ginza Wako Clock Tower": 26,
+    "和光時計塔": 26,
+    "Ginza Kabuki-za Theatre": 32,
+    "歌舞伎座": 32,
 }
 
 STYLE_BY_BUILDING_TAG = {
@@ -444,6 +454,10 @@ STYLE_BY_BUILDING_TAG = {
     "chapel":    "religious",
     "basilica":  "religious",
     "synagogue": "religious",
+    # Tokyo shrine/temple
+    "shrine":    "tokyoTemple",
+    "temple":    "tokyoTemple",
+    "palace":    "tokyoGovernment",
 }
 
 
@@ -649,15 +663,23 @@ def preliminary_height(tags, name):
 # romanOchre, and a 20m Haussmann block is still haussmannien.
 # londonBrick is NOT in this set: City of London's real glass towers (Gherkin 180m,
 # Cheesegrater 224m, 22 Bishopsgate 278m) should auto-promote to modernGlass.
-HEIGHT_PROMOTION_BYPASS = {"haussmannien", "medieval", "bordelaisClassical", "madrileño", "romanOchre", "nycBrick", "laStucco"}
+HEIGHT_PROMOTION_BYPASS = {"haussmannien", "medieval", "bordelaisClassical", "madrileño", "romanOchre", "nycBrick", "tokyoMachiya", "tokyoTemple", "tokyoGovernment"}
 # nycBrick added 2026-07-13: pre-war Manhattan limestone office towers (e.g. 70m 20-storey
 # Beaux-Arts blocks) must stay nycBrick, not auto-promote to modernGlass. Glass supertalls
 # (One WTC 541m, Chrysler 319m, etc.) are handled via authored overrides.
+# Tokyo styles added 2026-07-19: machiya, temple, and government stay their district character.
 
 def classify_style(tags, height_hint, default_style="colonial"):
     building_tag = tags.get("building")
     if building_tag in STYLE_BY_BUILDING_TAG:
         return STYLE_BY_BUILDING_TAG[building_tag]
+    
+    # Tokyo shrine/temple detection
+    if tags.get("building") in ("shrine", "temple") or tags.get("amenity") == "place_of_worship":
+        religion = tags.get("religion", "")
+        if religion in ("shinto", "buddhist"):
+            return "tokyoTemple"
+    
     # French/European amenity tags not covered by building= tag
     amenity = tags.get("amenity", "")
     if amenity in ("place_of_worship",):
@@ -708,6 +730,19 @@ def estimate_height(height_hint, is_estimated, style):
         # NYC tenement/brownstone: typically 4-6 storeys ≈ 15m (4 × ~3.75m NYC floor height).
         # Pre-war office buildings in Lower Manhattan run taller, but those get authored overrides.
         return 15.0, True
+    # ===== NEW: Tokyo styles =====
+    if style == "modernTokyo":
+        # Contemporary mixed-use: 7-8 storeys ≈ 28m (4m per floor)
+        return 28.0, True
+    if style == "tokyoMachiya":
+        # Traditional 2-storey wooden house ≈ 8.5m (4.25m per storey, lower ceilings)
+        return 8.5, True
+    if style == "tokyoTemple":
+        # Average temple/shrine (including pagodas) ≈ 18m
+        return 18.0, True
+    if style == "tokyoGovernment":
+        # Government office buildings ≈ 25m (6-7 storeys)
+        return 25.0, True
     base = 9.0 if style == "government" else 7.0
     return base, True
 
@@ -821,7 +856,8 @@ def main():
         help="BuildingStyle applied to any building whose OSM tags and height both fail to determine a style. "
              "Valid values: 'colonial' (default, Jakarta/Bandung/Yogya), 'balinese' (Bali), "
              "'haussmannien' (Paris), 'bordelaisClassical' (Bordeaux — warm amber-gold limestone), "
-             "'medieval' (Vieux-Rennes, historic French towns)."
+             "'medieval' (Vieux-Rennes, historic French towns), 'modernTokyo' (Tokyo contemporary), "
+             "'tokyoMachiya' (Tokyo historic), 'tokyoTemple' (Tokyo temples), 'tokyoGovernment' (Tokyo government)."
     )
     args = parser.parse_args()
 
