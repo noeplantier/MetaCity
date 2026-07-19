@@ -6,12 +6,12 @@ architecture: `Repositories/` protocols, `Services/` implementations (mock + rea
 automatically based on whether `GoogleService-Info.plist` is present), `@MainActor` ViewModels,
 DI via the plain `AppEnvironment` container — no DI framework.
 
-## Scope: Indonesia (14 districts) + France (6) + London/Madrid/Rome (5) with real OSM data
+## Scope: Indonesia (14 districts) + France (6) + London/Madrid/Rome (5) + Tokyo (1) with real OSM data
 
-As of 2026-07-09, MetaCity covers **10 cities with real OSM-derived 3D district data** — Jakarta (5
+As of 2026-07-15, MetaCity covers **11 cities with real OSM-derived 3D district data** — Jakarta (5
 districts), Bandung (2), Yogyakarta (2), Bali/Denpasar (5), Paris (4), Bordeaux (2), London (2),
-Madrid (2), Rome (1) — plus placeholder cities with no district data yet (Indonesian tier-2 cities,
-Rennes). All 25 data districts live in `MetaCity/Resources/Districts/<id>.json`.
+Madrid (2), Rome (1), Tokyo (1) — plus placeholder cities with no district data yet (Indonesian tier-2 cities,
+Rennes). All 26 data districts live in `MetaCity/Resources/Districts/<id>.json`.
 `CityManifest.json` (decoded into `CityManifest.shared`) is the single source of truth for what's
 live; it drives the world map, district picker, and 3D inspector routing.
 
@@ -37,7 +37,7 @@ per an explicit instruction to focus exclusively on real OSM-derived content. If
 reintroduces a pre-OSM artistic tier, that's a deliberate regression; don't resurrect those files
 from git history without a fresh reason.
 
-**Districts currently bundled (25 total):**
+**Districts currently bundled (26 total):**
 - Jakarta: `SudirmanThamrin`, `KotaTua`, `Kemang`, `Menteng`, `Ancol`
 - Bandung: `Dago`, `Braga`
 - Yogyakarta: `Malioboro`, `Kraton`
@@ -47,9 +47,10 @@ from git history without a fresh reason.
 - London: `CityOfLondon`, `Westminster`
 - Madrid: `Salamanca`, `Malasana`
 - Rome: `CentroStorico`
+- Tokyo: `Shibuya`
 
 `MockMapRepository` serves the 5 Jakarta landmarks (the Map tab still shows only Jakarta pins);
-the Discover tab uses `CityManifest.allCities` which includes all 10 city pins from the world map.
+the Discover tab uses `CityManifest.allCities` which includes all 11 city pins from the world map.
 `LandmarkInspectorView` no longer has (or needs) a fallback path for landmarks without curated 3D
 data.
 
@@ -1530,6 +1531,193 @@ correlation — same building, same deterministic height, every launch, uncorrel
 - Bali (Kuta/Seminyak/Canggu): range 3–15m from a flat 7m carpet → realistic compound fabric
 - La Défense: 1,511 estimated `modernConcrete` at 7m → range 4–22m, avg 8.1m, p90 14.5m
 - Hip roof eave Y, conical/dome base Y, LOD far-tier box heights all use the same `displayHeight` call
+
+### Facade articulation bands (2026-07-14)
+
+A third `ModelEntity` per style bucket (`buildings_\(key)_bands`) adds horizontal 3D surface relief to
+building facades: floor ledge strips at fixed floor intervals, a top cornice, and a base plinth. All
+three elements use `addBandStrip` which generates a front face (outward) + top face (upward) quad per
+polygon edge — both faces share the same edge-normal `(nx, 0, nz)` computed from the polygon edge
+direction. Bands are merged per bucket into one `MeshDescriptor` (same approach as wall/roof entities)
+so draw call count increases by at most 1 entity per bucket (≤3 per style, ≤12 for a 4-bucket
+haussmannien district).
+
+**`FacadeProfile` struct** controls per-style geometry (updated 2026-07-14 with ground-floor fields;
+balcony/pilaster fields added same session — see balcony undersides section below):
+```swift
+struct FacadeProfile {
+    let floorInterval: Float     // metres between floor ledge bands
+    let bandDepth: Float         // outward projection of each floor ledge
+    let bandThick: Float         // vertical thickness of each floor ledge
+    let corniceDepth: Float      // top cornice outward projection
+    let corniceHeight: Float     // top cornice height (0 = no cornice)
+    let plinthDepth: Float       // base plinth projection
+    let plinthHeight: Float      // base plinth height (0 = no plinth)
+    let groundFloorH: Float      // height of ground-floor cladding panel (0 = none)
+    let groundFloorDepth: Float  // outward projection of ground-floor cladding (0 = none)
+    let balconyDepth: Float      // balcony slab outward projection (0 = none)
+    let balconyThick: Float      // balcony slab thickness
+    let balconyFirstFloor: Int   // 1-based floor index of first balcony
+    let balconyFloorStep: Int    // every N floors has a balcony
+    let pilasterWidth: Float     // pilaster front-strip width (0 = none)
+    let pilasterDepth: Float     // pilaster outward projection
+    let pilasterSpacing: Float   // horizontal bay interval
+}
+```
+
+**Per-style parameters (2026-07-14):**
+
+| Style | bandDepth | bandThick | corniceDepth | corniceH | plinthH | groundFloorH | groundFloorDepth |
+|---|---|---|---|---|---|---|---|
+| haussmannien | 0.38 m | 0.22 m | 0.50 m | 0.55 m | 0.80 m | 5.0 m | 0.08 m |
+| bordelaisClassical | 0.32 | 0.20 | 0.42 | 0.50 | 0.70 | 5.0 | 0.08 |
+| madrileño | 0.30 | 0.18 | 0.38 | 0.50 | 0.65 | 5.5 | 0.06 |
+| colonial | 0.22 | 0.16 | 0.28 | 0.35 | 0.50 | 4.5 | 0.06 |
+| romanOchre | 0.28 | 0.18 | 0.38 | 0.48 | 0.60 | 5.5 | 0.08 |
+| londonBrick | 0.14 | 0.12 | 0.20 | 0.32 | 0.35 | 5.0 | 0.06 |
+| medieval | 0.12 | 0.10 | 0.30 | 0.40 | 0 | 3.5 | 0.05 |
+| modernGlass | 0.06 | 0.08 | 0 | 0 | 0 | 8.0 | 0.10 |
+| nycBrick | 0.20 | 0.15 | 0.35 | 0.50 | 0.55 | 5.5 | 0.08 |
+| **balinese** | 0 | 0 | **0.22** | **0.28** | 0 | 0 | 0 |
+| javanese / government / religious | — | — | — | — | — | 0 (none) | 0 |
+
+**Balinese parapet case (added 2026-07-14)**: `balinese` previously fell through to `default: return .none`
+(no facade articulation). It now has a cornice cap (`corniceDepth: 0.22m`, `corniceHeight: 0.28m`) —
+the carved volcanic stone parapet that defines the top edge of Balinese compound walls. No floor bands,
+no balconies, no pilasters — architecturally correct for single-storey compound vernacular.
+Screenshot-verified on Canggu (9,402 buildings): distinct parapet silhouette on all compound walls.
+
+**Ground-floor cladding system (added 2026-07-14):**
+`addGroundFloorPanel` emits a fourth `ModelEntity` per bucket (`buildings_\(key)_ground`) with a
+distinct `groundFloorMaterialPreset` for each applicable style. Uses `addBandStrip` (same front +
+top face geometry) so the horizontal cap of the cladding slab is visible from the orbit camera.
+`guard gH > 1.0` skips short buildings where the ground-floor zone would consume the whole height.
+
+Per-style ground materials (`groundFloorMaterialPreset`, cached in `groundFloorMaterialCache`):
+- `modernGlass`: dark polished granite lobby `(0.08,0.09,0.12)` — metallic 0.22, roughness 0.30, clearcoat 0.72
+- `haussmannien`: bossed rusticated Lutetian limestone `(0.72,0.68,0.58)` — roughness 0.84, clearcoat 0.05
+- `colonial`: ochre lime-wash arcade facing `(0.58,0.40,0.24)` — roughness 0.82
+- `londonBrick`: Portland stone / stucco `(0.70,0.70,0.68)` — roughness 0.76, clearcoat 0.06
+- `romanOchre`: travertine base `(0.88,0.80,0.64)` — roughness 0.70, clearcoat 0.12
+- `bordelaisClassical`: rusticated Gironde limestone `(0.70,0.56,0.32)` — roughness 0.82
+- `madrileño`: Sierra granite plinth `(0.44,0.42,0.40)` — roughness 0.65, clearcoat 0.15
+- `medieval`: Breton granite soubassement `(0.38,0.36,0.34)` — roughness 0.90
+- `nycBrick`: brownstone entry `(0.38,0.28,0.20)` — roughness 0.80
+
+Draw call cost: adds ≤9 ground entities per district (one per bucket per applicable style, 3 buckets × 9 styles). 
+Still within 200 draw-call budget for all districts.
+
+**Water PBR (added 2026-07-14):** `natural=water` green zones now use `PhysicallyBasedMaterial` via
+`waterMaterial(isNight:)` instead of `UnlitMaterial`. clearcoat 0.80 + roughness 0.16 produces a
+directional-light specular streak reading as sun glinting on river/harbour water. Garonne (Bordeaux),
+Jakarta bay, Vancouver harbor all benefit. Non-water zone kinds remain `UnlitMaterial` (shadow-map
+aliasing on large horizontal surfaces — unchanged from before).
+
+**Winding invariant** for `addBandStrip` top face: `[tBase+3, tBase+1, tBase+2, tBase+3, tBase+0, tBase+1]`
+produces n.y > 0 for CW polygon winding in X-Z. The reversed fan `[3,1,2]+[3,0,1]` was verified
+symbolically via cross-product to give upward normal. Do not change this winding without re-running the
+cross-product verification — the analogous `[0,1,3]+[1,2,3]` winding gives n.y < 0.
+
+**`bandMaterialPreset`** provides lighter/cooler materials than the wall:
+- `modernGlass`: dark metallic spandrel `(0.05,0.06,0.09)`, metallic 0.88, roughness 0.24
+- `haussmannien`: cut limestone, slightly cooler/lighter than wall, roughness 0.66, clearcoat 0.20
+- `bordelaisClassical`: amber limestone, roughness 0.68
+- `romanOchre`: travertine band, roughness 0.70, clearcoat 0.08
+- `londonBrick`/`medieval`: Portland stone / Breton granite, roughness 0.80/0.86
+- Other styles: delegates to `roofMaterialPreset`
+
+Cached in `bandMaterialCache` keyed `"\(style.rawValue)_band_\(isNight)"` — 30 instances max.
+Declared `@MainActor` (same constraint as `makeBuildingMeshes` and `pooledMaterial`).
+
+**Balcony underside faces (added 2026-07-14):** `addBalconies` now emits a fourth quad per polygon
+edge per floor level: a downward-facing (-Y normal) underside of the slab at `balkY`. Winding
+`[uBase+2, uBase+1, uBase+3, uBase+1, uBase+0, uBase+3]` produces n.y < 0 (reversed from the
+top-face winding, cross-verified via example: edge (0,0)→(10,0), depth 0.5m → n=(0,−5,0)).
+The orbit camera at 15–30° elevation sees the underside as a dark shadow band directly below each
+balcony slab — creates strong horizontal depth cues on haussmannien/bordelais/madrileño/romanOchre/
+londonBrick/nycBrick facades. `addBandStrip` itself still only emits front + top face; undersides
+are caller-opt-in (`addBalconies` only — floor ledge bands are only 0.12–0.38m deep and the
+underside area is not worth the extra triangles at orbit scale).
+Do NOT add `includeUnderside` to `addBandStrip` globally — the base plinth sits at y=0 and its
+underside would be underground, and floor-band undersides at 0.38m depth are sub-pixel at orbit
+distance. The pattern is explicit in `addBalconies` for legibility.
+
+**POI overview-only zoom (2026-07-14):** `flyToVenue` in `DistrictRealityView.Coordinator` was
+changed from an eye-level walk-up (`camY = 8m`, `lookAt.y = 5m`) to an elevated orbit zoom
+(`orbitDist = districtExtent × 0.20`, elevation 15° from current `azimuth`). Eye-level mode is
+now permanently removed — all camera animations (building tap, POI selection, search fly) stay in
+the elevated ensemble overview. The `approachBearing`/`approachDistance` POI fields are no longer
+used for camera positioning (they were only needed for the eye-level approach angle); the venue
+framing approach is always from the current azimuth at 15° elevation.
+`center`, `currentDistance`, `currentElevation` are updated so post-fly pan/orbit resume from the
+landed position, consistent with `flyToBuildingWithFraming`.
+
+**Visual effect scale**: floor ledge bands (0.38m for haussmannien) are sub-pixel at full orbit
+distance — they register as surface texture/shadow differentiation at mid-zoom and become clearly
+readable as 3D horizontal relief in the close-up street-view camera. Ground-floor cladding (8m for
+`modernGlass`) is visible from orbit as a darker base zone on tall towers. Spandrel panels on
+`modernGlass` (0.06m) show as subtle horizontal ridges at camera distances ≤50m.
+Screenshot-verified 2026-07-14: Le Marais (haussmannien fabric + mansard caps), SudirmanThamrin
+(dark granite ground-floor podium zone visible on glass towers, spandrel bands on facades),
+VieuxBordeaux (facade bands clearly visible as horizontal white ledges on amber bordelaisClassical
+fabric, terracotta canal-tile rooftops). Water PBR (`natural=water` green zones: clearcoat 0.80,
+roughness 0.16) applies to Garonne in both Bordeaux districts and Jakarta bay zones.
+
+## Tokyo / Shibuya district (added 2026-07-15)
+
+**Shibuya: 2,615 buildings** (2,241 with estimated height), 1,767 roads, 38 green zones.
+20 point-mapped landmarks matched from OSM. Fetched and screenshot-verified 2026-07-15.
+
+```
+python3 fetch_district_data.py \
+  --name Shibuya --bbox 35.655 139.694 35.665 139.708 \
+  --anchor 35.6601 139.7009 --default-style modernConcrete \
+  --out ../MetaCity/Resources/Districts/Shibuya.json \
+  --cache /tmp/shibuya_raw.json
+```
+
+Style distribution: 2,411 modernConcrete (92%), 169 modernGlass (6%), 23 government (1%),
+12 religious (<1%). `modernConcrete` is NOT in `HEIGHT_PROMOTION_BYPASS` so towers auto-promote
+correctly to `modernGlass` at ≥30m.
+
+**Key verified buildings:**
+- `渋谷スクランブルスクエア` (Shibuya Scramble Square): 230m, modernGlass, non-estimated ✓
+- `セルリアンタワー` (Cerulean Tower): 188m, modernGlass ✓
+- `渋谷ストリーム` (Shibuya Stream): 180m, modernGlass ✓
+- `パークコート渋谷ザ・タワー`: 156m, modernGlass ✓
+- `Shibuya Sakura Stage SHIBUYA Tower`: 156m, modernGlass ✓
+
+`focusBuildingName` in CityManifest is "Scramble Square" — display-only (subtitle in DiscoverView
+district list). Camera targets `district.buildingCentroid` not a named building, so the English vs.
+Japanese name mismatch (`渋谷スクランブルスクエア`) does not affect rendering.
+
+**moodKey**: `shibuyaNeon` — warm amber late-afternoon sun, 30,000 lux, elevation 0.22 (lowest in the app
+after `romanGoldenHour`), near-black indigo-tinted asphalt road material. Mood fully implemented
+in `DistrictRealityScene.swift` before this district was fetched.
+
+Shibuya is in `heavyDistricts` in `MetaCityApp.swift` (2,615 buildings → on-demand load, not
+startup prefetch). No authored override file needed — all tall buildings correctly classify via
+height promotion. `dataBundled: true` in CityManifest as of 2026-07-15.
+
+**Visual identity** (screenshot-verified 2026-07-15): The curved JR Yamanote/Saikyo elevated rail
+loop structure at Shibuya station is unmistakably visible in the road network topology. Dense
+modernConcrete commercial fabric (the dominant Shibuya block character) contrasts with dark
+modernGlass towers (Scramble Square, Cerulean Tower) at the station periphery. Near-black
+shibuyaNeon asphalt clearly differentiates road network from building footprints. Road network
+is the most complex in the app — the Scramble intersection area generates extremely dense
+road geometry with multiple grade-separated paths. This is architecturally accurate.
+
+**KNOWN_HEIGHTS additions** (in `tools/fetch_district_data.py`):
+```python
+"Scramble Square": 230, "渋谷スクランブルスクエア": 230, "Shibuya Scramble Square": 230,
+"Shibuya Hikarie": 182, "渋谷ヒカリエ": 182, "Hikarie": 182,
+"Shibuya Stream": 180, "渋谷ストリーム": 180,
+"Cerulean Tower": 184, "Cerulean Tower Tokyo Hotel": 184, "セルリアンタワー東急ホテル": 184,
+"Mark City": 56, "渋谷マークシティ": 56, "Shibuya Mark City": 56,
+"NHK Broadcasting Center": 48, "NHK放送センター": 48,
+"SHIBUYA109": 35, "渋谷109": 35,
+"Bunkamura": 22, "QFront": 32, "Shibuya Excel Hotel Tokyu": 46, "Prime": 88,
+```
 
 ## Known Simulator/test gotchas
 

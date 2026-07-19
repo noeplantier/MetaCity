@@ -362,6 +362,36 @@ KNOWN_HEIGHTS_METERS = {
     "Fulton Street": 18,               # generic street-level retail
     "Staten Island Ferry Terminal": 20,
     "Stone Street": 10,                # historic district, low tavern row (2-3 storey)
+
+    # -----------------------------------------------------------------------
+    # Tokyo — Shibuya benchmark district
+    # Verified from CTBUH, Wikipedia, and Tokyo Metropolitan Government data.
+    # Japanese OSM names use both kanji/kana and English — include both forms.
+    # -----------------------------------------------------------------------
+    "Scramble Square": 230,                # 渋谷スクランブルスクエア East Tower (2019)
+    "渋谷スクランブルスクエア": 230,
+    "Shibuya Scramble Square": 230,
+    "Shibuya Hikarie": 182,                # 渋谷ヒカリエ (2012) — mixed-use tower
+    "渋谷ヒカリエ": 182,
+    "Hikarie": 182,
+    "Shibuya Stream": 180,                 # 渋谷ストリーム (2018) — office/hotel tower
+    "渋谷ストリーム": 180,
+    "Cerulean Tower": 184,                 # セルリアンタワー東急ホテル (2001) — tallest hotel in Shibuya
+    "Cerulean Tower Tokyo Hotel": 184,
+    "セルリアンタワー東急ホテル": 184,
+    "Mark City": 56,                       # 渋谷マークシティ (2000) — Tokyu Hands complex
+    "渋谷マークシティ": 56,
+    "Shibuya Mark City": 56,
+    "NHK Broadcasting Center": 48,         # NHK放送センター — headquarters
+    "NHK放送センター": 48,
+    "SHIBUYA109": 35,                      # 渋谷109 (1979) — iconic fashion building, 8 floors
+    "渋谷109": 35,
+    "Bunkamura": 22,                       # Tokyu cultural center — low performing arts block
+    "QFront": 32,                          # 渋谷駅前 mixed retail/office tower
+    "Shibuya Excel Hotel Tokyu": 46,
+    "Tokyu Department Store": 28,          # 東急百貨店東横店 — 1956 flagship
+    "東急百貨店": 28,
+    "Prime": 88,                           # Shibuya Prime — commercial tower near station
 }
 
 STYLE_BY_BUILDING_TAG = {

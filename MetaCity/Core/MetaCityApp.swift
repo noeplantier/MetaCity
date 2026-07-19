@@ -56,6 +56,8 @@ struct MetaCityApp: App {
                                                         "VieuxBordeaux", "LesChartrons",
                                                         "CityOfLondon", "Westminster", "Salamanca", "CentroStorico",
                                                         "Malasana",
+                                                        // Tokyo — Shibuya 2,615 buildings
+                                                        "Shibuya",
                                                         // North America — all 6 will be heavy (dense city grids)
                                                         "VancouverDowntown", "WestEnd",
                                                         "SFDowntown", "FishermansWharf",

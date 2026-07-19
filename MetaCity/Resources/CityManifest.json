@@ -948,7 +948,7 @@
               },
               "focusBuildingName": "Scramble Square",
               "moodKey": "shibuyaNeon",
-              "dataBundled": false,
+              "dataBundled": true,
               "dataPath": "Districts/Shibuya.json",
               "supportsAR": false
             }

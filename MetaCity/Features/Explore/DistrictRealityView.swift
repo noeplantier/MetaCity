@@ -266,7 +266,9 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
-        /// Computes approach camera position from the POI's lat/lon + approachBearing and flies there.
+        /// Flies to a POI venue using an elevated overview orbit — never eye-level.
+        /// Camera approaches from the current azimuth at 15° elevation so the venue
+        /// reads in context of its surrounding block, same framing as buildingWithFraming.
         private func flyToVenue(poiId: String, districtName: String, scene: RealityKit.Scene) {
             guard let collection = CangguPOICollection.load(for: districtName),
                   let poi = collection.pois.first(where: { $0.id == poiId }),
@@ -277,19 +279,32 @@ struct DistrictRealityView: UIViewRepresentable {
             let offset = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
                 .sceneOffset(from: geoAnchor)
 
-            let bearingRad = Float((poi.approachBearing ?? 180) * .pi / 180)
-            let approachDist = poi.approachDistance ?? 40
-            let camX = offset.x + sin(bearingRad) * approachDist
-            let camZ = offset.z + cos(bearingRad) * approachDist
-            let camPos = SIMD3<Float>(camX, 8, camZ)
-            let lookAt = SIMD3<Float>(offset.x, 5, offset.z)
+            // Overview orbit zoom — elevated ensemble view, never eye-level.
+            // Distance: 20% of district extent (same order as mood's cameraDistanceFraction).
+            // Elevation: 15° — reads depth well, shows the venue in its block context.
+            let orbitDist   = Float(districtExtent) * 0.20
+            let elevSin: Float = 0.259   // sin(15°)
+            let elevCos: Float = 0.966   // cos(15°)
+            let lookTarget  = SIMD3<Float>(offset.x, 3.0, offset.z)
+            let camY        = lookTarget.y + orbitDist * elevSin
+            let groundDist  = orbitDist * elevCos
+            let overviewPos = SIMD3<Float>(
+                offset.x + sin(azimuth) * groundDist,
+                camY,
+                offset.z + cos(azimuth) * groundDist
+            )
+
+            // Update gesture state so post-fly pan/orbit resume from the landed position.
+            center           = lookTarget
+            currentDistance  = orbitDist
+            currentElevation = camY
 
             orbitSubscription?.cancel()
             orbitSubscription = nil
             if let anchor = districtAnchor {
                 DistrictRealityKit.updateGroundColor(in: anchor, for: poi.category, mood: mood)
             }
-            flyCamera(to: camPos, lookAt: lookAt, scene: scene)
+            flyCamera(to: overviewPos, lookAt: lookTarget, scene: scene)
         }
 
         // MARK: - Gesture handlers

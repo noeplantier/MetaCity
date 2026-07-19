@@ -146,6 +146,7 @@ struct DiscoverView: View {
             let results = viewModel.globalSearchResults()
             if viewModel.isGlobalSearchActive && !viewModel.globalSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
                 GlobalSearchDropdown(
+                    instantCities: viewModel.instantCityResults,
                     results: results,
                     worldSuggestions: viewModel.worldCitySuggestions,
                     onSelect: { viewModel.selectGlobalSearchResult($0) },
@@ -177,6 +178,7 @@ struct DiscoverView: View {
             let results = viewModel.globalSearchResults()
             if viewModel.isGlobalSearchActive && !viewModel.globalSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
                 GlobalSearchDropdown(
+                    instantCities: viewModel.instantCityResults,
                     results: results,
                     worldSuggestions: viewModel.worldCitySuggestions,
                     onSelect: { viewModel.selectGlobalSearchResult($0) },
@@ -1137,15 +1139,40 @@ private struct ScanLineView: View {
 // MARK: - Global search dropdown
 
 private struct GlobalSearchDropdown: View {
+    /// Local results from the first character — cities with bundled 3D data (zero latency).
+    let instantCities: [GlobalSearchResult]
     let results: [GlobalSearchResult]
     let worldSuggestions: [WorldCitySuggestion]
     let onSelect: (GlobalSearchResult) -> Void
     let onSelectSuggestion: (WorldCitySuggestion) -> Void
 
+    private var hasContent: Bool {
+        !instantCities.isEmpty || !results.isEmpty || !worldSuggestions.isEmpty
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // In-app results (cities/districts/buildings already in the manifest)
-            ForEach(results) { result in
+            // Instant city results — from the 1st character typed, purely local
+            if !instantCities.isEmpty {
+                sectionHeader("VILLES 3D", icon: "globe.europe.africa.fill")
+                ForEach(instantCities) { result in
+                    Button { onSelect(result) } label: {
+                        instantCityRow(result)
+                    }
+                    .buttonStyle(.plain)
+                    if result.id != instantCities.last?.id {
+                        Divider().padding(.horizontal, 14)
+                    }
+                }
+                if !results.isEmpty || !worldSuggestions.isEmpty {
+                    Divider().padding(.horizontal, 14)
+                }
+            }
+
+            // In-app results (districts/buildings/POIs — requires 2+ chars)
+            if !results.isEmpty {
+                sectionHeader("DANS L'APP", icon: "map.fill")
+                ForEach(results) { result in
                 Button { onSelect(result) } label: {
                     HStack(spacing: 10) {
                         Image(systemName: result.icon)
@@ -1169,26 +1196,15 @@ private struct GlobalSearchDropdown: View {
                 }
                 .buttonStyle(.plain)
 
-                if result.id != results.last?.id || !worldSuggestions.isEmpty {
+                if result.id != results.last?.id {
                     Divider().padding(.horizontal, 14)
                 }
             }
+            } // end if !results.isEmpty
 
-            // World-city suggestions from MKLocalSearchCompleter
+            // World-city suggestions from MKLocalSearchCompleter (fires after 2 chars + 180ms)
             if !worldSuggestions.isEmpty {
-                HStack(spacing: 6) {
-                    Image(systemName: "globe")
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(Color.metacityTextTertiary)
-                    Text("VILLES DU MONDE")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
-                        .foregroundStyle(Color.metacityTextTertiary)
-                        .tracking(1.0)
-                    Spacer()
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(Color.metacityBackground.opacity(0.35))
+                sectionHeader("VILLES DU MONDE", icon: "globe")
 
                 ForEach(worldSuggestions) { suggestion in
                     if suggestion.isVitrine {
@@ -1257,6 +1273,49 @@ private struct GlobalSearchDropdown: View {
         case .building: return Color(red: 0.85, green: 0.65, blue: 0.25)
         case .poi:      return Color(red: 0.95, green: 0.28, blue: 0.05)
         }
+    }
+
+    @ViewBuilder
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(Color.metacityTextTertiary)
+            Text(title)
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .foregroundStyle(Color.metacityTextTertiary)
+                .tracking(1.0)
+            Spacer()
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 6)
+        .background(Color.metacityBackground.opacity(0.35))
+    }
+
+    @ViewBuilder
+    private func instantCityRow(_ result: GlobalSearchResult) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: result.icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color(red: 0.20, green: 0.82, blue: 0.65))
+                .frame(width: 22)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(result.name)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color.metacityTextPrimary)
+                    .lineLimit(1)
+                Text(result.subtitle)
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.metacityTextTertiary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(Color.metacityTextTertiary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
 }
 
