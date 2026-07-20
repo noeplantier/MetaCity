@@ -1,0 +1,116 @@
+{
+  "name": "Odaiba",
+  "anchorLatitude": 35.6185,
+  "anchorLongitude": 139.7751,
+  "buildings": [
+    {
+      "name": "DiverCity Tokyo Plaza",
+      "polygon": [
+        {"x": 0, "z": 0},
+        {"x": 50, "z": 0},
+        {"x": 50, "z": 40},
+        {"x": 0, "z": 40}
+      ],
+      "heightMeters": 25.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "odaiba_1"
+    },
+    {
+      "name": "Gundam Statue Base",
+      "polygon": [
+        {"x": 10, "z": 10},
+        {"x": 40, "z": 10},
+        {"x": 40, "z": 30},
+        {"x": 10, "z": 30}
+      ],
+      "heightMeters": 18.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "odaiba_2"
+    },
+    {
+      "name": "teamLab Planets",
+      "polygon": [
+        {"x": -40, "z": 20},
+        {"x": -10, "z": 20},
+        {"x": -10, "z": 50},
+        {"x": -40, "z": 50}
+      ],
+      "heightMeters": 15.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "odaiba_3"
+    },
+    {
+      "name": "Tokyo Big Sight",
+      "polygon": [
+        {"x": 60, "z": 60},
+        {"x": 120, "z": 60},
+        {"x": 120, "z": 100},
+        {"x": 60, "z": 100}
+      ],
+      "heightMeters": 58.0,
+      "isHeightEstimated": false,
+      "style": "modernGlass",
+      "osmID": "odaiba_4"
+    },
+    {
+      "name": "Palette Town",
+      "polygon": [
+        {"x": -60, "z": -20},
+        {"x": -20, "z": -20},
+        {"x": -20, "z": 10},
+        {"x": -60, "z": 10}
+      ],
+      "heightMeters": 22.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "odaiba_5"
+    },
+    {
+      "name": "Ferris Wheel Base",
+      "polygon": [
+        {"x": -50, "z": -10},
+        {"x": -30, "z": -10},
+        {"x": -30, "z": 5},
+        {"x": -50, "z": 5}
+      ],
+      "heightMeters": 20.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "odaiba_6"
+    }
+  ],
+  "roads": [
+    {
+      "name": "Aomi-dori",
+      "points": [
+        {"x": -80, "z": 20},
+        {"x": 140, "z": 20}
+      ],
+      "width": 14.0,
+      "kind": "main"
+    },
+    {
+      "name": "Odaiba Waterfront",
+      "points": [
+        {"x": 0, "z": -30},
+        {"x": 0, "z": 120}
+      ],
+      "width": 10.0,
+      "kind": "secondary"
+    }
+  ],
+  "greenZones": [
+    {
+      "name": "Seaside Park",
+      "polygon": [
+        {"x": -70, "z": 30},
+        {"x": -40, "z": 30},
+        {"x": -40, "z": 60},
+        {"x": -70, "z": 60}
+      ]
+    }
+  ]
+}

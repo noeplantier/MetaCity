@@ -1,0 +1,55 @@
+{
+  "districtId": "Odaiba",
+  "pois": [
+    {
+      "id": "gundam_statue",
+      "name": "Unicorn Gundam Statue",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.6185,
+      "longitude": 139.7751,
+      "description": "The 18-metre tall RX-78-2 Gundam statue (2010) at DiverCity Tokyo Plaza — the full-scale mecha that defined the 1979 anime franchise. At 11am, 3pm, and 5pm daily, the statue 'transforms' with light shows and music from the series. A pilgrimage site for anime fans worldwide.",
+      "partnerURL": null
+    },
+    {
+      "id": "teamlab_planets",
+      "name": "teamLab Planets TOKYO",
+      "category": "culture",
+      "tier": "featured",
+      "latitude": 35.6197,
+      "longitude": 139.7836,
+      "description": "An immersive digital art museum (2018) where visitors walk barefoot through water and crystal-light installations. The 'Borderless' successor features 4 massive works: 'Koi Fish Swimming in the Sea of Flowers', 'Infinite Crystal Universe', and two water-based environments. Time-slot reservations essential.",
+      "partnerURL": null
+    },
+    {
+      "id": "tokyo_big_sight",
+      "name": "Tokyo Big Sight",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.6156,
+      "longitude": 139.7953,
+      "description": "Japan's largest convention centre (1989) — the inverted-pyramid main hall with its 58m steel arch is an Odaiba icon. Hosts Comiket (anime fair, 500k+ visitors twice yearly), Tokyo Motor Show, and international exhibitions. The 3-conference-centre complex has 82,000 sqm of exhibition space.",
+      "partnerURL": null
+    },
+    {
+      "id": "palette_town",
+      "name": "Palette Town",
+      "category": "shopping",
+      "tier": "standard",
+      "latitude": 35.6182,
+      "longitude": 139.7756,
+      "description": "A waterfront entertainment complex (1999) featuring the 120m Ferris wheel (illuminated at night), the Toyota Mega Web car showroom, the Zepp Tokyo concert hall, and the VenusFort shopping mall with its faux-Italianate interior piazza. Undergoing redevelopment 2025-2027.",
+      "partnerURL": null
+    },
+    {
+      "id": "odaiba_seaside",
+      "name": "Odaiba Seaside Park",
+      "category": "explore",
+      "tier": "standard",
+      "latitude": 35.6170,
+      "longitude": 139.7780,
+      "description": "A 1.2km waterfront promenade with unobstructed views of Rainbow Bridge and the Tokyo skyline. Popular for jogging, picnics, and fireworks viewing (August's 'Kaitei' fireworks display). The beach area (artificial, opened 2023) offers swimming and paddleboarding with skyline views.",
+      "partnerURL": null
+    }
+  ]
+}

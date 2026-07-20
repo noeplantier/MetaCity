@@ -1,0 +1,93 @@
+{
+  "name": "Akihabara",
+  "anchorLatitude": 35.6986,
+  "anchorLongitude": 139.7731,
+  "buildings": [
+    {
+      "name": "Animate Akihabara",
+      "polygon": [
+        {"x": 0, "z": 0},
+        {"x": 25, "z": 0},
+        {"x": 25, "z": 20},
+        {"x": 0, "z": 20}
+      ],
+      "heightMeters": 35.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "akihabara_1"
+    },
+    {
+      "name": "Yodobashi Camera",
+      "polygon": [
+        {"x": 30, "z": 0},
+        {"x": 60, "z": 0},
+        {"x": 60, "z": 40},
+        {"x": 30, "z": 40}
+      ],
+      "heightMeters": 45.0,
+      "isHeightEstimated": false,
+      "style": "modernGlass",
+      "osmID": "akihabara_2"
+    },
+    {
+      "name": "Super Potato",
+      "polygon": [
+        {"x": -20, "z": 10},
+        {"x": 0, "z": 10},
+        {"x": 0, "z": 30},
+        {"x": -20, "z": 30}
+      ],
+      "heightMeters": 18.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "akihabara_3"
+    },
+    {
+      "name": "Electronics Tower",
+      "polygon": [
+        {"x": -40, "z": -10},
+        {"x": -15, "z": -10},
+        {"x": -15, "z": 15},
+        {"x": -40, "z": 15}
+      ],
+      "heightMeters": 55.0,
+      "isHeightEstimated": false,
+      "style": "modernGlass",
+      "osmID": "akihabara_4"
+    },
+    {
+      "name": "Anime Complex",
+      "polygon": [
+        {"x": 70, "z": 20},
+        {"x": 95, "z": 20},
+        {"x": 95, "z": 45},
+        {"x": 70, "z": 45}
+      ],
+      "heightMeters": 28.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "akihabara_5"
+    }
+  ],
+  "roads": [
+    {
+      "name": "Chuo-dori",
+      "points": [
+        {"x": -50, "z": 0},
+        {"x": 100, "z": 0}
+      ],
+      "width": 12.0,
+      "kind": "main"
+    },
+    {
+      "name": "Soto-kanda",
+      "points": [
+        {"x": 0, "z": -20},
+        {"x": 0, "z": 60}
+      ],
+      "width": 8.0,
+      "kind": "secondary"
+    }
+  ],
+  "greenZones": []
+}

@@ -1,0 +1,55 @@
+{
+  "districtId": "Akihabara",
+  "pois": [
+    {
+      "id": "akihabara_station",
+      "name": "Akihabara Station",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.6986,
+      "longitude": 139.7731,
+      "description": "The beating heart of Tokyo's electronics and anime culture. The station's 'Electric Town' exit opens onto a district where neon signs compete for attention and every building houses multiple floors of gadgets, games, and manga.",
+      "partnerURL": null
+    },
+    {
+      "id": "animate_akihabara",
+      "name": "Animate Akihabara",
+      "category": "shopping",
+      "tier": "featured",
+      "latitude": 35.6982,
+      "longitude": 139.7735,
+      "description": "Japan's largest anime, manga, and game retailer — 8 floors of character goods, manga volumes, Blu-rays, and otaku merchandise. The flagship store draws thousands daily, with themed floors rotating by franchise season.",
+      "partnerURL": null
+    },
+    {
+      "id": "yodobashi_camera",
+      "name": "Yodobashi Camera Akiba",
+      "category": "shopping",
+      "tier": "featured",
+      "latitude": 35.6995,
+      "longitude": 139.7741,
+      "description": "Tokyo's largest electronics megastore — 9 floors of cameras, computers, appliances, and games with tax-free shopping for tourists. The rooftop has a camera test course and the basement a gourmet food hall.",
+      "partnerURL": null
+    },
+    {
+      "id": "super_akihabara",
+      "name": "Super Potato Retro Game Store",
+      "category": "shopping",
+      "tier": "standard",
+      "latitude": 35.6978,
+      "longitude": 139.7728,
+      "description": "A legendary retro game store spanning 3 floors — Famicom, Super Famicom, Mega Drive, and PlayStation classics in their original boxes. The second floor is a playable museum where you can test vintage consoles. A pilgrimage site for gaming historians.",
+      "partnerURL": null
+    },
+    {
+      "id": "akiba_cultural_zone",
+      "name": "Akihabara Cultural Zone",
+      "category": "explore",
+      "tier": "standard",
+      "latitude": 35.6975,
+      "longitude": 139.7715,
+      "description": "The pedestrian-only 'Chuo-dori' street on weekends transforms into a pedestrian paradise lined with maid cafes, idol venues, and pop-up events. The epicentre of Japan's otaku culture since the 1980s.",
+      "partnerURL": null
+    }
+  ]
+}

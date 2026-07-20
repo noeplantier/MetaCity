@@ -1,0 +1,103 @@
+{
+  "name": "Roppongi",
+  "anchorLatitude": 35.6604,
+  "anchorLongitude": 139.7293,
+  "buildings": [
+    {
+      "name": "Roppongi Hills",
+      "polygon": [
+        {"x": 0, "z": 0},
+        {"x": 40, "z": 0},
+        {"x": 40, "z": 35},
+        {"x": 0, "z": 35}
+      ],
+      "heightMeters": 220.0,
+      "isHeightEstimated": false,
+      "style": "modernGlass",
+      "osmID": "roppongi_1"
+    },
+    {
+      "name": "Mori Tower Annex",
+      "polygon": [
+        {"x": 45, "z": 5},
+        {"x": 70, "z": 5},
+        {"x": 70, "z": 30},
+        {"x": 45, "z": 30}
+      ],
+      "heightMeters": 85.0,
+      "isHeightEstimated": false,
+      "style": "modernGlass",
+      "osmID": "roppongi_2"
+    },
+    {
+      "name": "Tokyo Tower Base",
+      "polygon": [
+        {"x": -30, "z": 50},
+        {"x": -10, "z": 50},
+        {"x": -10, "z": 70},
+        {"x": -30, "z": 70}
+      ],
+      "heightMeters": 25.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "roppongi_3"
+    },
+    {
+      "name": "21_21 Design Sight",
+      "polygon": [
+        {"x": -60, "z": -20},
+        {"x": -35, "z": -20},
+        {"x": -35, "z": 5},
+        {"x": -60, "z": 5}
+      ],
+      "heightMeters": 12.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "roppongi_4"
+    },
+    {
+      "name": "Nightlife Complex",
+      "polygon": [
+        {"x": 80, "z": -15},
+        {"x": 105, "z": -15},
+        {"x": 105, "z": 15},
+        {"x": 80, "z": 15}
+      ],
+      "heightMeters": 32.0,
+      "isHeightEstimated": false,
+      "style": "modernConcrete",
+      "osmID": "roppongi_5"
+    }
+  ],
+  "roads": [
+    {
+      "name": "Roppongi-dori",
+      "points": [
+        {"x": -70, "z": 0},
+        {"x": 120, "z": 0}
+      ],
+      "width": 15.0,
+      "kind": "main"
+    },
+    {
+      "name": "Keyaki-zaka",
+      "points": [
+        {"x": 0, "z": -30},
+        {"x": 0, "z": 80}
+      ],
+      "width": 10.0,
+      "kind": "secondary"
+    }
+  ],
+  "greenZones": [
+    {
+      "name": "Mori Garden",
+      "polygon": [
+        {"x": 35, "z": 20},
+        {"x": 55, "z": 20},
+        {"x": 55, "z": 40},
+        {"x": 35, "z": 40}
+      ]
+    }
+  ]
+}

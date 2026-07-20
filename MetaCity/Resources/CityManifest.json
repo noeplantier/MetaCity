@@ -1058,6 +1058,63 @@
               "dataBundled": true,
               "dataPath": "Districts/Asakusa.json",
               "supportsAR": false
+            },
+            {
+              "id": "Akihabara",
+              "displayName": "Akihabara",
+              "anchor": {
+                "latitude": 35.6986,
+                "longitude": 139.7731
+              },
+              "boundingBox": {
+                "south": 35.695,
+                "west": 139.770,
+                "north": 35.702,
+                "east": 139.776
+              },
+              "focusBuildingName": "Animate Akihabara",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Akihabara.json",
+              "supportsAR": false
+            },
+            {
+              "id": "Roppongi",
+              "displayName": "Roppongi",
+              "anchor": {
+                "latitude": 35.6604,
+                "longitude": 139.7293
+              },
+              "boundingBox": {
+                "south": 35.657,
+                "west": 139.726,
+                "north": 35.664,
+                "east": 139.733
+              },
+              "focusBuildingName": "Roppongi Hills",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Roppongi.json",
+              "supportsAR": false
+            },
+            {
+              "id": "Odaiba",
+              "displayName": "Odaiba",
+              "anchor": {
+                "latitude": 35.6185,
+                "longitude": 139.7751
+              },
+              "boundingBox": {
+                "south": 35.615,
+                "west": 139.772,
+                "north": 35.622,
+                "east": 139.778
+              },
+              "focusBuildingName": "Unicorn Gundam Statue",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Odaiba.json",
+              "supportsAR": false
             }
           ]
         }
