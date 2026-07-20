@@ -35,13 +35,13 @@ struct DistrictRealityView: UIViewRepresentable {
     var searchFlyToken: Int = 0
     /// Model-local camera target (metres from district anchor) for the most-recent search selection.
     var searchFlyCentroid: SIMD3<Float> = .zero
-    /// Bumped by `DiscoverViewModel.setViewPreset(.focus)`. Re-triggers `flyToBuildingWithFraming`
-    /// for the building stored from the last single-tap selection.
-    var viewFocusToken: Int = 0
+        /// Bumped by `DiscoverViewModel.setViewPreset(.poi)`. Re-triggers `flyToVenue`
+        /// for the POI stored from the last selection.
+        var poiFocusToken: Int = 0
     /// The currently selected building — mirrored from DiscoverViewModel so the coordinator
     /// can access it when `viewFocusToken` fires without storing state across sessions.
     var selectedBuilding: BuildingFootprint? = nil
-    /// Current camera preset — used by the coordinator to choose SURVOL / OVERVIEW / ZOOM.
+    /// Current camera preset — used by the coordinator to choose OVERVIEW / CLOSE DISTRICT / POI.
     var activeViewPreset: ViewPreset = .overview
     /// Day/night mode toggle. When changed, the coordinator discards and rebuilds the district
     /// entity with the appropriate emissive/roughness materials and lighting rig.
@@ -115,7 +115,7 @@ struct DistrictRealityView: UIViewRepresentable {
             buildingOrbitToken: buildingOrbitToken,
             searchFlyToken: searchFlyToken,
             searchFlyCentroid: searchFlyCentroid,
-            viewFocusToken: viewFocusToken,
+            poiFocusToken: poiFocusToken,
             selectedBuilding: selectedBuilding,
             activeViewPreset: activeViewPreset
         )
@@ -176,9 +176,9 @@ struct DistrictRealityView: UIViewRepresentable {
         private var lastSearchFlyToken: Int = 0
         private var lastBuildingOrbitToken: Int = 0
         private var lastViewFocusToken: Int = 0
-        /// Stored from the last successful `flyToBuildingWithFraming` call so `.focus` preset
+        /// Stored from the last successful `flyToVenue` call so `.poi` preset
         /// can re-trigger the fly without needing another tap.
-        private var lastFocusedBuilding: BuildingFootprint?
+        private var lastFocusedPOIId: String?
         // Updated on each building tap — used by buildingOrbitToken to restart the orbit
         // around the selected building's centroid rather than the district centre.
         private var inspectedBuildingCentroid: SIMD3<Float>? = nil
@@ -230,16 +230,15 @@ struct DistrictRealityView: UIViewRepresentable {
             districtCenter   = center
             // Orbit reference: 1.5× the mood fraction — same as original, used by
             // resetToDefaultPosition multipliers. Do NOT reduce this without verifying
-            // all moods: it is the anchor for AÉRIEN/OVERVIEW/ZOOM multipliers.
+            // all moods: it is the anchor for OVERVIEW/CLOSE DISTRICT/POI multipliers.
             districtDistance = district.extent * mood.cameraDistanceFraction * 1.5
 
             // Initial camera position respects the active preset.
             switch currentViewPreset {
-            case .ciel:
-                // SURVOL: frames the full district perimeter from near-overhead.
-                // Uses districtExtent directly — NOT districtDistance (which is a small orbit ref).
-                distance = districtExtent * 0.30
-                height   = districtExtent * 1.35
+            case .closeDistrict:
+                // CLOSE DISTRICT: tighter district framing, 50% horizontal, 90% height.
+                distance = districtExtent * 0.50
+                height   = districtExtent * 0.90
             case .overview:
                 // OVERVIEW: bird's-eye ~61° elevation.
                 distance = districtDistance * 0.60
@@ -265,11 +264,11 @@ struct DistrictRealityView: UIViewRepresentable {
         func update(isAutoRotating: Bool, rotationSpeed: Double, isNight: Bool = false,
                     venueTargetPOIId: String?, resetToken: Int, buildingOrbitToken: Int,
                     searchFlyToken: Int, searchFlyCentroid: SIMD3<Float>,
-                    viewFocusToken: Int, selectedBuilding: BuildingFootprint?,
+                    poiFocusToken: Int, selectedBuilding: BuildingFootprint?,
                     activeViewPreset: ViewPreset = .overview) {
             guard let arView else { return }
-            // Always track the current selection so viewFocusToken has a building to fly to
-            if let b = selectedBuilding { lastFocusedBuilding = b }
+            // Always track the current selection so poiFocusToken has a POI to fly to
+            if let poiId = venueTargetPOIId { lastFocusedPOIId = poiId }
 
             self.rotationSpeed = rotationSpeed
             currentViewPreset = activeViewPreset
@@ -319,11 +318,11 @@ struct DistrictRealityView: UIViewRepresentable {
                 }
             }
 
-            if viewFocusToken != lastViewFocusToken {
-                lastViewFocusToken = viewFocusToken
-                if let building = lastFocusedBuilding {
-                    setFacadeDetailEnabled(true)
-                    flyToBuildingWithFraming(building, scene: arView.scene)
+            if poiFocusToken != lastViewFocusToken {
+                lastViewFocusToken = poiFocusToken
+                if let poiId = lastFocusedPOIId ?? venueTargetPOIId {
+                    flyToVenue(poiId: poiId, districtName: districtName, scene: arView.scene)
+                    startVenueLOD(scene: arView.scene)
                 }
             }
 
@@ -563,13 +562,13 @@ struct DistrictRealityView: UIViewRepresentable {
             facadeDetailEnabled = false
             guard let arView else { return }
 
-            if currentViewPreset == .ciel {
-                // SURVOL: frames the full district perimeter from near-overhead.
-                let survolHoriz  = districtExtent * 0.30
-                let survolH      = districtExtent * 1.35
-                currentDistance  = survolHoriz
-                currentElevation = survolH
-                flyCamera(to: SIMD3(center.x, survolH, center.z + survolHoriz),
+            if currentViewPreset == .closeDistrict {
+                // CLOSE DISTRICT: tighter district framing.
+                let closeDist = districtExtent * 0.50
+                let closeH    = districtExtent * 0.90
+                currentDistance  = closeDist
+                currentElevation = closeH
+                flyCamera(to: SIMD3(center.x, closeH, center.z + closeDist),
                           lookAt: center, scene: arView.scene)
                 orbitSubscription?.cancel()
                 orbitSubscription = nil

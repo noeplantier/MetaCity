@@ -1,16 +1,26 @@
-# MetaCity Memory — Tokyo 3D Max Implementation
+# MetaCity Memory — Clean + POI Reality Max Implementation
 
-## 2026-07-20 — Tokyo District Expansion
+## 2026-07-20 — View Preset System Overhaul & Code Cleaning
 
 ### What Was Implemented
 
-Added 3 new Tokyo districts to the existing Tokyo 3D showcase:
+**View Preset System Changes:**
+- Removed `.ciel` (SURVOL) mode — full-district overhead view
+- Removed `.focus` (ZOOM) mode — building-tap zoom view
+- Added `.closeDistrict` (QUARTIER) — tighter district framing at 50% horizontal distance, 90% height
+- Added `.poi` (POI) — frames selected POI with context
 
-1. **Akihabara** — Electric Town, anime/electronics culture
-2. **Roppongi** — Nightlife, Mori Art Museum, Tokyo Tower
-3. **Odaiba** — Waterfront, Gundam statue, teamLab, Tokyo Big Sight
+**Code Cleaning:**
+- Uniformized naming: `viewFocusToken` → `poiFocusToken`, `lastFocusedBuilding` → `lastFocusedPOIId`
+- Removed dead code references to `.ciel` and `.focus` presets
+- Updated comments to reflect new OVERVIEW/CLOSE DISTRICT/POI system
+- Fixed token tracking in DistrictRealityView.Coordinator.update()
 
-Plus POI data for all 3 districts with 5 POIs each (featured + standard tiers).
+**Files Modified:**
+- `DiscoverViewModel.swift` — ViewPreset enum, setViewPreset(), poiFocusToken
+- `DistrictRealityView.swift` — Coordinator update logic, resetToDefaultPosition()
+- `DiscoverView.swift` — DistrictRealityView initialization with poiFocusToken
+- `CLAUDE.md` — Updated documentation
 
 ### Files Created
 
@@ -63,6 +73,16 @@ Plus POI data for all 3 districts with 5 POIs each (featured + standard tiers).
 - No mini-map changes
 - No POI beacon reactivation
 
+### Tokyo Districts Available (All with 5+ POIs)
+
+1. **Shibuya** — Scramble Crossing, Scramble Square, Hachiko Statue, NHK Broadcasting, Shibuya Stream
+2. **Shinjuku** — Shinjuku Gyoen, Cocoon Tower, Kabukicho Tower, Nomura Building, Hanazono Shrine
+3. **Ginza** — GINZA SIX, Kabuki-za Theatre, Ginza Chuo-dori, Itoya Stationery, Ginza Art District
+4. **Asakusa** — Senso-ji Temple, Kaminarimon Gate, Nakamise Shopping, Asakusa Shrine, Sumida Park
+5. **Akihabara** — Akihabara Station, Animate, Yodobashi Camera, Super Potato, Akiba Cultural Zone
+6. **Roppongi** — Roppongi Hills, Mori Art Museum, Tokyo Tower, Roppongi Nightlife, 21_21 Design Sight
+7. **Odaiba** — Unicorn Gundam Statue, teamLab Planets, Tokyo Big Sight, Palette Town, Odaiba Seaside Park
+
 ### Next Steps for Tokyo 3D Max
 
 1. Replace placeholder district JSON with real OSM building footprints
@@ -72,6 +92,28 @@ Plus POI data for all 3 districts with 5 POIs each (featured + standard tiers).
 5. Photogrammetry textures for Gundam, Tokyo Tower, etc.
 6. Re-activate POI beacons if desired
 7. Visual verification on device (night mode, 3D quality, performance)
+
+### View Preset System Architecture
+
+**ViewPreset Enum (DiscoverViewModel.swift):**
+```swift
+enum ViewPreset: String, CaseIterable {
+    case overview      // OVERVIEW — bird's-eye ~61°, districtDistance×0.60
+    case closeDistrict // CLOSE DISTRICT — tighter district framing, districtExtent×0.50 horiz, ×0.90 height
+    case poi           // POI — frames selected POI with context
+}
+```
+
+**Camera Presets (DistrictRealityView.swift):**
+- OVERVIEW: distance = districtDistance × 0.60, height = distance × 1.10
+- CLOSE DISTRICT: distance = districtExtent × 0.50, height = districtExtent × 0.90
+- POI: flyToVenue() with nearest building framing or 20% district extent fallback
+
+**Token System:**
+- `cameraResetToken` — triggers resetToDefaultPosition()
+- `poiFocusToken` — triggers flyToVenue() for POI preset
+- `buildingOrbitToken` — triggers 360° building orbit
+- `searchFlyToken` — triggers search result fly-to
 
 ### Key Learnings
 

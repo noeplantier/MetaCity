@@ -1,6 +1,43 @@
-# MetaCity — Tokyo 3D Max Implementation
+# MetaCity — Clean + POI Reality Max Implementation
 
 ## Date: 2026-07-20
+
+## Recent Changes (2026-07-20)
+
+### 1. View Preset System Overhaul
+
+**Removed:**
+- `.ciel` (SURVOL) — full-district overhead view
+- `.focus` (ZOOM) — building-tap zoom view
+
+**Added:**
+- `.closeDistrict` (QUARTIER) — tighter district framing at 50% horizontal distance, 90% height
+- `.poi` (POI) — frames selected POI with context
+
+**Updated Files:**
+- `DiscoverViewModel.swift` — ViewPreset enum, setViewPreset(), poiFocusToken
+- `DistrictRealityView.swift` — Coordinator update logic, resetToDefaultPosition()
+- `DiscoverView.swift` — DistrictRealityView initialization with poiFocusToken
+
+### 2. POI System Restoration
+
+**Tokyo Districts (5 POI each):**
+- Shibuya: Scramble Crossing, Scramble Square, Hachiko Statue, NHK Broadcasting, Shibuya Stream
+- Shinjuku: Shinjuku Gyoen, Cocoon Tower, Kabukicho Tower, Nomura Building, Hanazono Shrine
+- Ginza: GINZA SIX, Kabuki-za Theatre, Ginza Chuo-dori, Itoya Stationery, Ginza Art District
+- Asakusa: Senso-ji Temple, Kaminarimon Gate, Nakamise Shopping, Asakusa Shrine, Sumida Park
+- Akihabara: Akihabara Station, Animate, Yodobashi Camera, Super Potato, Akiba Cultural Zone
+- Roppongi: Roppongi Hills, Mori Art Museum, Tokyo Tower, Roppongi Nightlife, 21_21 Design Sight
+- Odaiba: Unicorn Gundam Statue, teamLab Planets, Tokyo Big Sight, Palette Town, Odaiba Seaside Park
+
+**Status:** All Tokyo POI files already present and complete in `MetaCity/Resources/pois_*.json`
+
+### 3. Code Cleaning
+
+- Uniformized naming: `viewFocusToken` → `poiFocusToken`, `lastFocusedBuilding` → `lastFocusedPOIId`
+- Removed dead code references to `.ciel` and `.focus` presets
+- Updated comments to reflect new OVERVIEW/CLOSE DISTRICT/POI system
+- Fixed token tracking in DistrictRealityView.Coordinator.update()
 
 ### Tokyo Districts Implemented
 
@@ -109,14 +146,34 @@ case "Asakusa":      .init(nightWindowDensityBoost: 1.10, weatheringIntensity: 0
 
 ### What's NOT Changed (Per Instructions)
 
-- No modifications to DistrictRealityView.swift
 - No modifications to DistrictRealityKit.swift
 - No modifications to DistrictRealityScene.swift
-- No modifications to DiscoverViewModel.swift
 - No new BuildingStyle enum cases
 - No new Mood enum cases
 - No mini-map changes (already ultra-sophisticated)
 - No POI beacon reactivation (removed per previous logs)
+
+### Architecture Changes
+
+**ViewPreset Enum (DiscoverViewModel.swift):**
+```swift
+enum ViewPreset: String, CaseIterable {
+    case overview      // OVERVIEW — bird's-eye ~61°, districtDistance×0.60
+    case closeDistrict // CLOSE DISTRICT — tighter district framing, districtExtent×0.50 horiz, ×0.90 height
+    case poi           // POI — frames selected POI with context
+}
+```
+
+**Camera Presets (DistrictRealityView.swift):**
+- OVERVIEW: distance = districtDistance × 0.60, height = distance × 1.10
+- CLOSE DISTRICT: distance = districtExtent × 0.50, height = districtExtent × 0.90
+- POI: flyToVenue() with nearest building framing or 20% district extent fallback
+
+**Token System:**
+- `cameraResetToken` — triggers resetToDefaultPosition()
+- `poiFocusToken` — triggers flyToVenue() for POI preset
+- `buildingOrbitToken` — triggers 360° building orbit
+- `searchFlyToken` — triggers search result fly-to
 
 ### Next Steps (If Needed)
 

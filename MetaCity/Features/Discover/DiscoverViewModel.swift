@@ -24,26 +24,26 @@ struct DistrictSearchResult: Identifiable {
 }
 
 /// 3-preset camera view selector — controls which camera mode the district 3D inspector is in.
-/// SURVOL frames the full district from near-overhead; OVERVIEW is the default bird's-eye;
-/// ZOOM is entered via building tap / pinch past 22% extent.
+/// OVERVIEW is the default bird's-eye; CLOSE DISTRICT is a tighter framing of the district;
+/// POI is entered via POI tap and frames the selected point of interest.
 enum ViewPreset: String, CaseIterable {
-    case ciel     // SURVOL — full-district overhead, districtExtent×0.30 horiz, ×1.35 height
-    case overview // OVERVIEW — bird's-eye at ~61°, districtDistance×0.60
-    case focus    // ZOOM — wide framing on selected building
+    case overview     // OVERVIEW — bird's-eye at ~61°, districtDistance×0.60
+    case closeDistrict // CLOSE DISTRICT — tighter district framing, districtExtent×0.50 horiz, ×0.90 height
+    case poi          // POI — frames selected POI with context
 
     var label: String {
         switch self {
-        case .ciel:     return "SURVOL"
-        case .overview: return "OVERVIEW"
-        case .focus:    return "ZOOM"
+        case .overview:      return "OVERVIEW"
+        case .closeDistrict: return "QUARTIER"
+        case .poi:           return "POI"
         }
     }
 
     var icon: String {
         switch self {
-        case .ciel:     return "binoculars.fill"
-        case .overview: return "viewfinder"
-        case .focus:    return "scope"
+        case .overview:      return "viewfinder"
+        case .closeDistrict: return "map.fill"
+        case .poi:           return "mappin.circle.fill"
         }
     }
 }
@@ -127,9 +127,9 @@ final class DiscoverViewModel: ObservableObject {
     /// Bumped by `resetCamera()`. `DistrictRealityView` observes changes and flies the
     /// camera back to the default orbit position without requiring a gesture.
     @Published private(set) var cameraResetToken: Int = 0
-    /// Bumped by `setViewPreset(.focus)` when a building is already selected.
-    /// Signals the coordinator to re-trigger `flyToBuildingWithFraming` for the current building.
-    @Published private(set) var viewFocusToken: Int = 0
+    /// Bumped by `setViewPreset(.poi)` when a POI is already selected.
+    /// Signals the coordinator to re-trigger `flyToVenue` for the current POI.
+    @Published private(set) var poiFocusToken: Int = 0
     /// Bumped by `startBuildingOrbit()`. Signals the 3D coordinator to begin a smooth
     /// 360° orbit around the currently inspected building.
     @Published private(set) var buildingOrbitToken: Int = 0
@@ -376,25 +376,25 @@ final class DiscoverViewModel: ObservableObject {
         cameraResetToken += 1
     }
 
-    /// Applies a named camera preset. SURVOL = full-district overhead; OVERVIEW = bird's-eye ~61°;
-    /// ZOOM = fly to selected building (requires a prior building tap).
+    /// Applies a named camera preset. OVERVIEW = bird's-eye ~61°;
+    /// CLOSE DISTRICT = tighter district framing; POI = fly to selected POI.
     func setViewPreset(_ preset: ViewPreset) {
         activeViewPreset = preset
         switch preset {
-        case .ciel:
-            isAutoRotating = false
-            cameraResetToken += 1
         case .overview:
             isAutoRotating = false
             cameraResetToken += 1
-        case .focus:
-            guard selectedBuilding != nil else {
+        case .closeDistrict:
+            isAutoRotating = false
+            cameraResetToken += 1
+        case .poi:
+            guard selectedVenuePOI != nil else {
                 activeViewPreset = .overview
                 isAutoRotating = false
                 cameraResetToken += 1
                 return
             }
-            viewFocusToken += 1
+            poiFocusToken += 1
         }
     }
 
@@ -422,6 +422,11 @@ final class DiscoverViewModel: ObservableObject {
         selectedVenuePOI = collection.pois.first { $0.id == poiId }
         selectedBuilding = nil
         venueTargetPOIId = poiId
+        // Auto-switch to POI preset when a POI is selected
+        if selectedVenuePOI != nil {
+            activeViewPreset = .poi
+            poiFocusToken += 1
+        }
     }
 
     func dismissVenue() {
@@ -527,14 +532,12 @@ final class DiscoverViewModel: ObservableObject {
             selectDistrict(district, in: city)
         case .building(let building, let district, let city):
             // Navigate to district, then fly to the building in wide-framing BÂTIMENT view.
-            // selectDistrict clears selectedBuilding; selectBuilding re-sets it so setViewPreset
-            // can guard on it and fire viewFocusToken. The fresh coordinator sees the token delta
-            // and calls flyToBuildingWithFraming on its first update() cycle.
             selectDistrict(district, in: city)
             selectBuilding(building)
-            setViewPreset(.focus)
+            setViewPreset(.overview)
         case .poi(let poi, let district, let city):
             selectVenuePOI(poi, in: district, city: city)
+            setViewPreset(.poi)
         }
     }
 

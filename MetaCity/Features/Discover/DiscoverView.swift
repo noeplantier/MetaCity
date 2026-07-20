@@ -102,7 +102,7 @@ struct DiscoverView: View {
                 venueTargetPOIId: viewModel.venueTargetPOIId,
                 searchFlyToken: viewModel.searchFlyToken,
                 searchFlyCentroid: viewModel.searchFlyCentroid,
-                viewFocusToken: viewModel.viewFocusToken,
+                poiFocusToken: viewModel.poiFocusToken,
                 selectedBuilding: viewModel.selectedBuilding,
                 activeViewPreset: viewModel.activeViewPreset,
                 isNight: viewModel.isNightMode
