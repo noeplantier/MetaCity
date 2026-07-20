@@ -1,0 +1,65 @@
+{
+  "districtId": "Ikebukuro",
+  "pois": [
+    {
+      "id": "sunshine_60",
+      "name": "Sunshine 60",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.7295,
+      "longitude": 139.7130,
+      "description": "Tokyo's tallest building from 1978–1990 (240m). The observation deck at 60th floor offers views of Tokyo Bay, Mt. Fuji, and the entire Kanto plain. The building contains an aquarium, planetarium, and 300+ shops.",
+      "partnerURL": null
+    },
+    {
+      "id": "ikebukuro_station",
+      "name": "Ikebukuro Station",
+      "category": "transport",
+      "tier": "featured",
+      "latitude": 35.7295,
+      "longitude": 139.7130,
+      "description": "Second busiest station in Tokyo (2.7M daily). Major hub for JR Yamanote, Saikyo, and Shonan-Shinjuku lines. The east exit leads to the massive department store complex.",
+      "partnerURL": null
+    },
+    {
+      "id": "anime_district",
+      "name": "Anime & Manga District",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.7295,
+      "longitude": 139.7130,
+      "description": "The anime capital of Tokyo — Animate (Japan's largest anime retailer), Mandarake (vintage manga), and dozens of specialty shops. The epicenter of otaku culture since the 1980s.",
+      "partnerURL": null
+    },
+    {
+      "id": "tobu_department_store",
+      "name": "Tobu Department Store",
+      "category": "shopping",
+      "tier": "standard",
+      "latitude": 35.7295,
+      "longitude": 139.7130,
+      "description": "One of Tokyo's largest department stores (17 floors, 50,000 sqm). Fashion, cosmetics, food hall, and rooftop garden. Connected directly to Ikebukuro Station east exit.",
+      "partnerURL": null
+    },
+    {
+      "id": "seibu_department_store",
+      "name": "Seibu Department Store",
+      "category": "shopping",
+      "tier": "standard",
+      "latitude": 35.7295,
+      "longitude": 139.7130,
+      "description": "Premium department store with luxury brands, art exhibitions, and the famous 'Seibu Art Museum'. The rooftop has a beer garden with city views in summer.",
+      "partnerURL": null
+    },
+    {
+      "id": "ikebukuro_nightlife",
+      "name": "Ikebukuro Nightlife",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.7295,
+      "longitude": 139.7130,
+      "description": "Vibrant nightlife district with izakayas, karaoke bars, and themed cafes. Less touristy than Shinjuku or Shibuya — popular with locals. The area around West Exit comes alive after 8pm.",
+      "partnerURL": null
+    }
+  ]
+}

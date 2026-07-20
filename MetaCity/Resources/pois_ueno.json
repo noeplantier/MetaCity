@@ -1,0 +1,65 @@
+{
+  "districtId": "Ueno",
+  "pois": [
+    {
+      "id": "tokyo_national_museum",
+      "name": "Tokyo National Museum",
+      "category": "museum",
+      "tier": "featured",
+      "latitude": 35.7141,
+      "longitude": 139.7774,
+      "description": "Japan's oldest and largest museum (1872). Houses 110,000+ artifacts including samurai swords, ukiyo-e prints, and the famous Great Buddha statue. The Honkan (Japanese Gallery) is a designated Important Cultural Property.",
+      "partnerURL": null
+    },
+    {
+      "id": "ueno_station",
+      "name": "Ueno Station",
+      "category": "transport",
+      "tier": "featured",
+      "latitude": 35.7141,
+      "longitude": 139.7774,
+      "description": "Historic station opened in 1883. Major hub for JR Yamanote, Keihin-Tohoku, and Shinkansen lines. The iconic red-brick facade (designed by Kingo Tatsuno) was restored in 2012.",
+      "partnerURL": null
+    },
+    {
+      "id": "ueno_park",
+      "name": "Ueno Park",
+      "category": "park",
+      "tier": "featured",
+      "latitude": 35.7141,
+      "longitude": 139.7774,
+      "description": "Japan's first public park (1873). 500+ cherry trees bloom in late March–early April. Home to 8 museums, Ueno Zoo (Japan's oldest, 1882), and Shinobazu Pond with its Bentendo Temple.",
+      "partnerURL": null
+    },
+    {
+      "id": "shinobazu_pond",
+      "name": "Shinobazu Pond",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.7141,
+      "longitude": 139.7774,
+      "description": "Large freshwater pond in Ueno Park. Rent rowboats in summer, see lotus flowers in July–August. The Bentendo Temple on an island is dedicated to Benzaiten, goddess of water and music.",
+      "partnerURL": null
+    },
+    {
+      "id": "ameya_yokocho",
+      "name": "Ameya Yokocho",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.7141,
+      "longitude": 139.7774,
+      "description": "Vibrant market street stretching from Ueno Station to Okachimachi. 400+ shops selling fresh seafood, spices, cosmetics, and street food. The atmosphere is chaotic, colorful, and authentically Tokyo.",
+      "partnerURL": null
+    },
+    {
+      "id": "ueno_zoo",
+      "name": "Ueno Zoo",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.7141,
+      "longitude": 139.7774,
+      "description": "Japan's oldest zoo (1882). Famous for its giant pandas (gift from China in 1972), Sumatran tigers, and the historic 'Garden of Flowers and Birds' monorail (Japan's first, 1952).",
+      "partnerURL": null
+    }
+  ]
+}

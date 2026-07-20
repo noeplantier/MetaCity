@@ -1,0 +1,65 @@
+{
+  "districtId": "Tsukiji",
+  "pois": [
+    {
+      "id": "tsukiji_outer_market",
+      "name": "Tsukiji Outer Market",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.6654,
+      "longitude": 139.7707,
+      "description": "The surviving market after the 2018 relocation to Toyosu. 400+ stalls selling fresh seafood, tamagoyaki, pickles, and kitchenware. Opens 5am–2pm — arrive by 7am for the best sushi breakfast.",
+      "partnerURL": null
+    },
+    {
+      "id": "tsukiji_inner_market",
+      "name": "Tsukiji Inner Market (Toyosu)",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6654,
+      "longitude": 139.7707,
+      "description": "The wholesale market relocated to Toyosu in 2018. View the famous tuna auctions from the observation deck (reservation required). The market hall is a cathedral of seafood — 500+ dealers under one roof.",
+      "partnerURL": null
+    },
+    {
+      "id": "sushi_restaurants",
+      "name": "Sushi Restaurant Row",
+      "category": "restaurant",
+      "tier": "featured",
+      "latitude": 35.6654,
+      "longitude": 139.7707,
+      "description": "Concentration of sushi restaurants in the outer market. Standouts: Sushi Dai (3hr queue, worth it), Sushi Daiwa (better queue, same quality), and Kaiten-zushi (conveyor belt) for budget options.",
+      "partnerURL": null
+    },
+    {
+      "id": "tsukiji_station",
+      "name": "Tsukiji Station",
+      "category": "transport",
+      "tier": "standard",
+      "latitude": 35.6654,
+      "longitude": 139.7707,
+      "description": "Hibiya Line station (exit 1 for outer market). 5 minutes from Ginza, 15 from Tokyo Station. The station walls are decorated with fish mosaics — a hint of what awaits above ground.",
+      "partnerURL": null
+    },
+    {
+      "id": "fish_market_history",
+      "name": "Tsukiji Market History",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6654,
+      "longitude": 139.7707,
+      "description": "The market operated from 1935–2018 — 83 years as Tokyo's seafood heart. At its peak, 2,500 tons of fish passed through daily. The iconic neon sign and clock tower were preserved as monuments.",
+      "partnerURL": null
+    },
+    {
+      "id": "tsukiji_business_center",
+      "name": "Tsukiji Business Center",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6654,
+      "longitude": 139.7707,
+      "description": "Modern office towers built on the former market site. The 120m Tsukiji Tower (2023) is the new landmark. The area is transforming from fish market to financial district — Tokyo's 'new Ginza'.",
+      "partnerURL": null
+    }
+  ]
+}

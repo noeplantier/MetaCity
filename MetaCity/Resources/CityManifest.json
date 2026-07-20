@@ -1115,6 +1115,82 @@
               "dataBundled": true,
               "dataPath": "Districts/Odaiba.json",
               "supportsAR": false
+            },
+            {
+              "id": "Harajuku",
+              "displayName": "Harajuku",
+              "anchor": {
+                "latitude": 35.6712,
+                "longitude": 139.7030
+              },
+              "boundingBox": {
+                "south": 35.668,
+                "west": 139.698,
+                "north": 35.675,
+                "east": 139.708
+              },
+              "focusBuildingName": "Takeshita Street",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Harajuku.json",
+              "supportsAR": false
+            },
+            {
+              "id": "Ikebukuro",
+              "displayName": "Ikebukuro",
+              "anchor": {
+                "latitude": 35.7295,
+                "longitude": 139.7130
+              },
+              "boundingBox": {
+                "south": 35.725,
+                "west": 139.708,
+                "north": 35.734,
+                "east": 139.718
+              },
+              "focusBuildingName": "Sunshine 60",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Ikebukuro.json",
+              "supportsAR": false
+            },
+            {
+              "id": "Ueno",
+              "displayName": "Ueno",
+              "anchor": {
+                "latitude": 35.7141,
+                "longitude": 139.7774
+              },
+              "boundingBox": {
+                "south": 35.710,
+                "west": 139.773,
+                "north": 35.718,
+                "east": 139.782
+              },
+              "focusBuildingName": "Tokyo National Museum",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Ueno.json",
+              "supportsAR": false
+            },
+            {
+              "id": "Tsukiji",
+              "displayName": "Tsukiji",
+              "anchor": {
+                "latitude": 35.6654,
+                "longitude": 139.7707
+              },
+              "boundingBox": {
+                "south": 35.662,
+                "west": 139.766,
+                "north": 35.669,
+                "east": 139.775
+              },
+              "focusBuildingName": "Tsukiji Market",
+              "moodKey": "shibuyaNeon",
+              "dataBundled": true,
+              "dataPath": "Districts/Tsukiji.json",
+              "supportsAR": false
             }
           ]
         }

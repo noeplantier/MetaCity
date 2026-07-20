@@ -1,0 +1,65 @@
+{
+  "districtId": "Harajuku",
+  "pois": [
+    {
+      "id": "takeshita_street",
+      "name": "Takeshita Street",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.6712,
+      "longitude": 139.7030,
+      "description": "The iconic pedestrian street of Harajuku — 400m of crepe stands, vintage shops, and street fashion. Peak chaos on weekends when cosplayers and rockabilly dancers take over.",
+      "partnerURL": null
+    },
+    {
+      "id": "meiji_shrine",
+      "name": "Meiji Shrine",
+      "category": "temple",
+      "tier": "featured",
+      "latitude": 35.6764,
+      "longitude": 139.6993,
+      "description": "Shinto shrine dedicated to Emperor Meiji and Empress Shōken (1920). The 100-year-old forest of 100,000 trees was donated by the Japanese people. Massive torii gates mark the entrance.",
+      "partnerURL": null
+    },
+    {
+      "id": "yoyogi_park",
+      "name": "Yoyogi Park",
+      "category": "park",
+      "tier": "standard",
+      "latitude": 35.6718,
+      "longitude": 139.6986,
+      "description": "54-hectare park in the heart of Tokyo. Cherry blossoms in spring, maple leaves in autumn. Weekends see rockabilly dancers near the entrance and drum circles near the pond.",
+      "partnerURL": null
+    },
+    {
+      "id": "omotesando",
+      "name": "Omotesando Avenue",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6656,
+      "longitude": 139.7123,
+      "description": "Tokyo's Champs-Élysées — 1km zelkova-tree-lined boulevard leading to Meiji Shrine. Flagship stores: Prada, Dior, Omotesando Hills (Tadao Ando, 2006).",
+      "partnerURL": null
+    },
+    {
+      "id": "togo_shrine",
+      "name": "Togo Shrine",
+      "category": "temple",
+      "tier": "standard",
+      "latitude": 35.6701,
+      "longitude": 139.7045,
+      "description": "Small but popular Shinto shrine dedicated to Admiral Togo Heihachiro (victor of the 1905 Battle of Tsushima). Famous for matchmaking and maritime blessings.",
+      "partnerURL": null
+    },
+    {
+      "id": "ura_harajuku",
+      "name": "Ura-Harajuku",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6698,
+      "longitude": 139.7067,
+      "description": "The backstreets of Harajuku — Cat Street and the lanes between Omotesando and Shibuya. Independent boutiques, craft cafes, and street art. Less crowded than Takeshita.",
+      "partnerURL": null
+    }
+  ]
+}
