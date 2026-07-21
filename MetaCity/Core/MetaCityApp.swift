@@ -14,7 +14,8 @@ struct MetaCityApp: App {
         // GoogleService-Info.plist isn't in the bundle, and that file is gitignored (see
         // .gitignore) since this repo is public. Anyone without it still gets a fully working
         // app on the in-memory mocks — see `AppEnvironment.defaultAuthRepository()`.
-        if Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
+        let skipAuth = ProcessInfo.processInfo.environment["UITEST_SKIP_AUTH"] == "1"
+        if !skipAuth && Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
             FirebaseApp.configure()
             // GoogleSignIn reuses the OAuth client ID Firebase already has from the plist, so
             // there's nothing Google-specific to configure by hand here.

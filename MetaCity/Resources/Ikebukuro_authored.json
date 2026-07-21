@@ -1,0 +1,93 @@
+{
+  "districtId": "Ikebukuro",
+  "overrides": [
+    {
+      "nameMatch": "サンシャイン60",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 240.0
+    },
+    {
+      "nameMatch": "Sunshine 60",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 240.0
+    },
+    {
+      "nameMatch": "Sunshine City",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 240.0
+    },
+    {
+      "nameMatch": "東京芸術劇場",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 58.0
+    },
+    {
+      "nameMatch": "Tokyo Metropolitan Theatre",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 58.0
+    },
+    {
+      "nameMatch": "東武百貨店",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 86.0
+    },
+    {
+      "nameMatch": "Tobu Department Store",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 86.0
+    },
+    {
+      "nameMatch": "西武池袋",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 78.0
+    },
+    {
+      "nameMatch": "Seibu Ikebukuro",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 78.0
+    },
+    {
+      "nameMatch": "池袋駅",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "Ikebukuro Station",
+      "style": "government",
+      "roofType": "flat"
+    },
+    {
+      "nameMatch": "アニメイト池袋",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 36.0
+    },
+    {
+      "nameMatch": "Animate Ikebukuro",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 36.0
+    },
+    {
+      "nameMatch": "ヤマダ電機",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 42.0
+    },
+    {
+      "nameMatch": "自由学園明日館",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 8.0
+    }
+  ]
+}

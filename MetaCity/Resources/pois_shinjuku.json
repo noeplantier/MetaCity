@@ -2,53 +2,53 @@
   "districtId": "Shinjuku",
   "pois": [
     {
+      "id": "tokyo_metropolitan_gov",
+      "name": "Tokyo Metropolitan Government Building",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.6896,
+      "longitude": 139.6922,
+      "description": "Twin-towered civic skyscraper (243 m, 1991) by Kenzo Tange. The free observation deck on floor 45 is open until 23h — Tokyo's best free panorama, with Shinjuku, Fuji and Tokyo Bay visible on clear days.",
+      "partnerURL": null
+    },
+    {
+      "id": "kabukicho",
+      "name": "Kabukicho",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.6940,
+      "longitude": 139.7034,
+      "description": "Tokyo's most intense entertainment and nightlife district: cinema towers, izakayas, host clubs, karaoke buildings, and a Godzilla head on the Toho Cinemas building. The Tokyu Kabukicho Tower (2023, 192 m) anchors the new Kabukicho Square redevelopment.",
+      "partnerURL": null
+    },
+    {
       "id": "shinjuku_gyoen",
-      "name": "Shinjuku Gyoen National Garden",
-      "category": "explore",
+      "name": "Shinjuku Gyoen",
+      "category": "attraction",
       "tier": "featured",
-      "latitude": 35.6851,
+      "latitude": 35.6852,
       "longitude": 139.7100,
-      "description": "One of Tokyo's largest parks — 58 hectares mixing French formal garden, English landscape garden, and Japanese traditional garden. A national garden (imperial retreat until 1949). The most celebrated hanami spot in Tokyo: 1,100 cherry trees of 65 varieties bloom March to May.",
+      "description": "58-hectare national garden blending French formal, English landscape and Japanese traditional styles. Tokyo's premier hanami spot in late March — over 1,100 cherry trees of 65 varieties. Once an imperial retreat until 1949.",
       "partnerURL": null
     },
     {
-      "id": "cocoon_tower",
-      "name": "Mode Gakuen Cocoon Tower",
-      "category": "landmark",
-      "tier": "featured",
-      "latitude": 35.6912,
-      "longitude": 139.6966,
-      "description": "At 200m and 50 floors, the Cocoon Tower is one of Tokyo's most distinctive skyscrapers — its interlocking diamond-mesh exoskeleton wraps the building like a cocoon. Home to Mode Gakuen (fashion/design), Tokyo Medical & Dental University, and HAL Tokyo (IT). Completed 2008.",
+      "id": "omoide_yokocho",
+      "name": "Omoide Yokocho",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6916,
+      "longitude": 139.6988,
+      "description": "Memory Lane — a narrow alley of tiny yakitori and kushiyaki bars dating from the post-WWII era. Smoke, skewers and Sapporo beer under lanterns, steps from the station's west exit.",
       "partnerURL": null
     },
     {
-      "id": "kabukicho_tower",
-      "name": "Tokyu Kabukicho Tower",
-      "category": "landmark",
-      "tier": "featured",
-      "latitude": 35.6962,
-      "longitude": 139.7038,
-      "description": "Tokyo's newest mixed-use megastructure (2023, 192m), towering over Kabukicho — the city's most intense entertainment district. Contains a cinema complex, live music venues, hotels, restaurants, and a rooftop observation deck. The anchoring landmark of the new Kabukicho Square redevelopment.",
-      "partnerURL": null
-    },
-    {
-      "id": "nomura_building",
-      "name": "Shinjuku Nomura Building",
+      "id": "jr_shinjuku_station",
+      "name": "JR Shinjuku Station",
       "category": "landmark",
       "tier": "standard",
-      "latitude": 35.6920,
-      "longitude": 139.6959,
-      "description": "The tallest building in Shinjuku at 220m (1978). One of the original 'Skyscraper District' towers — the first cluster of high-rises west of Shinjuku Station that transformed Tokyo's skyline. The observation deck on the 50th floor offers panoramic views over the city.",
-      "partnerURL": null
-    },
-    {
-      "id": "hanazono_shrine",
-      "name": "Hanazono Shrine",
-      "category": "landmark",
-      "tier": "standard",
-      "latitude": 35.6932,
-      "longitude": 139.7043,
-      "description": "A quiet Shinto shrine tucked between the glass towers and the neon of Kabukicho. Founded in the Edo period, it's considered the guardian shrine of Shinjuku. The night-lit vermillion torii gates, just steps from the entertainment district, are a famous contrast of sacred and profane Tokyo.",
+      "latitude": 35.6905,
+      "longitude": 139.6995,
+      "description": "World's busiest railway station: 200 exits, 50 platforms, 3.5 million passengers per day across JR, Tokyo Metro and private lines. The South Exit terrace overlooks the station concourse.",
       "partnerURL": null
     }
   ]

@@ -920,8 +920,8 @@
           "displayName": "Los Angeles",
           "shortName": "LA",
           "anchor": {
-            "latitude": 34.040,
-            "longitude": -118.250
+            "latitude": 34.04,
+            "longitude": -118.25
           },
           "mapZoomRadius": 12000,
           "markerColor": "#E8855A",
@@ -931,8 +931,8 @@
               "id": "DowntownLA",
               "displayName": "Downtown LA",
               "anchor": {
-                "latitude": 34.040,
-                "longitude": -118.250
+                "latitude": 34.04,
+                "longitude": -118.25
               },
               "boundingBox": {
                 "south": 34.033,
@@ -949,11 +949,11 @@
               "id": "Hollywood",
               "displayName": "Hollywood",
               "anchor": {
-                "latitude": 34.100,
-                "longitude": -118.330
+                "latitude": 34.1,
+                "longitude": -118.33
               },
               "boundingBox": {
-                "south": 34.090,
+                "south": 34.09,
                 "west": -118.345,
                 "north": 34.115,
                 "east": -118.315
@@ -1012,7 +1012,7 @@
               "boundingBox": {
                 "south": 35.686,
                 "west": 139.695,
-                "north": 35.700,
+                "north": 35.7,
                 "east": 139.708
               },
               "focusBuildingName": "Nomura Building",
@@ -1050,7 +1050,7 @@
               "boundingBox": {
                 "south": 35.711,
                 "west": 139.793,
-                "north": 35.720,
+                "north": 35.72,
                 "east": 139.803
               },
               "focusBuildingName": "Senso-ji Temple",
@@ -1068,7 +1068,7 @@
               },
               "boundingBox": {
                 "south": 35.695,
-                "west": 139.770,
+                "west": 139.77,
                 "north": 35.702,
                 "east": 139.776
               },
@@ -1120,6 +1120,7 @@
               "id": "Harajuku",
               "displayName": "Harajuku",
               "anchor": {
+<<<<<<< HEAD
                 "latitude": 35.6712,
                 "longitude": 139.7030
               },
@@ -1130,6 +1131,18 @@
                 "east": 139.708
               },
               "focusBuildingName": "Takeshita Street",
+=======
+                "latitude": 35.6702,
+                "longitude": 139.7027
+              },
+              "boundingBox": {
+                "south": 35.665,
+                "west": 139.695,
+                "north": 35.678,
+                "east": 139.713
+              },
+              "focusBuildingName": "Omotesando Hills",
+>>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
               "moodKey": "shibuyaNeon",
               "dataBundled": true,
               "dataPath": "Districts/Harajuku.json",
@@ -1139,6 +1152,7 @@
               "id": "Ikebukuro",
               "displayName": "Ikebukuro",
               "anchor": {
+<<<<<<< HEAD
                 "latitude": 35.7295,
                 "longitude": 139.7130
               },
@@ -1146,6 +1160,15 @@
                 "south": 35.725,
                 "west": 139.708,
                 "north": 35.734,
+=======
+                "latitude": 35.73,
+                "longitude": 139.7109
+              },
+              "boundingBox": {
+                "south": 35.724,
+                "west": 139.705,
+                "north": 35.736,
+>>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
                 "east": 139.718
               },
               "focusBuildingName": "Sunshine 60",
@@ -1158,6 +1181,7 @@
               "id": "Ueno",
               "displayName": "Ueno",
               "anchor": {
+<<<<<<< HEAD
                 "latitude": 35.7141,
                 "longitude": 139.7774
               },
@@ -1191,6 +1215,22 @@
               "dataBundled": true,
               "dataPath": "Districts/Tsukiji.json",
               "supportsAR": false
+=======
+                "latitude": 35.7148,
+                "longitude": 139.7764
+              },
+              "boundingBox": {
+                "south": 35.706,
+                "west": 139.77,
+                "north": 35.722,
+                "east": 139.784
+              },
+              "focusBuildingName": "Tokyo National Museum",
+              "moodKey": "sacredSite",
+              "dataBundled": true,
+              "dataPath": "Districts/Ueno.json",
+              "supportsAR": false
+>>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
             }
           ]
         }

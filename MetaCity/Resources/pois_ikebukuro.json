@@ -2,6 +2,7 @@
   "districtId": "Ikebukuro",
   "pois": [
     {
+<<<<<<< HEAD
       "id": "sunshine_60",
       "name": "Sunshine 60",
       "category": "attraction",
@@ -9,11 +10,21 @@
       "latitude": 35.7295,
       "longitude": 139.7130,
       "description": "Tokyo's tallest building from 1978–1990 (240m). The observation deck at 60th floor offers views of Tokyo Bay, Mt. Fuji, and the entire Kanto plain. The building contains an aquarium, planetarium, and 300+ shops.",
+=======
+      "id": "sunshine_city_60",
+      "name": "Sunshine 60",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.7293,
+      "longitude": 139.7199,
+      "description": "240 m skyscraper (1978), Japan's tallest building for 7 years. The Sky Circus observation deck on floor 60 gives a 360° panorama of the Kanto plain — Mt Fuji and Yokohama Bay visible on clear winter days.",
+>>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
       "partnerURL": null
     },
     {
       "id": "ikebukuro_station",
       "name": "Ikebukuro Station",
+<<<<<<< HEAD
       "category": "transport",
       "tier": "featured",
       "latitude": 35.7295,
@@ -63,3 +74,44 @@
     }
   ]
 }
+=======
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.7300,
+      "longitude": 139.7109,
+      "description": "The second-busiest station in Japan — 2.5 million passengers daily across JR Yamanote, Saikyo, Shonan-Shinjuku lines, Tokyo Metro Marunouchi and Fukutoshin lines, and Seibu/Tobu private railways. 60+ exits connect a vast underground shopping city.",
+      "partnerURL": null
+    },
+    {
+      "id": "sunshine_city",
+      "name": "Sunshine City",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.7285,
+      "longitude": 139.7193,
+      "description": "A 60,000 sqm urban resort built on the former site of Sugamo Prison (1978). 4 interconnected buildings: the Sunshine 60 tower, a 4-floor aquarium, the ancient Rome-replica Alpa shopping mall, and the Bunka Kaikan theatre. Tokyo's original city-within-a-city.",
+      "partnerURL": null
+    },
+    {
+      "id": "otome_road",
+      "name": "Otome Road",
+      "category": "explore",
+      "tier": "standard",
+      "latitude": 35.7303,
+      "longitude": 139.7188,
+      "description": "Ikebukuro's answer to Akihabara — a street of shops catering specifically to female fans of manga, anime, and BL (boys' love) content. Shops like K-BOOKS and Animate Lady draw Tokyo's largest community of female otaku.",
+      "partnerURL": null
+    },
+    {
+      "id": "animate_ikebukuro",
+      "name": "Animate Ikebukuro",
+      "category": "shopping",
+      "tier": "standard",
+      "latitude": 35.7296,
+      "longitude": 139.7183,
+      "description": "8-floor flagship of Japan's largest anime/manga retail chain — 50,000+ items across manga volumes, figures, cosplay materials, and doujinshi. Ikebukuro's otaku heartland, rivalling Akihabara in scale and breadth.",
+      "partnerURL": null
+    }
+  ]
+}
+>>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)

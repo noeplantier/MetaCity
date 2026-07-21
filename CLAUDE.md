@@ -1,4 +1,56 @@
+<<<<<<< HEAD
 # MetaCity — Clean + POI Reality Max Implementation
+=======
+# MetaCity — Day-only mode + Tokyo sky fix + POI Mode
+
+## Date: 2026-07-21
+
+### Night mode removed — build-verified 2026-07-21
+
+- `@Published var isNightMode: Bool` removed from `DiscoverViewModel` (line 126)
+- `isNightMode = false` reset in `back()` removed
+- Night toggle button (sun/moon icon) removed from `districtExploreOverlay` in `DiscoverView`
+- `isNight: viewModel.isNightMode` → `isNight: false` hardcoded in `DistrictRealityView` init call
+- Night mode rebuild block (`if isNight != currentIsNight { ... }`) removed from `DistrictRealityView.update`
+- `DistrictRealityKit.loadDistrictEntity` and `DistrictRealityScene.installLighting` retain `isNight:` parameter (callers always pass `false`) — no deep refactor needed
+- Cache key `"\(name)_false"` is now the only key ever written
+
+### shibuyaNeon sky fixed (Tokyo day sky) — build-verified 2026-07-21
+
+- `DistrictRealityScene.Mood.shibuyaNeon` sky colors changed from magenta-pink evening to clear Tokyo day sky:
+  - Zenith: `UIColor(0.26, 0.44, 0.82)` — crisp cerulean blue
+  - Horizon: `UIColor(0.62, 0.76, 0.92)` — pale blue-white Kanto haze
+  - Ground: `UIColor(0.22, 0.22, 0.26)` — warm grey concrete
+- Affects all 10 Tokyo districts (all use `shibuyaNeon` except Asakusa which uses `sacredSite`)
+
+### POI Mode (replaces ZOOM) — screenshot-verified 2026-07-21
+
+- `ViewPreset.focus` label changed from **ZOOM** → **POI**, icon from `scope` → `mappin.and.ellipse`
+- `setViewPreset(.focus)` guard removed — POI mode now activates without a selected building
+- `DistrictMiniMapView` shows `MiniPOIListView` (dark scrollable list) when `activePreset == .focus`
+- `MiniPOIListView` loads via `CangguPOICollection.load(for: districtId)`, renders all 5 POIs per district
+- Callsite in `DiscoverView.districtExploreOverlay` passes `onPOISelected` closure
+- Firebase skip-auth fix: `MetaCityApp.init` now guards `FirebaseApp.configure()` behind `!skipAuth` so `SIMCTL_CHILD_UITEST_SKIP_AUTH=1` bypass works correctly
+
+### All 10 Tokyo POI files (5 POIs each, verified against brief) — 2026-07-21
+
+| District   | POIs (in order)                                                                       |
+|------------|---------------------------------------------------------------------------------------|
+| Shibuya    | Scramble Crossing ★, Hachiko Statue ★, Shibuya 109 ★, Center-gai, Scramble Square    |
+| Shinjuku   | Tokyo Metropolitan Govt ★, Kabukicho ★, Shinjuku Gyoen ★, Omoide Yokocho, JR Shinjuku |
+| Ginza      | Wako Building ★, GINZA SIX ★, Kabuki-za Theatre ★, Ginza Shopping St, Mitsukoshi     |
+| Asakusa    | Senso-ji ★, Kaminarimon ★, Nakamise ★, Asakusa Shrine, Sumida Park                   |
+| Akihabara  | Akihabara Station ★, Animate ★, Yodobashi Camera ★, Super Potato, Kanda Myojin       |
+| Roppongi   | Roppongi Hills ★, Mori Art Museum ★, Tokyo City View ★, Roppongi Station, Nightlife   |
+| Odaiba     | Gundam Statue ★, teamLab Planets ★, Tokyo Big Sight ★, Palette Town, Seaside Park    |
+| Harajuku   | Takeshita Street ★, Meiji Jingu ★, Yoyogi Park ★, Omotesando, Harajuku Station       |
+| Ikebukuro  | Sunshine 60 ★, Ikebukuro Station ★, Sunshine City ★, Otome Road, Animate Ikebukuro  |
+| Ueno       | Ueno Park ★, Tokyo National Museum ★, Ueno Zoo, Ueno Station, Ameyoko                |
+
+★ = featured tier (filled mappin.circle.fill icon)
+
+---
+>>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
 
 ## Date: 2026-07-20
 

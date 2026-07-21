@@ -8,7 +8,7 @@
       "tier": "featured",
       "latitude": 35.6604,
       "longitude": 139.7293,
-      "description": "A revolutionary mixed-use development (2003) by Mori Building — 54-storey tower, 200+ shops, 21 restaurants, cinemas, and the Mori Art Museum on the 53rd floor. The 45m 'Mori Garden' preserves the historic Akasaka Moto-Kiyozumi mansion grounds. A city-within-a-city that redefined Tokyo's urban planning.",
+      "description": "Revolutionary mixed-use complex (2003) by Mori Building — 54-storey Mori Tower, 200+ shops, 21 restaurants, cinemas, and the Mori Art Museum on the 53rd floor. The 45m Mori Garden preserves a historic mansion garden at the heart of Tokyo's most ambitious urban development.",
       "partnerURL": null
     },
     {
@@ -17,38 +17,38 @@
       "category": "culture",
       "tier": "featured",
       "latitude": 35.6604,
-      "longitude": 139.7293,
-      "description": "Tokyo's premier contemporary art museum, located on the 53rd floor of Roppongi Hills. The 'Mori Building Digital Art Museum' collaboration with teamLab has drawn over 10 million visitors. The museum's mission is to bring contemporary art to a mass audience — no permanent collection, only boundary-pushing temporary exhibitions.",
+      "longitude": 139.7297,
+      "description": "Tokyo's premier contemporary art museum on the 53rd floor of Mori Tower. No permanent collection — only boundary-pushing temporary exhibitions. The adjacent Tokyo City View observation deck wraps the same floor with a 360° panorama at 238 m.",
       "partnerURL": null
     },
     {
-      "id": "tokyo_tower_view",
-      "name": "Tokyo Tower Observatory",
+      "id": "tokyo_city_view",
+      "name": "Tokyo City View",
       "category": "attraction",
       "tier": "featured",
-      "latitude": 35.6586,
-      "longitude": 139.7454,
-      "description": "The iconic 333m communications tower (1958) — Tokyo's answer to the Eiffel Tower, but 13m taller. The Main Deck (150m) and Top Deck (250m) offer panoramic views. Illuminated in orange (standard) or gold (special occasions), it's the defining silhouette of Tokyo's skyline.",
+      "latitude": 35.6603,
+      "longitude": 139.7299,
+      "description": "The open-air 'Sky Deck' observation platform at the top of Mori Tower (270 m) — Tokyo's highest outdoor viewing point. 360° panorama stretching to Mt Fuji, Tokyo Bay, and Skytree. The glass-walled indoor City View on floor 52 wraps the same building.",
+      "partnerURL": null
+    },
+    {
+      "id": "roppongi_station",
+      "name": "Roppongi Station",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": 35.6628,
+      "longitude": 139.7319,
+      "description": "The crossroads of two Tokyo Metro lines (Hibiya and Oedo) and the gateway to the district. The station's giant spider sculpture ('Maman' by Louise Bourgeois, on permanent loan from Mori Building) greets visitors at the Roppongi Hills exit.",
       "partnerURL": null
     },
     {
       "id": "roppongi_nightlife",
-      "name": "Roppongi Nightlife District",
+      "name": "Roppongi Nightlife Zone",
       "category": "explore",
       "tier": "standard",
       "latitude": 35.6628,
       "longitude": 139.7312,
-      "description": "Tokyo's most international nightlife district — bars, clubs, and restaurants catering to expats and tourists. The 'Roppongi Crossing' area around the intersection is the epicentre, with everything from tiny izakaya to superclubs. The area has gentrified significantly since the 2000s, shedding its seedy reputation.",
-      "partnerURL": null
-    },
-    {
-      "id": "21_21_design_sight",
-      "name": "21_21 Design Sight",
-      "category": "culture",
-      "tier": "standard",
-      "latitude": 35.6658,
-      "longitude": 139.7315,
-      "description": "A design museum founded by Issey Miyake and Tadao Ando (2007). The concrete structure with its 16m glass atrium is itself a masterpiece. Exhibitions focus on industrial design, architecture, and everyday objects — the 2023 'Design for the Future' show drew 500,000 visitors.",
+      "description": "Tokyo's most international entertainment district — bars, clubs, restaurants and live venues around the Roppongi Crossing intersection. The area has reinvented itself since 2003: Art Triangle Roppongi (Mori, National Art Center, Suntory Museum) now rivals the nightlife scene in cultural weight.",
       "partnerURL": null
     }
   ]

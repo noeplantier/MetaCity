@@ -211,9 +211,9 @@ enum DistrictRealityScene {
                 // very dark asphalt ground.
                 (UIColor(red: 0.16, green: 0.22, blue: 0.48, alpha: 1), UIColor(red: 0.72, green: 0.54, blue: 0.32, alpha: 1), UIColor(red: 0.20, green: 0.18, blue: 0.16, alpha: 1))
             case .shibuyaNeon:
-                // Tokyo commercial evening — deep indigo zenith (city light haze), electric magenta-pink
-                // horizon glow from neon signage and building illumination, very dark wet asphalt ground.
-                (UIColor(red: 0.14, green: 0.18, blue: 0.44, alpha: 1), UIColor(red: 0.62, green: 0.28, blue: 0.58, alpha: 1), UIColor(red: 0.10, green: 0.10, blue: 0.14, alpha: 1))
+                // Tokyo commercial day — crisp cerulean zenith, pale blue-white haze on the horizon
+                // (urban particulates over the Kanto plain), warm grey concrete ground.
+                (UIColor(red: 0.26, green: 0.44, blue: 0.82, alpha: 1), UIColor(red: 0.62, green: 0.76, blue: 0.92, alpha: 1), UIColor(red: 0.22, green: 0.22, blue: 0.26, alpha: 1))
             case .laSunset:
                 // Pacific golden-hour — deep blue zenith (smog-filtered), blazing orange-amber horizon
                 // (sun just below the Hollywood Hills), warm bleached-asphalt ground.

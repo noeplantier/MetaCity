@@ -15,16 +15,20 @@
 		05FC897ADFECA031FDA0DA5D /* SecondaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C98A1DE348715CEEAC9DF8 /* SecondaryButton.swift */; };
 		068432A4D04558889720E4A7 /* ActivityEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C283A461112F20A88A2D82 /* ActivityEntry.swift */; };
 		08230373213CCC693F88C8BD /* Elevation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 659ED1362E9EC00D6660B67F /* Elevation.swift */; };
+		09CBEFA3921F3470BEE64E2B /* Ueno.json in Resources */ = {isa = PBXBuildFile; fileRef = C8F71BC6E7B3F4BADB508575 /* Ueno.json */; };
 		0AFDF191591A1875B34AD1BC /* places_losangeles.json in Resources */ = {isa = PBXBuildFile; fileRef = C64A8C0F3C0D0C343042B732 /* places_losangeles.json */; };
 		0BA6FEE3C8038430338264F4 /* places_paris.json in Resources */ = {isa = PBXBuildFile; fileRef = 2AC7E659AA7A883EE1271D38 /* places_paris.json */; };
 		0C4C618D9AF9F07BD8623276 /* AuthViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D4DF3B4B556265B61A064EB /* AuthViewModelTests.swift */; };
 		0C6CB848A1A18C498656E639 /* AppTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8F9ADAD5F656151AA57120D /* AppTextFieldStyle.swift */; };
 		0EF5644361672E572E7C0147 /* PlaceEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5343F99685D0291856F0817 /* PlaceEntry.swift */; };
+		1018D49333C777FBC905902E /* pois_roppongi.json in Resources */ = {isa = PBXBuildFile; fileRef = 55FB858AA887F49CC704F05E /* pois_roppongi.json */; };
 		12BAE1E8428A6A3E42F04B91 /* UserPreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13F2E2785A749F58E7198548 /* UserPreferencesStore.swift */; };
+		13EDCBBD9223BFAAFBFEA4B6 /* Harajuku_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = C3F36562E1A797E50592A67F /* Harajuku_authored.json */; };
 		145AD17563E51B5E65130AC4 /* activities_jakarta.json in Resources */ = {isa = PBXBuildFile; fileRef = CB01B813A7B8A7D6634AE881 /* activities_jakarta.json */; };
 		1566A35C54FFC96A10822433 /* AuthRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D17F8E30FE7924FBEA12191 /* AuthRepository.swift */; };
 		15BC94727D9CC62749799F64 /* Kraton.json in Resources */ = {isa = PBXBuildFile; fileRef = 32F875E7E0E969798841551B /* Kraton.json */; };
 		15D805372B3E001ED0FA91CD /* activities_uluwatu.json in Resources */ = {isa = PBXBuildFile; fileRef = 93DE9663D0BD869B8745D574 /* activities_uluwatu.json */; };
+		16E21EB8A7D70893E05C534F /* pois_ueno.json in Resources */ = {isa = PBXBuildFile; fileRef = 500F75216361C4028DFE7FEC /* pois_ueno.json */; };
 		198945B44CED1D98793E6A65 /* CityManifest.json in Resources */ = {isa = PBXBuildFile; fileRef = C351AC70EFE2A872C05B3197 /* CityManifest.json */; };
 		1ADE3362FD67BE9406C4BBC2 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3800E35D4C98E5131A479B90 /* FirebaseAuth */; };
 		1C8D1C2C9E549B55FF10EC5C /* BiometricAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5EC01BE3E217C6FA93DF8F /* BiometricAuthenticator.swift */; };
@@ -34,6 +38,7 @@
 		1E15964774FBE6B1CF574053 /* LaDefense.json in Resources */ = {isa = PBXBuildFile; fileRef = 9BA896A88F4AF95E4CD9A11A /* LaDefense.json */; };
 		1F8176D633555EB7193E4BCA /* Kraton_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = 257DCAB995D49550B6785E7E /* Kraton_authored.json */; };
 		210ED6C97EA45E39645A4030 /* SaintGermain.json in Resources */ = {isa = PBXBuildFile; fileRef = 4073CE4777854FF68318359B /* SaintGermain.json */; };
+		225B66B17B32DA68E143D4DE /* pois_odaiba.json in Resources */ = {isa = PBXBuildFile; fileRef = C000E7B700732A1E83EC7A92 /* pois_odaiba.json */; };
 		2374E2EC0157C6A96FD99EB9 /* pois_menteng.json in Resources */ = {isa = PBXBuildFile; fileRef = 31644AB133CF25E213B75DE9 /* pois_menteng.json */; };
 		26A15B9E036CD1930E018855 /* Spacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22D2D3B728387A11706945DA /* Spacing.swift */; };
 		2772AA3F9100EC07900E9F7B /* HomeTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8627C3D62FEE56373A63F447 /* HomeTabView.swift */; };
@@ -57,18 +62,23 @@
 		3B028D59A9365A79F7DB23A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0D6441FEB3023748D664A76F /* Assets.xcassets */; };
 		3B91FCAB35648FA61FFC3378 /* Coordinate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAA6BA55DBE052327B2A36CE /* Coordinate.swift */; };
 		3B9C6CE46D8482F55DE25099 /* VancouverDowntown.json in Resources */ = {isa = PBXBuildFile; fileRef = 01A151083E85C11F7CC31145 /* VancouverDowntown.json */; };
+		3BD2DFA80A21FA438CCF2059 /* pois_harajuku.json in Resources */ = {isa = PBXBuildFile; fileRef = 3E055F579818B11F6E4D4FF0 /* pois_harajuku.json */; };
 		3CA2C76FDB8DC3F53C98F8C5 /* LesChartrons.json in Resources */ = {isa = PBXBuildFile; fileRef = 7C5F1EF28120DC99AC55FE51 /* LesChartrons.json */; };
 		3E5DF8019E4BCA61B7A58478 /* CityOfLondon_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = 49B8288432E8F9CA60C4B5DA /* CityOfLondon_authored.json */; };
 		3F3405E9D395ED2298FE7FA0 /* activities_london.json in Resources */ = {isa = PBXBuildFile; fileRef = AD6D4C8F3ECA422263DFE932 /* activities_london.json */; };
 		4013BEAA63A282708AFC468C /* activities_yogyakarta.json in Resources */ = {isa = PBXBuildFile; fileRef = A3E8CEBD06733D5960F5CCEC /* activities_yogyakarta.json */; };
 		4118FBFDD6A12A7B818337D6 /* WestEnd.json in Resources */ = {isa = PBXBuildFile; fileRef = 0834DB9D6BE112B4C013ADE2 /* WestEnd.json */; };
 		440D8D744402525219B21F93 /* pois_saintgermain.json in Resources */ = {isa = PBXBuildFile; fileRef = D46949B7785E7F27FC48B5F6 /* pois_saintgermain.json */; };
+		441C247DA4F1DFB10BCAC15B /* Odaiba.json in Resources */ = {isa = PBXBuildFile; fileRef = 6F1EA3793C8FB679DC060E94 /* Odaiba.json */; };
+		44C452F417A42BC5057C2B6D /* Ikebukuro_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = B33A8A20C1E5DC70D449AF43 /* Ikebukuro_authored.json */; };
 		44EE874222D91562FEA0DCC3 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B938C78F51CD23D57FEA9E9C /* DiscoverView.swift */; };
 		45F9F4640296ABE0E29F0E97 /* Uluwatu.json in Resources */ = {isa = PBXBuildFile; fileRef = 06DDE4440B2EA85213F6AFD3 /* Uluwatu.json */; };
+		477911EBC40F0E75730365A3 /* Roppongi.json in Resources */ = {isa = PBXBuildFile; fileRef = B14FD86A872F4C18A9D20B82 /* Roppongi.json */; };
 		48453B830F852470090A885E /* places_bandung.json in Resources */ = {isa = PBXBuildFile; fileRef = 8458A4A10B5596C9FDFA4F06 /* places_bandung.json */; };
 		48B961EAB5C27484C3988916 /* pois_salamanca.json in Resources */ = {isa = PBXBuildFile; fileRef = 9828308EEF992AAA3A6BC3C3 /* pois_salamanca.json */; };
 		49ADD6557A795D339ABBFD49 /* Shibuya.json in Resources */ = {isa = PBXBuildFile; fileRef = 645D8B637A80F8ABCEB46D63 /* Shibuya.json */; };
 		4AB57EA37B98038283DF7653 /* ActivitiesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 374CC239948B8B17F44543B3 /* ActivitiesViewModel.swift */; };
+		4D013EC579600C02E474078B /* pois_akihabara.json in Resources */ = {isa = PBXBuildFile; fileRef = 6A65E6FE3BAFF7FB1383703E /* pois_akihabara.json */; };
 		4DC625E3C5289590DE4EA0FB /* activities_paris.json in Resources */ = {isa = PBXBuildFile; fileRef = 049FF9C138BCDB5E360419E2 /* activities_paris.json */; };
 		4DFEC16071CD642506A73C72 /* Kemang_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = EBDB0483E5A79F3AD98BDAC4 /* Kemang_authored.json */; };
 		552D4AFC323F5C73A6EA9927 /* PlacesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9657337F7E1C8574B842EC /* PlacesViewModel.swift */; };
@@ -88,6 +98,7 @@
 		6D8E35FA15A4A667FDEC0B02 /* pois_centrostorico.json in Resources */ = {isa = PBXBuildFile; fileRef = D60AC7C15FC14669EB6EB150 /* pois_centrostorico.json */; };
 		6DF6933AA0F714C38F7F5AAF /* PrimaryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0799F8AA687E7FFC33D725A6 /* PrimaryButton.swift */; };
 		6E5CD93BCE4E9610D180FEAB /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F3C8F8D70A5629CDBB4ABC /* AppEnvironment.swift */; };
+		AA11BB22CC33DD44EE55FF67 /* SafeRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF66 /* SafeRun.swift */; };
 		6F7331C77358F3817A7E241C /* CityThumbnailCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20058A4256E6A4C227E60A8F /* CityThumbnailCache.swift */; };
 		70D1E202224969EED365B513 /* LoginUseCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39E5E0ADFE36E994C82BCBE8 /* LoginUseCase.swift */; };
 		70E3C6F7AFF19394506E1BB9 /* assets_manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 09CADA9C0AF3E25B054B8AF1 /* assets_manifest.json */; };
@@ -130,6 +141,7 @@
 		8FC52ED0FFA1A3325DB00E65 /* VancouverDowntown_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = 59A3EF8006901E63AFA33836 /* VancouverDowntown_authored.json */; };
 		915FBF3C364B60102F43EADB /* places_bordeaux.json in Resources */ = {isa = PBXBuildFile; fileRef = 3629BB2F55EE17FFD8510FFF /* places_bordeaux.json */; };
 		91E343D5C58ADBDDD77DB766 /* MockMapRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC1247B4269BECF19046C9C3 /* MockMapRepository.swift */; };
+		926F24C7F703554B130E77C2 /* Ueno_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = C186C3368C60C006CF092293 /* Ueno_authored.json */; };
 		929B2D00CDA086D57E73207D /* IndonesianCity.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5561A350401220A155135A /* IndonesianCity.swift */; };
 		92E5514545EE4D6D007E4FA9 /* pois_downtownla.json in Resources */ = {isa = PBXBuildFile; fileRef = 607001E880C3A8533713CC83 /* pois_downtownla.json */; };
 		938E2635D825D0A8CEC9397C /* Kuta_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = 8EEDA1A4345F3585A89D7D0F /* Kuta_authored.json */; };
@@ -144,6 +156,7 @@
 		9A95E7197A8726C779DB2D13 /* DowntownLA.json in Resources */ = {isa = PBXBuildFile; fileRef = DD973BB731E5BB508B94D6E4 /* DowntownLA.json */; };
 		9A9BE488249B01489C108DDB /* pois_seminyak.json in Resources */ = {isa = PBXBuildFile; fileRef = EA87CAAB82609BD86BC5AA02 /* pois_seminyak.json */; };
 		9B2EE2F3900A96AFFAC80E21 /* UserLocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868894038C66E53357DA79EA /* UserLocationProvider.swift */; };
+		9BB6B80850DF8D85DA1D2B19 /* Akihabara.json in Resources */ = {isa = PBXBuildFile; fileRef = 9C03F6270F9735AC80EFC849 /* Akihabara.json */; };
 		9D879D39FC336290F6F79A30 /* CityOfLondon.json in Resources */ = {isa = PBXBuildFile; fileRef = 83BE4862F2CD2CBB05815636 /* CityOfLondon.json */; };
 		9E5D810CE32D42591E2DA54F /* UserDefaultsPreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA100C36AA94FE019EDBC9 /* UserDefaultsPreferencesStore.swift */; };
 		9F568262CD23756A3A96163E /* places_yogyakarta.json in Resources */ = {isa = PBXBuildFile; fileRef = 0F6373C7249BC0111860AA0A /* places_yogyakarta.json */; };
@@ -200,6 +213,7 @@
 		E5E60F4812FBAE983B5F2E52 /* LeMarais_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = 183F87A9D55979F2A5F3C51A /* LeMarais_authored.json */; };
 		E6255C7E7F18062B8336DD24 /* pois_ancol.json in Resources */ = {isa = PBXBuildFile; fileRef = A9BAEDCE554E89DD2F2191FA /* pois_ancol.json */; };
 		E74CCAB587805B6E6F841B98 /* DiscoverViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38121D969B39BE1ACC5574C4 /* DiscoverViewModel.swift */; };
+		E80698DDBA5A452B3A7DD0C8 /* pois_ikebukuro.json in Resources */ = {isa = PBXBuildFile; fileRef = 5054A14D4F034EC5C59CBB03 /* pois_ikebukuro.json */; };
 		E81B99A2CAE7B41BE089FE48 /* activities_denpasar.json in Resources */ = {isa = PBXBuildFile; fileRef = 2F2B5596ABB759A97FD2F096 /* activities_denpasar.json */; };
 		E9FD6892B652B78B6375D2FB /* ErrorAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE060E842B49838705EAAAA9 /* ErrorAlert.swift */; };
 		EBBB277B7E223E4F34FAA938 /* pois_shinjuku.json in Resources */ = {isa = PBXBuildFile; fileRef = C5DD3FF084482D2A83637B4A /* pois_shinjuku.json */; };
@@ -207,6 +221,7 @@
 		EBF0735C75BDAA5F11BCFAA2 /* Ginza.json in Resources */ = {isa = PBXBuildFile; fileRef = FCDC9AA0A47C4B1852FD83A1 /* Ginza.json */; };
 		EC140C7660BB72885D86743F /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6DCACF1478054786022641F /* Typography.swift */; };
 		ED68A2FC558A3AB14C3A6920 /* pois_asakusa.json in Resources */ = {isa = PBXBuildFile; fileRef = 6439BECED52F19D9F4D49208 /* pois_asakusa.json */; };
+		EDB7946F77CC9A2597F95291 /* Ikebukuro.json in Resources */ = {isa = PBXBuildFile; fileRef = 9F8743F4A8488899E23FC3B1 /* Ikebukuro.json */; };
 		EE8CCED72FFF7D8BBFB4C2E5 /* pois_midtownmanhattan.json in Resources */ = {isa = PBXBuildFile; fileRef = 40D0F290EEDA3A0E1E512BFE /* pois_midtownmanhattan.json */; };
 		EEE00528B296ACA350119EB4 /* SFDowntown_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = 669F9399BACDA839BA0D0273 /* SFDowntown_authored.json */; };
 		F0CF443CA3283765740B099B /* contacts_denpasar.json in Resources */ = {isa = PBXBuildFile; fileRef = F656F40BDFFDCFC3FFC39691 /* contacts_denpasar.json */; };
@@ -216,6 +231,7 @@
 		F24FEA3E677EA64A521C0368 /* LocalAuthenticationBiometricAuthenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B107DC04384D94C318826BF9 /* LocalAuthenticationBiometricAuthenticator.swift */; };
 		F4C704414C3B69848540AFD0 /* Radius.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA9719A95A3962C952EBDD1 /* Radius.swift */; };
 		F68D7A2D99B51EFCFE5799D6 /* SurfaceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80E77685BDE08B949845DFB /* SurfaceCard.swift */; };
+		F7C0140DEF9858F32323BD0F /* Harajuku.json in Resources */ = {isa = PBXBuildFile; fileRef = 4BC0A87A4F748F5A21BB19BB /* Harajuku.json */; };
 		FA7A86D6DE4AD6AF3DD884C0 /* CallError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F267111599497D97A355136B /* CallError.swift */; };
 		FB452BA75361C76B8BF43133 /* Malasana_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = 1BC73DAEBA0CCDD85F6D337D /* Malasana_authored.json */; };
 		FE5FDBE8844E617412BE8814 /* Asakusa_authored.json in Resources */ = {isa = PBXBuildFile; fileRef = A703EDCAAC5D76F118C706C0 /* Asakusa_authored.json */; };
@@ -298,6 +314,7 @@
 		3B8D1784E6A5A1D68EA57C91 /* activities_rome.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = activities_rome.json; sourceTree = "<group>"; };
 		3C74785FD199151318DE6833 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
 		3D1E2BD59771556239B9F053 /* Seminyak_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Seminyak_authored.json; sourceTree = "<group>"; };
+		3E055F579818B11F6E4D4FF0 /* pois_harajuku.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_harajuku.json; sourceTree = "<group>"; };
 		3F6BAFC266D80AF6B040EFF5 /* LowerManhattan.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LowerManhattan.json; sourceTree = "<group>"; };
 		4069B090C757488C05513E4D /* Dago.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Dago.json; sourceTree = "<group>"; };
 		4073CE4777854FF68318359B /* SaintGermain.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SaintGermain.json; sourceTree = "<group>"; };
@@ -309,9 +326,12 @@
 		49B8288432E8F9CA60C4B5DA /* CityOfLondon_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CityOfLondon_authored.json; sourceTree = "<group>"; };
 		4A0C88BC02E09191B1AA9DFA /* Hollywood.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Hollywood.json; sourceTree = "<group>"; };
 		4AE8D9A92123B96717DFA88A /* MidtownManhattan.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MidtownManhattan.json; sourceTree = "<group>"; };
+		4BC0A87A4F748F5A21BB19BB /* Harajuku.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Harajuku.json; sourceTree = "<group>"; };
 		4C24524EBEBD482BD54EBDA6 /* places_newyork.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = places_newyork.json; sourceTree = "<group>"; };
 		4C5621F73E38DB0923A12F3A /* activities_sanfrancisco.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = activities_sanfrancisco.json; sourceTree = "<group>"; };
 		4EA402169193E6500DB97335 /* CentroStorico.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CentroStorico.json; sourceTree = "<group>"; };
+		500F75216361C4028DFE7FEC /* pois_ueno.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_ueno.json; sourceTree = "<group>"; };
+		5054A14D4F034EC5C59CBB03 /* pois_ikebukuro.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_ikebukuro.json; sourceTree = "<group>"; };
 		506225FA1D1F3C3D2A35DF0B /* LoginUseCaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginUseCaseTests.swift; sourceTree = "<group>"; };
 		5159AC407BABF544CD26F483 /* places_london.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = places_london.json; sourceTree = "<group>"; };
 		515AD9798760971FDADBC73A /* Malasana.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Malasana.json; sourceTree = "<group>"; };
@@ -320,6 +340,7 @@
 		5397B65FE1F4F4B27863C2A4 /* Ancol_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Ancol_authored.json; sourceTree = "<group>"; };
 		53C98A1DE348715CEEAC9DF8 /* SecondaryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryButton.swift; sourceTree = "<group>"; };
 		551946CCC4CF156D9CB19812 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		55FB858AA887F49CC704F05E /* pois_roppongi.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_roppongi.json; sourceTree = "<group>"; };
 		57EF896D40047DA173FD37B7 /* contacts_bandung.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = contacts_bandung.json; sourceTree = "<group>"; };
 		588AD64178F1EF9DCBAC3414 /* Shinjuku_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Shinjuku_authored.json; sourceTree = "<group>"; };
 		59A3EF8006901E63AFA33836 /* VancouverDowntown_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VancouverDowntown_authored.json; sourceTree = "<group>"; };
@@ -335,6 +356,8 @@
 		667518CEDAF585BB3EF03FA9 /* Menteng.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Menteng.json; sourceTree = "<group>"; };
 		669F9399BACDA839BA0D0273 /* SFDowntown_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SFDowntown_authored.json; sourceTree = "<group>"; };
 		66C7DB44ACC0F8FFA1CEED02 /* DistrictRealityScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistrictRealityScene.swift; sourceTree = "<group>"; };
+		6A65E6FE3BAFF7FB1383703E /* pois_akihabara.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_akihabara.json; sourceTree = "<group>"; };
+		6F1EA3793C8FB679DC060E94 /* Odaiba.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Odaiba.json; sourceTree = "<group>"; };
 		70C283A461112F20A88A2D82 /* ActivityEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityEntry.swift; sourceTree = "<group>"; };
 		74121E49EAC1115F531DF4C1 /* CityMarkerRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityMarkerRenderer.swift; sourceTree = "<group>"; };
 		7ADDFF3D6EFBC21D1E509DD8 /* places_vancouver.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = places_vancouver.json; sourceTree = "<group>"; };
@@ -367,9 +390,11 @@
 		98C1567FE64A8BBC63824FCA /* VieuxBordeaux.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = VieuxBordeaux.json; sourceTree = "<group>"; };
 		9BA896A88F4AF95E4CD9A11A /* LaDefense.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LaDefense.json; sourceTree = "<group>"; };
 		9BA9F0B27CEF61696C94E65B /* pois_montmartre.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_montmartre.json; sourceTree = "<group>"; };
+		9C03F6270F9735AC80EFC849 /* Akihabara.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Akihabara.json; sourceTree = "<group>"; };
 		9D9657337F7E1C8574B842EC /* PlacesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesViewModel.swift; sourceTree = "<group>"; };
 		9DB8D24D43354F34CD17BC21 /* pois_vancouverdowntown.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_vancouverdowntown.json; sourceTree = "<group>"; };
 		9EA9719A95A3962C952EBDD1 /* Radius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Radius.swift; sourceTree = "<group>"; };
+		9F8743F4A8488899E23FC3B1 /* Ikebukuro.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Ikebukuro.json; sourceTree = "<group>"; };
 		A12A45ADB80F9CA635D16896 /* FishermansWharf.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = FishermansWharf.json; sourceTree = "<group>"; };
 		A357EF267DAF2EDFB51F5AA9 /* Westminster_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Westminster_authored.json; sourceTree = "<group>"; };
 		A3E8CEBD06733D5960F5CCEC /* activities_yogyakarta.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = activities_yogyakarta.json; sourceTree = "<group>"; };
@@ -383,8 +408,11 @@
 		AD6D4C8F3ECA422263DFE932 /* activities_london.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = activities_london.json; sourceTree = "<group>"; };
 		AED83E1A82E11947727B28BE /* PlacesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesView.swift; sourceTree = "<group>"; };
 		B107DC04384D94C318826BF9 /* LocalAuthenticationBiometricAuthenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAuthenticationBiometricAuthenticator.swift; sourceTree = "<group>"; };
+		B14FD86A872F4C18A9D20B82 /* Roppongi.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Roppongi.json; sourceTree = "<group>"; };
 		B2ABDEE1F7846CAA22879ECB /* DistrictRealityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistrictRealityView.swift; sourceTree = "<group>"; };
+		B33A8A20C1E5DC70D449AF43 /* Ikebukuro_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Ikebukuro_authored.json; sourceTree = "<group>"; };
 		B7F3C8F8D70A5629CDBB4ABC /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF66 /* SafeRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeRun.swift; sourceTree = "<group>"; };
 		B8D6CC5B2DDC6CDE1D7245AE /* WeatherService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherService.swift; sourceTree = "<group>"; };
 		B8F9E73575B5B15DDE72007E /* LowerManhattan_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LowerManhattan_authored.json; sourceTree = "<group>"; };
 		B938C78F51CD23D57FEA9E9C /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
@@ -395,12 +423,16 @@
 		BE5E048C9801850DBD1E4F20 /* places_jakarta.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = places_jakarta.json; sourceTree = "<group>"; };
 		BF39FD66B36E670ECC119D27 /* Shinjuku.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Shinjuku.json; sourceTree = "<group>"; };
 		BF90F8DCBB29742C089BD3AD /* pois_kuta.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_kuta.json; sourceTree = "<group>"; };
+		C000E7B700732A1E83EC7A92 /* pois_odaiba.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_odaiba.json; sourceTree = "<group>"; };
 		C0BC8B3D65C129D925C25117 /* pois_ginza.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_ginza.json; sourceTree = "<group>"; };
+		C186C3368C60C006CF092293 /* Ueno_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Ueno_authored.json; sourceTree = "<group>"; };
 		C351AC70EFE2A872C05B3197 /* CityManifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CityManifest.json; sourceTree = "<group>"; };
 		C3E5782BDA611DC4643796B8 /* places_sanfrancisco.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = places_sanfrancisco.json; sourceTree = "<group>"; };
+		C3F36562E1A797E50592A67F /* Harajuku_authored.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Harajuku_authored.json; sourceTree = "<group>"; };
 		C5DD3FF084482D2A83637B4A /* pois_shinjuku.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = pois_shinjuku.json; sourceTree = "<group>"; };
 		C624BE7F5EE1E1D497BA665B /* Asakusa.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Asakusa.json; sourceTree = "<group>"; };
 		C64A8C0F3C0D0C343042B732 /* places_losangeles.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = places_losangeles.json; sourceTree = "<group>"; };
+		C8F71BC6E7B3F4BADB508575 /* Ueno.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Ueno.json; sourceTree = "<group>"; };
 		C8F9ADAD5F656151AA57120D /* AppTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTextFieldStyle.swift; sourceTree = "<group>"; };
 		CB01B813A7B8A7D6634AE881 /* activities_jakarta.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = activities_jakarta.json; sourceTree = "<group>"; };
 		CB0F3ED9C94DD8AC94B5B085 /* DistrictRealityKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistrictRealityKit.swift; sourceTree = "<group>"; };
@@ -616,6 +648,7 @@
 			children = (
 				B7F3C8F8D70A5629CDBB4ABC /* AppEnvironment.swift */,
 				95E2C0F9A3366005DFDD86DD /* AppSelectionStore.swift */,
+				AA11BB22CC33DD44EE55FF66 /* SafeRun.swift */,
 				CEE34A87C75B80B4DFCCC6A5 /* AppTab.swift */,
 				903AC114C343A87391C0314C /* MetaCityApp.swift */,
 				80EED36066BFFA5B68D39266 /* RootView.swift */,
@@ -751,6 +784,7 @@
 		E9EFC9C01C8B1495507A1910 /* Districts */ = {
 			isa = PBXGroup;
 			children = (
+				9C03F6270F9735AC80EFC849 /* Akihabara.json */,
 				CEA8D8A6F27CA05D48676CB4 /* Ancol.json */,
 				C624BE7F5EE1E1D497BA665B /* Asakusa.json */,
 				F77C83FD645D60D1F8536782 /* Braga.json */,
@@ -761,7 +795,9 @@
 				DD973BB731E5BB508B94D6E4 /* DowntownLA.json */,
 				A12A45ADB80F9CA635D16896 /* FishermansWharf.json */,
 				FCDC9AA0A47C4B1852FD83A1 /* Ginza.json */,
+				4BC0A87A4F748F5A21BB19BB /* Harajuku.json */,
 				4A0C88BC02E09191B1AA9DFA /* Hollywood.json */,
+				9F8743F4A8488899E23FC3B1 /* Ikebukuro.json */,
 				3712B31A4F67C68B85DEEC92 /* Kemang.json */,
 				AD2A348602BB61D7BBCBD65E /* KotaTua.json */,
 				32F875E7E0E969798841551B /* Kraton.json */,
@@ -775,6 +811,8 @@
 				667518CEDAF585BB3EF03FA9 /* Menteng.json */,
 				4AE8D9A92123B96717DFA88A /* MidtownManhattan.json */,
 				02710EA6EBE48872F6829C65 /* Montmartre.json */,
+				6F1EA3793C8FB679DC060E94 /* Odaiba.json */,
+				B14FD86A872F4C18A9D20B82 /* Roppongi.json */,
 				4073CE4777854FF68318359B /* SaintGermain.json */,
 				17DBB191CB1408C461E832FA /* Salamanca.json */,
 				80068023A25BEE4E37B69315 /* Sanur.json */,
@@ -783,6 +821,7 @@
 				645D8B637A80F8ABCEB46D63 /* Shibuya.json */,
 				BF39FD66B36E670ECC119D27 /* Shinjuku.json */,
 				DF1BFF1397B7CAC805B7036D /* SudirmanThamrin.json */,
+				C8F71BC6E7B3F4BADB508575 /* Ueno.json */,
 				06DDE4440B2EA85213F6AFD3 /* Uluwatu.json */,
 				01A151083E85C11F7CC31145 /* VancouverDowntown.json */,
 				98C1567FE64A8BBC63824FCA /* VieuxBordeaux.json */,
@@ -831,7 +870,9 @@
 				2410BE2EA135193E7B1332D1 /* FishermansWharf_authored.json */,
 				1C878986499566B6C07D7CA2 /* Ginza_authored.json */,
 				0CC509E628ABED772FBEBDCC /* GoogleService-Info.plist */,
+				C3F36562E1A797E50592A67F /* Harajuku_authored.json */,
 				BD2C3BDB3AD4E61FFEC60A10 /* Hollywood_authored.json */,
+				B33A8A20C1E5DC70D449AF43 /* Ikebukuro_authored.json */,
 				DAA55EAD678200D65635E9FA /* Info.plist */,
 				EBDB0483E5A79F3AD98BDAC4 /* Kemang_authored.json */,
 				162E08495EFC5A76FBD8E8A4 /* KotaTua_authored.json */,
@@ -857,6 +898,7 @@
 				DB990A00900D190FBD56ABC2 /* places_tokyo.json */,
 				7ADDFF3D6EFBC21D1E509DD8 /* places_vancouver.json */,
 				0F6373C7249BC0111860AA0A /* places_yogyakarta.json */,
+				6A65E6FE3BAFF7FB1383703E /* pois_akihabara.json */,
 				A9BAEDCE554E89DD2F2191FA /* pois_ancol.json */,
 				6439BECED52F19D9F4D49208 /* pois_asakusa.json */,
 				470A00FB3F87B8331224B13E /* pois_braga.json */,
@@ -866,6 +908,8 @@
 				0B4214CD2253810BAD19FE69 /* pois_dago.json */,
 				607001E880C3A8533713CC83 /* pois_downtownla.json */,
 				C0BC8B3D65C129D925C25117 /* pois_ginza.json */,
+				3E055F579818B11F6E4D4FF0 /* pois_harajuku.json */,
+				5054A14D4F034EC5C59CBB03 /* pois_ikebukuro.json */,
 				7CC8414D50CB56981B367EE6 /* pois_kemang.json */,
 				38F296006E40740680FD2AB4 /* pois_kotatua.json */,
 				352692B41634E249693B5968 /* pois_kraton.json */,
@@ -877,6 +921,8 @@
 				31644AB133CF25E213B75DE9 /* pois_menteng.json */,
 				40D0F290EEDA3A0E1E512BFE /* pois_midtownmanhattan.json */,
 				9BA9F0B27CEF61696C94E65B /* pois_montmartre.json */,
+				C000E7B700732A1E83EC7A92 /* pois_odaiba.json */,
+				55FB858AA887F49CC704F05E /* pois_roppongi.json */,
 				D46949B7785E7F27FC48B5F6 /* pois_saintgermain.json */,
 				9828308EEF992AAA3A6BC3C3 /* pois_salamanca.json */,
 				8A92C4FE78C5C8DB66BE0EFD /* pois_sanur.json */,
@@ -885,6 +931,7 @@
 				98639DD337E0B63BF7CF8CEA /* pois_shibuya.json */,
 				C5DD3FF084482D2A83637B4A /* pois_shinjuku.json */,
 				294F90CE64CA0600D3518866 /* pois_sudirmanthamrin.json */,
+				500F75216361C4028DFE7FEC /* pois_ueno.json */,
 				E34E64A36006C250DDA753E4 /* pois_uluwatu.json */,
 				9DB8D24D43354F34CD17BC21 /* pois_vancouverdowntown.json */,
 				5BF0A4A2EEFCA03D706B8D05 /* pois_westminster.json */,
@@ -893,6 +940,7 @@
 				669F9399BACDA839BA0D0273 /* SFDowntown_authored.json */,
 				588AD64178F1EF9DCBAC3414 /* Shinjuku_authored.json */,
 				42DFA726055F3FDA689F80B2 /* SudirmanThamrin_authored.json */,
+				C186C3368C60C006CF092293 /* Ueno_authored.json */,
 				278B32E4CAAF18DFBCB06DA2 /* Uluwatu_authored.json */,
 				59A3EF8006901E63AFA33836 /* VancouverDowntown_authored.json */,
 				A357EF267DAF2EDFB51F5AA9 /* Westminster_authored.json */,
@@ -996,6 +1044,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9BB6B80850DF8D85DA1D2B19 /* Akihabara.json in Resources */,
 				AD1AAFF2C04093FCE72C35F5 /* Ancol.json in Resources */,
 				816CF83A3ED78DBF1B7776F9 /* Ancol_authored.json in Resources */,
 				981E1433B50030F9DFD99885 /* Asakusa.json in Resources */,
@@ -1018,8 +1067,12 @@
 				EBF0735C75BDAA5F11BCFAA2 /* Ginza.json in Resources */,
 				A22030EC6791A08893D4C485 /* Ginza_authored.json in Resources */,
 				2A12682F72BF30E97A815422 /* GoogleService-Info.plist in Resources */,
+				F7C0140DEF9858F32323BD0F /* Harajuku.json in Resources */,
+				13EDCBBD9223BFAAFBFEA4B6 /* Harajuku_authored.json in Resources */,
 				A060258514ED26288A950A1E /* Hollywood.json in Resources */,
 				84C8F044A128E91B259EF865 /* Hollywood_authored.json in Resources */,
+				EDB7946F77CC9A2597F95291 /* Ikebukuro.json in Resources */,
+				44C452F417A42BC5057C2B6D /* Ikebukuro_authored.json in Resources */,
 				1CD8501A484E71B697862CD6 /* Kemang.json in Resources */,
 				4DFEC16071CD642506A73C72 /* Kemang_authored.json in Resources */,
 				28C2D721E55D067CDE4294CB /* KotaTua.json in Resources */,
@@ -1043,6 +1096,8 @@
 				C33953C7706E256DE88CD37A /* MidtownManhattan_authored.json in Resources */,
 				82D363A96478DF84358B33D2 /* Montmartre.json in Resources */,
 				8556293A3E8B0EC9CDCC50BA /* Montmartre_authored.json in Resources */,
+				441C247DA4F1DFB10BCAC15B /* Odaiba.json in Resources */,
+				477911EBC40F0E75730365A3 /* Roppongi.json in Resources */,
 				A39FF3BA4E7B3D4FF04C0091 /* SFDowntown.json in Resources */,
 				EEE00528B296ACA350119EB4 /* SFDowntown_authored.json in Resources */,
 				210ED6C97EA45E39645A4030 /* SaintGermain.json in Resources */,
@@ -1056,6 +1111,8 @@
 				8B5F060127C05619DDA50F19 /* Shinjuku_authored.json in Resources */,
 				78F3214C9ADE2CE676BE955C /* SudirmanThamrin.json in Resources */,
 				C19F32FD58F0A846D085CA8D /* SudirmanThamrin_authored.json in Resources */,
+				09CBEFA3921F3470BEE64E2B /* Ueno.json in Resources */,
+				926F24C7F703554B130E77C2 /* Ueno_authored.json in Resources */,
 				45F9F4640296ABE0E29F0E97 /* Uluwatu.json in Resources */,
 				E3D2088A190BC630A3898EEF /* Uluwatu_authored.json in Resources */,
 				3B9C6CE46D8482F55DE25099 /* VancouverDowntown.json in Resources */,
@@ -1102,6 +1159,7 @@
 				CF8F8CF823E1A1C35E025B09 /* places_tokyo.json in Resources */,
 				C17BB6F07612D4C005621365 /* places_vancouver.json in Resources */,
 				9F568262CD23756A3A96163E /* places_yogyakarta.json in Resources */,
+				4D013EC579600C02E474078B /* pois_akihabara.json in Resources */,
 				E6255C7E7F18062B8336DD24 /* pois_ancol.json in Resources */,
 				ED68A2FC558A3AB14C3A6920 /* pois_asakusa.json in Resources */,
 				8AFA287F288253395555AB8D /* pois_braga.json in Resources */,
@@ -1111,6 +1169,8 @@
 				D93C695A62CE8A94D2948F18 /* pois_dago.json in Resources */,
 				92E5514545EE4D6D007E4FA9 /* pois_downtownla.json in Resources */,
 				895FFDDCB914F3E3C6A2BD57 /* pois_ginza.json in Resources */,
+				3BD2DFA80A21FA438CCF2059 /* pois_harajuku.json in Resources */,
+				E80698DDBA5A452B3A7DD0C8 /* pois_ikebukuro.json in Resources */,
 				9A44DE06827FC6D615D617B8 /* pois_kemang.json in Resources */,
 				2A99A641BEE8FCB7C9EA08CF /* pois_kotatua.json in Resources */,
 				57CF31193043B697F55E7317 /* pois_kraton.json in Resources */,
@@ -1122,6 +1182,8 @@
 				2374E2EC0157C6A96FD99EB9 /* pois_menteng.json in Resources */,
 				EE8CCED72FFF7D8BBFB4C2E5 /* pois_midtownmanhattan.json in Resources */,
 				331165F3204E4B5F79F0BB51 /* pois_montmartre.json in Resources */,
+				225B66B17B32DA68E143D4DE /* pois_odaiba.json in Resources */,
+				1018D49333C777FBC905902E /* pois_roppongi.json in Resources */,
 				440D8D744402525219B21F93 /* pois_saintgermain.json in Resources */,
 				48B961EAB5C27484C3988916 /* pois_salamanca.json in Resources */,
 				31A3DA1D59571426DCE04D78 /* pois_sanur.json in Resources */,
@@ -1130,6 +1192,7 @@
 				8060158B1188473C580ABB53 /* pois_shibuya.json in Resources */,
 				EBBB277B7E223E4F34FAA938 /* pois_shinjuku.json in Resources */,
 				55A13A473761760686C7447D /* pois_sudirmanthamrin.json in Resources */,
+				16E21EB8A7D70893E05C534F /* pois_ueno.json in Resources */,
 				7311C3A711E65F854C88526F /* pois_uluwatu.json in Resources */,
 				A7568A5A284C40ABB84AA11A /* pois_vancouverdowntown.json in Resources */,
 				01E85A7855D9626939F6D144 /* pois_westminster.json in Resources */,
@@ -1147,6 +1210,7 @@
 				4AB57EA37B98038283DF7653 /* ActivitiesViewModel.swift in Sources */,
 				068432A4D04558889720E4A7 /* ActivityEntry.swift in Sources */,
 				6E5CD93BCE4E9610D180FEAB /* AppEnvironment.swift in Sources */,
+				AA11BB22CC33DD44EE55FF67 /* SafeRun.swift in Sources */,
 				2F9470AA525583468A10C59E /* AppSelectionStore.swift in Sources */,
 				A116775CFDC8CB5E58FC9E59 /* AppTab.swift in Sources */,
 				0C6CB848A1A18C498656E639 /* AppTextFieldStyle.swift in Sources */,
