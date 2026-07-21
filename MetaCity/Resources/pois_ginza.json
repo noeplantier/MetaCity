@@ -2,13 +2,23 @@
   "districtId": "Ginza",
   "pois": [
     {
+      "id": "wako_building",
+      "name": "Wako Building",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.6712,
+      "longitude": 139.7645,
+      "description": "Ginza's defining symbol — the 1932 neoclassical building with its famous clock tower at the corner of Chuo-dori and Harumi-dori. Its basement jewellery and watchmaking counters are the finest in Japan. The clock bell chimes every hour across the intersection.",
+      "partnerURL": null
+    },
+    {
       "id": "ginza_six",
       "name": "GINZA SIX",
       "category": "shopping",
       "tier": "featured",
       "latitude": 35.6693,
       "longitude": 139.7652,
-      "description": "Ginza's premier luxury flagship — 13 floors of over 240 high-end boutiques (Louis Vuitton, Céline, Valentino, Dior, Hermès), restaurants, and one of Tokyo's best rooftop gardens. The centrepiece is a 6-storey atrium with a 30-metre mobile by Jeff Koons. Japan's largest luxury department store.",
+      "description": "Ginza's largest luxury flagship — 13 floors, 240+ boutiques (Louis Vuitton, Céline, Dior, Hermès), restaurants, and a rooftop garden. The 6-storey atrium houses a 30-metre mobile by Jeff Koons. Japan's biggest luxury department store.",
       "partnerURL": null
     },
     {
@@ -18,37 +28,27 @@
       "tier": "featured",
       "latitude": 35.6697,
       "longitude": 139.7682,
-      "description": "The home of traditional kabuki theatre in Tokyo. The current building (2013) is the fifth on this site — its neo-Momoyama architectural style (ornate green roof curves, white facade) is one of the most recognised in Japan. Single-act tickets (hitomaku-mi) allow casual visitors without booking a full day.",
+      "description": "Tokyo's home of traditional kabuki — the fifth building on this site (2013) in neo-Momoyama style with ornate green roof curves. Single-act tickets (hitomaku-mi) let casual visitors experience Japan's most theatrical performance tradition.",
       "partnerURL": null
     },
     {
       "id": "ginza_chuo_dori",
-      "name": "Ginza Chuo-dori",
+      "name": "Ginza Shopping Street",
       "category": "explore",
-      "tier": "featured",
+      "tier": "standard",
       "latitude": 35.6708,
       "longitude": 139.7650,
-      "description": "The central boulevard of Ginza — closed to traffic every weekend afternoon as a 'pedestrian paradise'. Lined with flagships of Hermès (Renzo Piano, the tilework building), Cartier, Apple Ginza, Uniqlo, and Mikimoto (the pearl jeweller that has been here since 1899). The de facto fashion axis of Tokyo.",
+      "description": "The central boulevard of Ginza, closed to traffic every weekend afternoon as a 'pedestrian paradise'. Lined with Hermès (Renzo Piano), Cartier, Apple Ginza, Uniqlo and Mikimoto. The fashion axis of Tokyo since the Meiji era.",
       "partnerURL": null
     },
     {
-      "id": "itoya_stationery",
-      "name": "Itoya Stationery",
+      "id": "mitsukoshi_ginza",
+      "name": "Mitsukoshi Ginza",
       "category": "shopping",
       "tier": "standard",
-      "latitude": 35.6705,
-      "longitude": 139.7653,
-      "description": "The world's most famous stationery shop — 12 floors of paper, pens, and design objects at the corner of Chuo-dori and Mitsu-dori. A Ginza institution since 1904. The 2015 redesign by Klein Dytham architecture includes a rooftop farm growing ingredients for the in-house café.",
-      "partnerURL": null
-    },
-    {
-      "id": "gallery_koyanagi",
-      "name": "Ginza Art District",
-      "category": "explore",
-      "tier": "standard",
-      "latitude": 35.6720,
-      "longitude": 139.7655,
-      "description": "The side streets above Ginza 8-chome host Tokyo's highest concentration of serious contemporary art galleries — Wako Museum, Shinwa Art Auction, Gallery Koyanagi, and over 30 others in the art alley network. Most are free to enter and change shows monthly.",
+      "latitude": 35.6718,
+      "longitude": 139.7642,
+      "description": "The Ginza outpost of Japan's oldest department store chain (founded 1673) — 12 floors of fashion, food, and traditional crafts. The basement food hall (depachika) is considered Tokyo's finest, with Mitsukoshi-branded confections shipped nationally.",
       "partnerURL": null
     }
   ]

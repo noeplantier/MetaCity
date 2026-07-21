@@ -1,0 +1,55 @@
+{
+  "districtId": "Harajuku",
+  "pois": [
+    {
+      "id": "takeshita_street",
+      "name": "Takeshita Street",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.6710,
+      "longitude": 139.7025,
+      "description": "350-metre pedestrian street — Tokyo's epicentre of Harajuku street fashion, cosplay, and youth culture since the 1980s. Peak on Sundays: over 200,000 visitors. Crepe stands, gothic-lolita boutiques, and streetwear pop-ups line every metre.",
+      "partnerURL": null
+    },
+    {
+      "id": "meiji_jingu",
+      "name": "Meiji Jingu Shrine",
+      "category": "landmark",
+      "tier": "featured",
+      "latitude": 35.6763,
+      "longitude": 139.6993,
+      "description": "Shinto shrine (1920) dedicated to Emperor Meiji and Empress Shoken, set in 70 hectares of forest. The towering wooden torii gate is one of Japan's largest — 12 metres high, built from 1,500-year-old Taiwanese cypress. Sees 3 million visitors in the three days of New Year's.",
+      "partnerURL": null
+    },
+    {
+      "id": "yoyogi_park",
+      "name": "Yoyogi Park",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.6716,
+      "longitude": 139.6958,
+      "description": "54-hectare urban park, former 1964 Olympic Village. Cherry blossoms (hanami) in April draw half a million visitors. Rockabilly dancers and street musicians perform at the main gate on Sundays — a Tokyo Sunday ritual since the 1980s.",
+      "partnerURL": null
+    },
+    {
+      "id": "omotesando",
+      "name": "Omotesando",
+      "category": "explore",
+      "tier": "standard",
+      "latitude": 35.6693,
+      "longitude": 139.7079,
+      "description": "Tokyo's most prestigious shopping boulevard — a zelkova-tree-lined avenue flanked by architecturally significant flagships: Prada (Herzog & de Meuron), Louis Vuitton (Jun Aoki), Dior, and Omotesando Hills (Tadao Ando, 2006). Often called 'Tokyo's Champs-Élysées'.",
+      "partnerURL": null
+    },
+    {
+      "id": "harajuku_station",
+      "name": "Harajuku Station",
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": 35.6702,
+      "longitude": 139.7027,
+      "description": "A small wooden JR station (original 1906 building preserved) wedged between Meiji Jingu forest and Takeshita Street. One of Tokyo's most charming and historically intact station buildings — contrasting sharply with the youth-culture explosion just outside its gates.",
+      "partnerURL": null
+    }
+  ]
+}

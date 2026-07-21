@@ -8,7 +8,7 @@
       "tier": "featured",
       "latitude": 35.6986,
       "longitude": 139.7731,
-      "description": "The beating heart of Tokyo's electronics and anime culture. The station's 'Electric Town' exit opens onto a district where neon signs compete for attention and every building houses multiple floors of gadgets, games, and manga.",
+      "description": "The gateway to Electric Town — the station's 'Akihabara' exit opens onto a district where every building houses multiple floors of electronics, anime goods, and manga. The elevated track viaduct frames the street below with neon signs competing for attention.",
       "partnerURL": null
     },
     {
@@ -18,7 +18,7 @@
       "tier": "featured",
       "latitude": 35.6982,
       "longitude": 139.7735,
-      "description": "Japan's largest anime, manga, and game retailer — 8 floors of character goods, manga volumes, Blu-rays, and otaku merchandise. The flagship store draws thousands daily, with themed floors rotating by franchise season.",
+      "description": "Japan's largest anime, manga, and game retailer — 8 floors of character goods, manga volumes, Blu-rays, and figures. The flagship store rotates themed floors by franchise season and draws thousands of fans daily.",
       "partnerURL": null
     },
     {
@@ -28,27 +28,27 @@
       "tier": "featured",
       "latitude": 35.6995,
       "longitude": 139.7741,
-      "description": "Tokyo's largest electronics megastore — 9 floors of cameras, computers, appliances, and games with tax-free shopping for tourists. The rooftop has a camera test course and the basement a gourmet food hall.",
+      "description": "Tokyo's largest electronics megastore — 9 floors of cameras, computers, appliances and games with tax-free shopping. The rooftop has a camera test course and the basement a gourmet food hall.",
       "partnerURL": null
     },
     {
-      "id": "super_akihabara",
-      "name": "Super Potato Retro Game Store",
+      "id": "super_potato",
+      "name": "Super Potato Retro Games",
       "category": "shopping",
       "tier": "standard",
       "latitude": 35.6978,
       "longitude": 139.7728,
-      "description": "A legendary retro game store spanning 3 floors — Famicom, Super Famicom, Mega Drive, and PlayStation classics in their original boxes. The second floor is a playable museum where you can test vintage consoles. A pilgrimage site for gaming historians.",
+      "description": "Legendary retro game store spanning 3 floors — Famicom, Super Famicom, Mega Drive, and PlayStation classics in original boxes. The second floor is a playable museum with vintage consoles. A pilgrimage site for gaming historians worldwide.",
       "partnerURL": null
     },
     {
-      "id": "akiba_cultural_zone",
-      "name": "Akihabara Cultural Zone",
-      "category": "explore",
+      "id": "kanda_myojin",
+      "name": "Kanda Myojin Shrine",
+      "category": "landmark",
       "tier": "standard",
-      "latitude": 35.6975,
-      "longitude": 139.7715,
-      "description": "The pedestrian-only 'Chuo-dori' street on weekends transforms into a pedestrian paradise lined with maid cafes, idol venues, and pop-up events. The epicentre of Japan's otaku culture since the 1980s.",
+      "latitude": 35.7020,
+      "longitude": 139.7673,
+      "description": "A grand Shinto shrine established in 730 AD, now the guardian deity of Akihabara and Tokyo's tech industry. IT companies come to have their servers blessed here. The colourful main gate and modern otaku ema (votive plaques) make it the spiritual heart of Electric Town.",
       "partnerURL": null
     }
   ]

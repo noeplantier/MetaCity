@@ -23,27 +23,25 @@ struct DistrictSearchResult: Identifiable {
     let localCentroid: SIMD3<Float>
 }
 
-/// 3-preset camera view selector — controls which camera mode the district 3D inspector is in.
-/// SURVOL frames the full district from near-overhead; OVERVIEW is the default bird's-eye;
-/// ZOOM is entered via building tap / pinch past 22% extent.
+/// 2-preset camera view selector — OVERVIEW is the default bird's-eye orbit;
+/// POI activates the points-of-interest panel in the mini-map widget.
+/// (SURVOL / `.ciel` removed 2026-07-21 — its overhead framing is now .overview's default position
+/// and the magenta-pink shibuyaNeon sky it exposed has been replaced with a day-blue gradient.)
 enum ViewPreset: String, CaseIterable {
-    case ciel     // SURVOL — full-district overhead, districtExtent×0.30 horiz, ×1.35 height
     case overview // OVERVIEW — bird's-eye at ~61°, districtDistance×0.60
-    case focus    // ZOOM — wide framing on selected building
+    case focus    // POI — reveals the district's landmark list; camera stays at overview
 
     var label: String {
         switch self {
-        case .ciel:     return "SURVOL"
         case .overview: return "OVERVIEW"
-        case .focus:    return "ZOOM"
+        case .focus:    return "POI"
         }
     }
 
     var icon: String {
         switch self {
-        case .ciel:     return "binoculars.fill"
         case .overview: return "viewfinder"
-        case .focus:    return "scope"
+        case .focus:    return "mappin.and.ellipse"
         }
     }
 }
@@ -123,7 +121,6 @@ final class DiscoverViewModel: ObservableObject {
     @Published var activeViewPreset: ViewPreset = .overview
     @Published var isAutoRotating = false
     @Published var rotationSpeed: Double = 1.0
-    @Published var isNightMode: Bool = false
     /// Bumped by `resetCamera()`. `DistrictRealityView` observes changes and flies the
     /// camera back to the default orbit position without requiring a gesture.
     @Published private(set) var cameraResetToken: Int = 0
@@ -376,25 +373,20 @@ final class DiscoverViewModel: ObservableObject {
         cameraResetToken += 1
     }
 
-    /// Applies a named camera preset. SURVOL = full-district overhead; OVERVIEW = bird's-eye ~61°;
-    /// ZOOM = fly to selected building (requires a prior building tap).
+    /// Applies a named camera preset. OVERVIEW = bird's-eye ~61°; POI = reveals the landmark list
+    /// in the mini-map widget and, if a building is already selected, flies the camera to it.
     func setViewPreset(_ preset: ViewPreset) {
         activeViewPreset = preset
         switch preset {
-        case .ciel:
-            isAutoRotating = false
-            cameraResetToken += 1
         case .overview:
             isAutoRotating = false
             cameraResetToken += 1
         case .focus:
-            guard selectedBuilding != nil else {
-                activeViewPreset = .overview
-                isAutoRotating = false
-                cameraResetToken += 1
-                return
+            isAutoRotating = false
+            if selectedBuilding != nil {
+                viewFocusToken += 1
             }
-            viewFocusToken += 1
+            // No cameraResetToken — camera holds its current position in POI mode.
         }
     }
 
@@ -639,7 +631,6 @@ final class DiscoverViewModel: ObservableObject {
     }
 
     func back() {
-        isNightMode = false   // reset night mode when leaving a district
         switch state {
         case .districtExplore(let c, _):
             withAnimation(.easeInOut(duration: 0.35)) { state = .cityFocused(c) }

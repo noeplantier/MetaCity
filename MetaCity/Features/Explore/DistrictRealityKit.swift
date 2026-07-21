@@ -136,9 +136,27 @@ struct DistrictRenderProfile {
         // Tokyo Ginza — luxury retail + glass towers, near-pristine facades
         case "Ginza":
             return .init(nightWindowDensityBoost: 1.30, facadeDepthScale: 1.0, weatheringIntensity: 0.05)
-        // Tokyo Asakusa — traditional colonial fabric, moderate Edo-period weathering
+        // Tokyo Asakusa — traditional Edo fabric, red-lantern glow + moderate temple weathering
         case "Asakusa":
             return .init(nightWindowDensityBoost: 1.10, facadeDepthScale: 1.0, weatheringIntensity: 0.35)
+        // Tokyo Akihabara — densest neon/LED in Asia: anime signs, electronics towers, identical to Shibuya density
+        case "Akihabara":
+            return .init(nightWindowDensityBoost: 1.40, facadeDepthScale: 1.0, weatheringIntensity: 0.08)
+        // Tokyo Roppongi — luxury nightlife + art galleries + Mori Tower, pristine glass facades
+        case "Roppongi":
+            return .init(nightWindowDensityBoost: 1.40, facadeDepthScale: 1.0, weatheringIntensity: 0.06)
+        // Tokyo Odaiba — waterfront futuristic complex: TeamLab, Big Sight, Gundam statue
+        case "Odaiba":
+            return .init(nightWindowDensityBoost: 1.35, facadeDepthScale: 1.0, weatheringIntensity: 0.05)
+        // Tokyo Harajuku — Omotesando luxury corridor + Meiji Shrine forest + youth fashion district
+        case "Harajuku":
+            return .init(nightWindowDensityBoost: 1.25, facadeDepthScale: 1.05, weatheringIntensity: 0.08)
+        // Tokyo Ikebukuro — twin of Shinjuku: department stores, Sunshine 60 skyline, dense retail
+        case "Ikebukuro":
+            return .init(nightWindowDensityBoost: 1.38, facadeDepthScale: 1.0, weatheringIntensity: 0.09)
+        // Tokyo Ueno — park + museum campus + Ameya-Yokocho: low commercial density, soft lighting
+        case "Ueno":
+            return .init(nightWindowDensityBoost: 1.10, facadeDepthScale: 1.0, weatheringIntensity: 0.28)
         default:
             return .default
         }
@@ -214,8 +232,21 @@ enum DistrictRealityKit {
         currentWarmthBias             = mood.warmthBias
         currentDistrictProfile        = DistrictRenderProfile.preset(for: name)
         currentWeatheringIntensity    = currentDistrictProfile.weatheringIntensity
-        guard let district = District.load(named: name) else {
-            throw LoadError.districtNotFound(name)
+        #if DEBUG
+        let debugPath = Bundle.main.path(forResource: name, ofType: "json", inDirectory: "Districts")
+        print("[DistrictKit] '\(name)' → \(debugPath != nil ? "found" : "NOT FOUND in Districts/")")
+        #endif
+        let district: District
+        if let loaded = District.load(named: name) {
+            district = loaded
+        } else {
+            #if DEBUG
+            print("[DistrictKit] WARN '\(name)' missing — falling back to Shibuya")
+            #endif
+            guard let fallback = District.load(named: "Shibuya") else {
+                throw LoadError.districtNotFound(name)
+            }
+            district = fallback
         }
 
         let root = Entity()

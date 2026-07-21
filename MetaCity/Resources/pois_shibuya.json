@@ -2,53 +2,107 @@
   "districtId": "Shibuya",
   "pois": [
     {
-      "id": "scramble_crossing",
+      "id": "shibuya_crossing",
       "name": "Shibuya Scramble Crossing",
       "category": "attraction",
       "tier": "featured",
       "latitude": 35.6594,
       "longitude": 139.7005,
-      "description": "The world's busiest pedestrian crossing — 2,500 people cross simultaneously when the lights change. Best viewed from the Starbucks or Mag's Park terrace above.",
-      "partnerURL": null
-    },
-    {
-      "id": "scramble_square_obs",
-      "name": "Scramble Square",
-      "category": "attraction",
-      "tier": "featured",
-      "latitude": 35.6582,
-      "longitude": 139.7022,
-      "description": "Shibuya's tallest tower (230m, 2019). The SHIBUYA SKY observation deck on floor 46 offers a 360° panorama of Tokyo — Fuji visible on clear days.",
-      "partnerURL": null
+      "description": "World's busiest pedestrian crossing — 2,500 people cross simultaneously every 90 seconds. Best viewed from the Starbucks terrace at the QFront building or from Scramble Square's observation deck.",
+      "partnerURL": null,
+      "assets": {
+        "model_usdz": null,
+        "albedo": null
+      },
+      "cameraPaths": [
+        {
+          "name": "approach",
+          "points": [
+            { "x": 0.0, "y": 8.0, "z": -30.0 },
+            { "x": 0.0, "y": 4.0, "z": -15.0 },
+            { "x": 0.0, "y": 1.8, "z": -5.0 }
+          ]
+        },
+        {
+          "name": "overhead",
+          "points": [
+            { "x": 0.0, "y": 20.0, "z": 0.0 }
+          ]
+        }
+      ]
     },
     {
       "id": "hachiko_statue",
       "name": "Hachiko Statue",
       "category": "attraction",
-      "tier": "standard",
+      "tier": "featured",
       "latitude": 35.6590,
       "longitude": 139.7003,
-      "description": "Bronze statue of the Akita dog who waited at Shibuya Station for his deceased owner every day for nine years until 1935. The most popular meeting point in Tokyo.",
+      "description": "Bronze Akita dog who waited daily at Shibuya Station for his deceased owner from 1923 until 1935. Tokyo's most iconic meeting point, outside the Hachiko exit of the station.",
+      "partnerURL": null,
+      "assets": {
+        "model_usdz": "hachiko_v1.usdz",
+        "albedo": "hachiko_albedo_2k.png"
+      },
+      "cameraPaths": [
+        {
+          "name": "approach",
+          "points": [
+            { "x": 0.0, "y": 4.0, "z": -20.0 },
+            { "x": 0.0, "y": 1.8, "z": -8.0 },
+            { "x": 0.0, "y": 1.6, "z": -3.0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shibuya_109",
+      "name": "Shibuya 109",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.6586,
+      "longitude": 139.6992,
+      "description": "Iconic cylindrical fashion tower opened in 1979, synonymous with gyaru culture and fast J-fashion trends. 9 floors of boutiques catering to young Tokyo streetwear.",
+      "partnerURL": null,
+      "assets": {
+        "model_usdz": null,
+        "albedo": null
+      },
+      "cameraPaths": [
+        {
+          "name": "approach",
+          "points": [
+            { "x": 0.0, "y": 6.0, "z": -25.0 },
+            { "x": 0.0, "y": 3.0, "z": -12.0 },
+            { "x": 0.0, "y": 1.8, "z": -6.0 }
+          ]
+        },
+        {
+          "name": "rooftop",
+          "points": [
+            { "x": 0.0, "y": 45.0, "z": -8.0 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "center_gai",
+      "name": "Center-gai",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6597,
+      "longitude": 139.6989,
+      "description": "Shibuya's main pedestrian street lined with fast-food, karaoke boxes, game centres and live music venues. Packed every night with Tokyo's youth culture.",
       "partnerURL": null
     },
     {
-      "id": "nhk_broadcasting",
-      "name": "NHK Broadcasting Center",
+      "id": "scramble_square",
+      "name": "Shibuya Scramble Square",
       "category": "attraction",
       "tier": "standard",
-      "latitude": 35.6632,
-      "longitude": 139.6979,
-      "description": "Japan's public broadcaster since 1950, housed in a 48m complex in Yoyogi. Studio Park is open to visitors — walk through live TV sets.",
-      "partnerURL": null
-    },
-    {
-      "id": "shibuya_stream",
-      "name": "Shibuya Stream",
-      "category": "attraction",
-      "tier": "standard",
-      "latitude": 35.6569,
-      "longitude": 139.6996,
-      "description": "2018 mixed-use tower (180m) built over the channelled Shibuya River. The promenade follows the original riverbed through cafes and terraces.",
+      "latitude": 35.6582,
+      "longitude": 139.7022,
+      "description": "Shibuya's tallest tower (230 m, 2019). The SHIBUYA SKY open-air observation deck on floor 46 gives a 360° panorama of Tokyo — Mount Fuji visible on clear winter days.",
       "partnerURL": null
     }
   ]
