@@ -35,13 +35,17 @@ struct DistrictRealityView: UIViewRepresentable {
     var searchFlyToken: Int = 0
     /// Model-local camera target (metres from district anchor) for the most-recent search selection.
     var searchFlyCentroid: SIMD3<Float> = .zero
-    /// Bumped by `DiscoverViewModel.setViewPreset(.focus)`. Re-triggers `flyToBuildingWithFraming`
-    /// for the building stored from the last single-tap selection.
-    var viewFocusToken: Int = 0
+        /// Bumped by `DiscoverViewModel.setViewPreset(.poi)`. Re-triggers `flyToVenue`
+        /// for the POI stored from the last selection.
+        var poiFocusToken: Int = 0
     /// The currently selected building — mirrored from DiscoverViewModel so the coordinator
     /// can access it when `viewFocusToken` fires without storing state across sessions.
     var selectedBuilding: BuildingFootprint? = nil
+<<<<<<< HEAD
     /// Current camera preset — used by the coordinator to choose OVERVIEW / POI.
+=======
+    /// Current camera preset — used by the coordinator to choose OVERVIEW / CLOSE DISTRICT / POI.
+>>>>>>> origin/main
     var activeViewPreset: ViewPreset = .overview
     /// Day/night mode toggle. When changed, the coordinator discards and rebuilds the district
     /// entity with the appropriate emissive/roughness materials and lighting rig.
@@ -115,7 +119,7 @@ struct DistrictRealityView: UIViewRepresentable {
             buildingOrbitToken: buildingOrbitToken,
             searchFlyToken: searchFlyToken,
             searchFlyCentroid: searchFlyCentroid,
-            viewFocusToken: viewFocusToken,
+            poiFocusToken: poiFocusToken,
             selectedBuilding: selectedBuilding,
             activeViewPreset: activeViewPreset
         )
@@ -176,9 +180,9 @@ struct DistrictRealityView: UIViewRepresentable {
         private var lastSearchFlyToken: Int = 0
         private var lastBuildingOrbitToken: Int = 0
         private var lastViewFocusToken: Int = 0
-        /// Stored from the last successful `flyToBuildingWithFraming` call so `.focus` preset
+        /// Stored from the last successful `flyToVenue` call so `.poi` preset
         /// can re-trigger the fly without needing another tap.
-        private var lastFocusedBuilding: BuildingFootprint?
+        private var lastFocusedPOIId: String?
         // Updated on each building tap — used by buildingOrbitToken to restart the orbit
         // around the selected building's centroid rather than the district centre.
         private var inspectedBuildingCentroid: SIMD3<Float>? = nil
@@ -230,11 +234,18 @@ struct DistrictRealityView: UIViewRepresentable {
             districtCenter   = center
             // Orbit reference: 1.5× the mood fraction — same as original, used by
             // resetToDefaultPosition multipliers. Do NOT reduce this without verifying
-            // all moods: it is the anchor for AÉRIEN/OVERVIEW/ZOOM multipliers.
+            // all moods: it is the anchor for OVERVIEW/CLOSE DISTRICT/POI multipliers.
             districtDistance = district.extent * mood.cameraDistanceFraction * 1.5
 
             // Initial camera position respects the active preset.
             switch currentViewPreset {
+<<<<<<< HEAD
+=======
+            case .closeDistrict:
+                // CLOSE DISTRICT: tighter district framing, 50% horizontal, 90% height.
+                distance = districtExtent * 0.50
+                height   = districtExtent * 0.90
+>>>>>>> origin/main
             case .overview:
                 // OVERVIEW: bird's-eye ~61° elevation.
                 distance = districtDistance * 0.60
@@ -260,11 +271,11 @@ struct DistrictRealityView: UIViewRepresentable {
         func update(isAutoRotating: Bool, rotationSpeed: Double, isNight: Bool = false,
                     venueTargetPOIId: String?, resetToken: Int, buildingOrbitToken: Int,
                     searchFlyToken: Int, searchFlyCentroid: SIMD3<Float>,
-                    viewFocusToken: Int, selectedBuilding: BuildingFootprint?,
+                    poiFocusToken: Int, selectedBuilding: BuildingFootprint?,
                     activeViewPreset: ViewPreset = .overview) {
             guard let arView else { return }
-            // Always track the current selection so viewFocusToken has a building to fly to
-            if let b = selectedBuilding { lastFocusedBuilding = b }
+            // Always track the current selection so poiFocusToken has a POI to fly to
+            if let poiId = venueTargetPOIId { lastFocusedPOIId = poiId }
 
             self.rotationSpeed = rotationSpeed
             currentViewPreset = activeViewPreset
@@ -304,11 +315,11 @@ struct DistrictRealityView: UIViewRepresentable {
                 }
             }
 
-            if viewFocusToken != lastViewFocusToken {
-                lastViewFocusToken = viewFocusToken
-                if let building = lastFocusedBuilding {
-                    setFacadeDetailEnabled(true)
-                    flyToBuildingWithFraming(building, scene: arView.scene)
+            if poiFocusToken != lastViewFocusToken {
+                lastViewFocusToken = poiFocusToken
+                if let poiId = lastFocusedPOIId ?? venueTargetPOIId {
+                    flyToVenue(poiId: poiId, districtName: districtName, scene: arView.scene)
+                    startVenueLOD(scene: arView.scene)
                 }
             }
 
@@ -440,6 +451,8 @@ struct DistrictRealityView: UIViewRepresentable {
                 flySubscription = nil
                 cinematicSubscription?.cancel()
                 cinematicSubscription = nil
+                // Capture initial velocity for momentum/inertia
+                panVelocity = gesture.velocity(in: arView)
             }
 
             let delta = gesture.translation(in: arView)
@@ -458,7 +471,15 @@ struct DistrictRealityView: UIViewRepresentable {
 
             updateCameraPosition()
 
+            // Track velocity for momentum
+            if gesture.state == .changed {
+                panVelocity = gesture.velocity(in: arView)
+            }
+
             if gesture.state == .ended || gesture.state == .cancelled {
+                // Apply momentum/inertia to the pan gesture
+                applyPanMomentum(in: arView.scene)
+                
                 if currentIsAutoRotating {
                     // Resume orbit from the current manually-set position.
                     let orbitCenter = inspectedBuildingCentroid ?? center
@@ -513,6 +534,65 @@ struct DistrictRealityView: UIViewRepresentable {
 
         @objc func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
             resetToDefaultPosition()
+        }
+        
+        // MARK: - Momentum / Inertia
+        
+        /// Velocity tracker for pan gesture momentum
+        private var panVelocity: CGPoint = .zero
+        private var momentumSubscription: Cancellable?
+        
+        /// Applies momentum/inertia to the camera after a pan gesture ends.
+        /// The camera continues moving with decreasing velocity until it naturally stops.
+        private func applyPanMomentum(in scene: RealityKit.Scene) {
+            guard let arView else { return }
+            
+            let velocity = panVelocity
+            guard velocity != .zero else { return }
+            
+            // Decay factor: controls how quickly momentum fades
+            // Higher = longer momentum (0.92 = ~2 seconds of noticeable movement)
+            let decay: Float = 0.92
+            let minVelocity: Float = 0.5  // Stop when velocity drops below this
+            
+            // Scale velocity to reasonable camera movement speeds
+            // 5-10 m/s as specified in requirements
+            let azimuthSpeed: Float = 0.003
+            let elevationSpeed: Float = 0.002
+            
+            var currentVelocity = SIMD2<Float>(Float(velocity.x), Float(velocity.y))
+            
+            momentumSubscription?.cancel()
+            momentumSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
+                guard let self else { return }
+                
+                // Apply velocity
+                self.azimuth += currentVelocity.x * azimuthSpeed
+                let elevDelta = currentVelocity.y * elevationSpeed
+                let minElev = max(2.0, self.height * 0.02)
+                let maxElev = self.height * 2.5
+                self.currentElevation = min(max(self.currentElevation + elevDelta, minElev), maxElev)
+                
+                self.updateCameraPosition()
+                
+                // Decay velocity
+                currentVelocity *= decay
+                
+                // Stop when velocity is negligible
+                if length(currentVelocity) < minVelocity {
+                    self.momentumSubscription?.cancel()
+                    self.momentumSubscription = nil
+                    
+                    // Resume orbit if auto-rotate is enabled
+                    if self.currentIsAutoRotating {
+                        let orbitCenter = self.inspectedBuildingCentroid ?? self.center
+                        self.startBuildingOrbit360(center: orbitCenter,
+                                                  orbDist: self.currentDistance,
+                                                  orbH: self.currentElevation,
+                                                  scene: scene)
+                    }
+                }
+            }
         }
 
         /// Single-tap handler. Priority order:
@@ -586,13 +666,13 @@ struct DistrictRealityView: UIViewRepresentable {
             facadeDetailEnabled = false
             guard let arView else { return }
 
-            if currentViewPreset == .ciel {
-                // SURVOL: frames the full district perimeter from near-overhead.
-                let survolHoriz  = districtExtent * 0.30
-                let survolH      = districtExtent * 1.35
-                currentDistance  = survolHoriz
-                currentElevation = survolH
-                flyCamera(to: SIMD3(center.x, survolH, center.z + survolHoriz),
+            if currentViewPreset == .closeDistrict {
+                // CLOSE DISTRICT: tighter district framing.
+                let closeDist = districtExtent * 0.50
+                let closeH    = districtExtent * 0.90
+                currentDistance  = closeDist
+                currentElevation = closeH
+                flyCamera(to: SIMD3(center.x, closeH, center.z + closeDist),
                           lookAt: center, scene: arView.scene)
                 orbitSubscription?.cancel()
                 orbitSubscription = nil
@@ -617,6 +697,138 @@ struct DistrictRealityView: UIViewRepresentable {
         // Pan and pinch can fire simultaneously — lets the user orbit while slowly zooming.
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                                 shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
+        
+        #if os(macOS)
+        // MARK: - macOS Trackpad Support
+        
+        /// Adds native macOS trackpad gesture recognizers to the ARView.
+        /// Supports: pinch-to-zoom, drag-to-rotate, swipe-to-pan, force-touch reset.
+        func addMacOSGestureRecognizers(to arView: ARView) {
+            // Pinch → zoom (native trackpad pinch)
+            let pinch = NSPinchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMacOSPinch(_:)))
+            pinch.delegate = context.coordinator
+            arView.addGestureRecognizer(pinch)
+            
+            // Drag → rotation (trackpad drag or mouse drag)
+            let drag = NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMacOSDrag(_:)))
+            drag.delegate = context.coordinator
+            arView.addGestureRecognizer(drag)
+            
+            // Swipe (2 fingers) → pan
+            let swipe = NSSwipeGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMacOSSwipe(_:)))
+            swipe.direction = .left  // Will be handled in both directions
+            swipe.numberOfTouchesRequired = 2
+            swipe.delegate = context.coordinator
+            arView.addGestureRecognizer(swipe)
+            
+            // Force touch → reset view (optional, requires compatible hardware)
+            if #available(macOS 10.12.2, *) {
+                let forceTouch = NSForceTouchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMacOSForceTouch(_:)))
+                forceTouch.delegate = context.coordinator
+                arView.addGestureRecognizer(forceTouch)
+            }
+        }
+        
+        @objc func handleMacOSPinch(_ gesture: NSPinchGestureRecognizer) {
+            // Reuse the same pinch logic as iOS
+            let scale = Float(gesture.scale)
+            let pinchGesture = UIPinchGestureRecognizer()
+            pinchGesture.scale = CGFloat(scale)
+            
+            // Manually set state based on macOS gesture phase
+            switch gesture.state {
+            case .began: pinchGesture.state = .began
+            case .changed: pinchGesture.state = .changed
+            case .ended, .cancelled: pinchGesture.state = .ended
+            default: pinchGesture.state = .possible
+            }
+            
+            handlePinch(pinchGesture)
+        }
+        
+        @objc func handleMacOSDrag(_ gesture: NSPanGestureRecognizer) {
+            guard let arView else { return }
+            
+            if gesture.state == .began {
+                orbitSubscription?.cancel()
+                orbitSubscription = nil
+                flySubscription?.cancel()
+                flySubscription = nil
+                cinematicSubscription?.cancel()
+                cinematicSubscription = nil
+                panVelocity = CGPoint(x: gesture.velocity(in: arView).x, y: gesture.velocity(in: arView).y)
+            }
+            
+            let translation = gesture.translation(in: arView)
+            let delta = CGPoint(x: translation.x, y: translation.y)
+            
+            azimuth += Float(delta.x) * 0.005
+            let minElev = max(2.0, height * 0.02)
+            let maxElev = height * 2.5
+            let distRatio = currentDistance / max(districtExtent, 1)
+            let elevStep = Float(delta.y) * 0.004 * max(distRatio, 0.2)
+            currentElevation = min(max(currentElevation + elevStep, minElev), maxElev)
+            
+            updateCameraPosition()
+            
+            if gesture.state == .changed {
+                panVelocity = gesture.velocity(in: arView)
+            }
+            
+            if gesture.state == .ended || gesture.state == .cancelled {
+                applyPanMomentum(in: arView.scene)
+                
+                if currentIsAutoRotating {
+                    let orbitCenter = inspectedBuildingCentroid ?? center
+                    startBuildingOrbit360(center: orbitCenter,
+                                          orbDist: currentDistance,
+                                          orbH: currentElevation,
+                                          scene: arView.scene)
+                }
+            }
+        }
+        
+        @objc func handleMacOSSwipe(_ gesture: NSSwipeGestureRecognizer) {
+            guard let arView else { return }
+            
+            // Swipe 2 fingers horizontally → pan camera laterally
+            // Velocity: 5-10 m/s as specified
+            let swipeVelocity: Float = 7.5  // Midpoint of 5-10 m/s range
+            
+            if gesture.state == .began || gesture.state == .changed {
+                // Determine swipe direction from velocity
+                let velocity = gesture.velocity(in: arView)
+                let direction: Float = velocity.x > 0 ? 1.0 : -1.0
+                
+                // Apply lateral pan (perpendicular to current azimuth)
+                let lateralPan = direction * swipeVelocity * 0.1
+                center.x += lateralPan * cos(azimuth)
+                center.z += lateralPan * sin(azimuth)
+                
+                // Clamp to frustum bounds (prevent camera from leaving district)
+                clampCameraToDistrictBounds()
+                updateCameraPosition()
+            }
+        }
+        
+        @objc func handleMacOSForceTouch(_ gesture: NSForceTouchGestureRecognizer) {
+            guard gesture.state == .began else { return }
+            // Force touch resets view to default position
+            resetToDefaultPosition()
+        }
+        
+        /// Clamps the camera target (center) to stay within district bounds
+        private func clampCameraToDistrictBounds() {
+            let margin: Float = districtExtent * 0.1  // 10% margin from edges
+            let minX = districtCenter.x - districtExtent * 0.5 + margin
+            let maxX = districtCenter.x + districtExtent * 0.5 - margin
+            let minZ = districtCenter.z - districtExtent * 0.5 + margin
+            let maxZ = districtCenter.z + districtExtent * 0.5 - margin
+            
+            center.x = min(max(center.x, minX), maxX)
+            center.z = min(max(center.z, minZ), maxZ)
+        }
+        #endif
 
         // MARK: - Model loading
 

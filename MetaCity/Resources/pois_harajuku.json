@@ -6,6 +6,7 @@
       "name": "Takeshita Street",
       "category": "attraction",
       "tier": "featured",
+<<<<<<< HEAD
       "latitude": 35.6710,
       "longitude": 139.7025,
       "description": "350-metre pedestrian street — Tokyo's epicentre of Harajuku street fashion, cosplay, and youth culture since the 1980s. Peak on Sundays: over 200,000 visitors. Crepe stands, gothic-lolita boutiques, and streetwear pop-ups line every metre.",
@@ -19,20 +20,44 @@
       "latitude": 35.6763,
       "longitude": 139.6993,
       "description": "Shinto shrine (1920) dedicated to Emperor Meiji and Empress Shoken, set in 70 hectares of forest. The towering wooden torii gate is one of Japan's largest — 12 metres high, built from 1,500-year-old Taiwanese cypress. Sees 3 million visitors in the three days of New Year's.",
+=======
+      "latitude": 35.6712,
+      "longitude": 139.7030,
+      "description": "The iconic pedestrian street of Harajuku — 400m of crepe stands, vintage shops, and street fashion. Peak chaos on weekends when cosplayers and rockabilly dancers take over.",
+      "partnerURL": null
+    },
+    {
+      "id": "meiji_shrine",
+      "name": "Meiji Shrine",
+      "category": "temple",
+      "tier": "featured",
+      "latitude": 35.6764,
+      "longitude": 139.6993,
+      "description": "Shinto shrine dedicated to Emperor Meiji and Empress Shōken (1920). The 100-year-old forest of 100,000 trees was donated by the Japanese people. Massive torii gates mark the entrance.",
+>>>>>>> origin/main
       "partnerURL": null
     },
     {
       "id": "yoyogi_park",
       "name": "Yoyogi Park",
+<<<<<<< HEAD
       "category": "attraction",
       "tier": "featured",
       "latitude": 35.6716,
       "longitude": 139.6958,
       "description": "54-hectare urban park, former 1964 Olympic Village. Cherry blossoms (hanami) in April draw half a million visitors. Rockabilly dancers and street musicians perform at the main gate on Sundays — a Tokyo Sunday ritual since the 1980s.",
+=======
+      "category": "park",
+      "tier": "standard",
+      "latitude": 35.6718,
+      "longitude": 139.6986,
+      "description": "54-hectare park in the heart of Tokyo. Cherry blossoms in spring, maple leaves in autumn. Weekends see rockabilly dancers near the entrance and drum circles near the pond.",
+>>>>>>> origin/main
       "partnerURL": null
     },
     {
       "id": "omotesando",
+<<<<<<< HEAD
       "name": "Omotesando",
       "category": "explore",
       "tier": "standard",
@@ -53,3 +78,35 @@
     }
   ]
 }
+=======
+      "name": "Omotesando Avenue",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6656,
+      "longitude": 139.7123,
+      "description": "Tokyo's Champs-Élysées — 1km zelkova-tree-lined boulevard leading to Meiji Shrine. Flagship stores: Prada, Dior, Omotesando Hills (Tadao Ando, 2006).",
+      "partnerURL": null
+    },
+    {
+      "id": "togo_shrine",
+      "name": "Togo Shrine",
+      "category": "temple",
+      "tier": "standard",
+      "latitude": 35.6701,
+      "longitude": 139.7045,
+      "description": "Small but popular Shinto shrine dedicated to Admiral Togo Heihachiro (victor of the 1905 Battle of Tsushima). Famous for matchmaking and maritime blessings.",
+      "partnerURL": null
+    },
+    {
+      "id": "ura_harajuku",
+      "name": "Ura-Harajuku",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.6698,
+      "longitude": 139.7067,
+      "description": "The backstreets of Harajuku — Cat Street and the lanes between Omotesando and Shibuya. Independent boutiques, craft cafes, and street art. Less crowded than Takeshita.",
+      "partnerURL": null
+    }
+  ]
+}
+>>>>>>> origin/main
