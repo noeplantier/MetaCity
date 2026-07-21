@@ -2,6 +2,35 @@
   "districtId": "Ueno",
   "pois": [
     {
+<<<<<<< HEAD
+      "id": "ueno_park",
+      "name": "Ueno Park",
+      "category": "attraction",
+      "tier": "featured",
+      "latitude": 35.7152,
+      "longitude": 139.7719,
+      "description": "Tokyo's most celebrated public park — 53 hectares housing the national museum, zoo, 5 art museums, and the most famous hanami (cherry blossom) avenue in Japan. 1,200 somei-yoshino trees bloom late March, drawing 2 million visitors in two weeks.",
+      "partnerURL": null
+    },
+    {
+      "id": "tokyo_national_museum",
+      "name": "Tokyo National Museum",
+      "category": "culture",
+      "tier": "featured",
+      "latitude": 35.7189,
+      "longitude": 139.7767,
+      "description": "Japan's oldest and largest museum (founded 1872), housing 110,000 artefacts — samurai armour, ukiyo-e prints, Buddhist sculpture, and the world's largest collection of Japanese art. The Honkan main building (1938) is a masterpiece of Imperial Crown architectural style.",
+      "partnerURL": null
+    },
+    {
+      "id": "ueno_zoo",
+      "name": "Ueno Zoological Gardens",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.7173,
+      "longitude": 139.7726,
+      "description": "Japan's oldest zoo (1882), home to two giant pandas (Lili and Xiaoxiao, born 2021) — the most-visited animals in the country. Split across two sections connected by a monorail, with 3.5 million annual visitors.",
+=======
       "id": "tokyo_national_museum",
       "name": "Tokyo National Museum",
       "category": "museum",
@@ -9,11 +38,33 @@
       "latitude": 35.7141,
       "longitude": 139.7774,
       "description": "Japan's oldest and largest museum (1872). Houses 110,000+ artifacts including samurai swords, ukiyo-e prints, and the famous Great Buddha statue. The Honkan (Japanese Gallery) is a designated Important Cultural Property.",
+>>>>>>> origin/main
       "partnerURL": null
     },
     {
       "id": "ueno_station",
       "name": "Ueno Station",
+<<<<<<< HEAD
+      "category": "landmark",
+      "tier": "standard",
+      "latitude": 35.7136,
+      "longitude": 139.7770,
+      "description": "Major JR terminal (1883) serving the Tohoku Shinkansen, Joban Line, and Yamanote loop. Historically the 'gateway to the north' — generations of migrants from Tohoku and Hokkaido arrived here. The park-side exit opens directly onto the cherry-blossom avenue.",
+      "partnerURL": null
+    },
+    {
+      "id": "ameyoko_market",
+      "name": "Ameya-Yokocho (Ameyoko)",
+      "category": "attraction",
+      "tier": "standard",
+      "latitude": 35.7093,
+      "longitude": 139.7746,
+      "description": "Post-war black-market alley (ameya = candy seller) that became a 500-stall open-air market beneath the JR Yamanote tracks. Fresh seafood, dried goods, cosmetics and sneakers — Tokyo's loudest and most chaotic market. Unmissable during New Year's Eve shopping.",
+      "partnerURL": null
+    }
+  ]
+}
+=======
       "category": "transport",
       "tier": "featured",
       "latitude": 35.7141,
@@ -63,3 +114,4 @@
     }
   ]
 }
+>>>>>>> origin/main

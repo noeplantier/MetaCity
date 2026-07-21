@@ -1,0 +1,101 @@
+{
+  "districtId": "Ueno",
+  "overrides": [
+    {
+      "nameMatch": "東京国立博物館",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 24.0
+    },
+    {
+      "nameMatch": "Tokyo National Museum",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 24.0
+    },
+    {
+      "nameMatch": "国立西洋美術館",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 14.0
+    },
+    {
+      "nameMatch": "National Museum of Western Art",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 14.0
+    },
+    {
+      "nameMatch": "東京都美術館",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 18.0
+    },
+    {
+      "nameMatch": "Tokyo Metropolitan Art Museum",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 18.0
+    },
+    {
+      "nameMatch": "上野動物園",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 8.0
+    },
+    {
+      "nameMatch": "Ueno Zoo",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 8.0
+    },
+    {
+      "nameMatch": "東照宮",
+      "style": "religious",
+      "roofType": "flat",
+      "heightMeters": 10.0
+    },
+    {
+      "nameMatch": "Tosho-gu",
+      "style": "religious",
+      "roofType": "flat",
+      "heightMeters": 10.0
+    },
+    {
+      "nameMatch": "寛永寺",
+      "style": "religious",
+      "roofType": "flat",
+      "heightMeters": 18.0
+    },
+    {
+      "nameMatch": "Kan'ei-ji",
+      "style": "religious",
+      "roofType": "flat",
+      "heightMeters": 18.0
+    },
+    {
+      "nameMatch": "上野駅",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 16.0
+    },
+    {
+      "nameMatch": "Ueno Station",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 16.0
+    },
+    {
+      "nameMatch": "国立科学博物館",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 16.0
+    },
+    {
+      "nameMatch": "National Museum of Nature and Science",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 16.0
+    }
+  ]
+}

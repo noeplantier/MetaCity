@@ -17,26 +17,22 @@ struct DiscoverView: View {
             Color.black.ignoresSafeArea()
             mapLayer
             sceneLayer
-            // Travel flash overlay — fades in then out on map→district transitions
+            // Travel flash overlay — brief white-flash (not black) on map→district transitions
+            // Softer than the previous 0.82 black: a near-instant 0.22 opacity dip reads as
+            // a "warp" cut without obscuring the 3D scene for a distracting half-second.
             Color.black
                 .opacity(transitionFlash)
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
-                .animation(.easeOut(duration: 0.28), value: transitionFlash)
+                .animation(.easeOut(duration: 0.18), value: transitionFlash)
             overlayLayer
-            // First-entry district reveal — above all other overlays
-            if let ctx = viewModel.districtRevealContext {
-                DistrictRevealOverlay(context: ctx, onDismiss: viewModel.dismissDistrictReveal)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .zIndex(100)
-            }
         }
         .onChange(of: viewModel.showingMap) { _, isNowShowingMap in
             if !isNowShowingMap {
-                // Transitioning into district — brief black flash, then clear
-                transitionFlash = 0.82
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                    withAnimation(.easeOut(duration: 0.32)) { transitionFlash = 0 }
+                // Soft warp flash — 0.22 opacity (down from 0.82), clears in 0.18s
+                transitionFlash = 0.22
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    withAnimation(.easeOut(duration: 0.18)) { transitionFlash = 0 }
                 }
             }
         }
@@ -105,7 +101,7 @@ struct DiscoverView: View {
                 poiFocusToken: viewModel.poiFocusToken,
                 selectedBuilding: viewModel.selectedBuilding,
                 activeViewPreset: viewModel.activeViewPreset,
-                isNight: viewModel.isNightMode
+                isNight: false
             )
             .id(district.id)    // forces coordinator recreation when district changes
             .ignoresSafeArea()
@@ -297,18 +293,10 @@ struct DiscoverView: View {
 
     private func districtExploreOverlay(city: CityEntry, district: DistrictEntry) -> some View {
         VStack(spacing: 0) {
-            // Unified nav row: back | search bar | night toggle | globe
+            // Unified nav row: back | search bar | globe
             HStack(spacing: Spacing.sm) {
                 backButton
                 DistrictSearchBar(query: $viewModel.districtSearchQuery)
-                Button(action: { viewModel.isNightMode.toggle() }) {
-                    Image(systemName: viewModel.isNightMode ? "moon.fill" : "sun.max.fill")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(viewModel.isNightMode ? Color.metacityNeonCyan : Color.metacityTextPrimary)
-                        .frame(width: 36, height: 36)
-                        .background(.ultraThinMaterial, in: Circle())
-                }
-                .accessibilityLabel(viewModel.isNightMode ? "Day mode" : "Night mode")
                 EarthGlobeButton(onTap: { viewModel.resetToWorldMap() })
             }
             .padding(.horizontal, Spacing.lg)
@@ -337,7 +325,8 @@ struct DiscoverView: View {
                     DistrictMiniMapView(
                         district: district,
                         activePreset: viewModel.activeViewPreset,
-                        onPresetChange: { viewModel.setViewPreset($0) }
+                        onPresetChange: { viewModel.setViewPreset($0) },
+                        onPOISelected: { viewModel.selectPOIById($0, districtId: district.id) }
                     )
                     .padding(.trailing, Spacing.lg)
                     .padding(.bottom, Spacing.sm)
@@ -1584,17 +1573,20 @@ private struct DistrictMiniMapView: View {
     let district: DistrictEntry
     var activePreset: ViewPreset = .overview
     var onPresetChange: ((ViewPreset) -> Void)? = nil
+    var onPOISelected: ((String) -> Void)? = nil
 
     @State private var camera: MapCameraPosition
     @State private var pulse: CGFloat = 0
-    @State private var isExpanded: Bool = false
+    @State private var isExpanded: Bool = true   // open by default so presets are immediately visible
 
     init(district: DistrictEntry,
          activePreset: ViewPreset = .overview,
-         onPresetChange: ((ViewPreset) -> Void)? = nil) {
+         onPresetChange: ((ViewPreset) -> Void)? = nil,
+         onPOISelected: ((String) -> Void)? = nil) {
         self.district = district
         self.activePreset = activePreset
         self.onPresetChange = onPresetChange
+        self.onPOISelected = onPOISelected
         let b = district.boundingBox
         let latSpan = b.north - b.south
         let lonSpan = b.east  - b.west
@@ -1640,59 +1632,69 @@ private struct DistrictMiniMapView: View {
                 }
             }
 
-            // Map body with animated pulse dot — touch disabled so taps reach the header
-            Map(position: $camera) {
-                Annotation("", coordinate: district.anchor.clLocationCoordinate, anchor: .center) {
-                    ZStack {
-                        Circle()
-                            .stroke(accentColor.opacity(0.35 * (1 - pulse)), lineWidth: 1.5)
-                            .frame(width: 22 + pulse * 14, height: 22 + pulse * 14)
-                        Circle()
-                            .fill(accentColor.opacity(0.20))
-                            .frame(width: 18, height: 18)
-                        Circle()
-                            .fill(accentColor)
-                            .frame(width: 7, height: 7)
-                            .shadow(color: accentColor, radius: 5)
+            // Body: POI list in POI mode, satellite map otherwise
+            if activePreset == .focus {
+                MiniPOIListView(
+                    districtId: district.id,
+                    accentColor: accentColor,
+                    onPOISelected: onPOISelected
+                )
+                .frame(height: isExpanded ? 210 : 155)
+            } else {
+                Map(position: $camera) {
+                    Annotation("", coordinate: district.anchor.clLocationCoordinate, anchor: .center) {
+                        ZStack {
+                            Circle()
+                                .stroke(accentColor.opacity(0.35 * (1 - pulse)), lineWidth: 1.5)
+                                .frame(width: 22 + pulse * 14, height: 22 + pulse * 14)
+                            Circle()
+                                .fill(accentColor.opacity(0.20))
+                                .frame(width: 18, height: 18)
+                            Circle()
+                                .fill(accentColor)
+                                .frame(width: 7, height: 7)
+                                .shadow(color: accentColor, radius: 5)
+                        }
                     }
                 }
+                .mapStyle(.hybrid(elevation: .flat, pointsOfInterest: .excludingAll))
+                .frame(height: isExpanded ? 210 : 155)
+                .disabled(true)
             }
-            .mapStyle(.hybrid(elevation: .flat, pointsOfInterest: .excludingAll))
-            .frame(height: isExpanded ? 182 : 130)
-            .disabled(true)     // let taps pass through to the header toggle
 
-            // View preset chips — visible when expanded
-            if isExpanded {
-                HStack(spacing: 6) {
-                    ForEach(ViewPreset.allCases, id: \.self) { preset in
-                        let isActive = preset == activePreset
-                        Button {
-                            onPresetChange?(preset)
-                        } label: {
+            // View preset chips — always visible (no expand required)
+            HStack(spacing: 6) {
+                ForEach(ViewPreset.allCases, id: \.self) { preset in
+                    let isActive = preset == activePreset
+                    Button {
+                        onPresetChange?(preset)
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: preset.icon)
+                                .font(.system(size: 6, weight: .semibold))
                             Text(preset.label)
                                 .font(.system(size: 7, weight: .bold, design: .monospaced))
-                                .tracking(0.8)
-                                .foregroundStyle(isActive ? Color.black : accentColor.opacity(0.70))
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3.5)
-                                .background(
-                                    Capsule()
-                                        .fill(isActive ? accentColor : accentColor.opacity(0.12))
-                                )
-                                .overlay(
-                                    Capsule()
-                                        .strokeBorder(accentColor.opacity(isActive ? 0 : 0.30), lineWidth: 0.8)
-                                )
+                                .tracking(0.6)
                         }
-                        .buttonStyle(.plain)
+                        .foregroundStyle(isActive ? Color.black : accentColor.opacity(0.70))
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3.5)
+                        .background(
+                            Capsule()
+                                .fill(isActive ? accentColor : accentColor.opacity(0.12))
+                        )
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(accentColor.opacity(isActive ? 0 : 0.30), lineWidth: 0.8)
+                        )
                     }
-                    Spacer()
+                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 6)
-                .background(Color.black.opacity(0.82))
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                Spacer()
             }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 6)
+            .background(Color.black.opacity(0.82))
 
             // Bottom GPS bar
             VStack(spacing: 2) {
@@ -1719,22 +1721,20 @@ private struct DistrictMiniMapView: View {
             .padding(.vertical, 5)
             .background(Color.black.opacity(0.78))
         }
-        .frame(width: isExpanded ? 214 : 160)
+        .frame(width: 256)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [accentColor.opacity(isExpanded ? 0.80 : 0.65),
-                                 accentColor.opacity(isExpanded ? 0.30 : 0.20)],
+                        colors: [accentColor.opacity(0.80), accentColor.opacity(0.30)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ),
-                    lineWidth: isExpanded ? 1.2 : 1
+                    lineWidth: 1.2
                 )
         }
-        .shadow(color: accentColor.opacity(isExpanded ? 0.38 : 0.22), radius: isExpanded ? 20 : 14, y: 5)
+        .shadow(color: accentColor.opacity(0.38), radius: 20, y: 5)
         .shadow(color: .black.opacity(0.55), radius: 18, y: 7)
-        .animation(.spring(response: 0.35, dampingFraction: 0.70), value: isExpanded)
         .onAppear {
             withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
                 pulse = 1.0
@@ -1788,6 +1788,77 @@ private struct DistrictMiniMapView: View {
         case "coastalPark":        return Color(red: 0.22, green: 0.80, blue: 0.88)
         case "colonialSquare":     return Color(red: 0.90, green: 0.74, blue: 0.42)
         default:                   return Color.metacityNeonCyan
+        }
+    }
+}
+
+// MARK: - Mini POI list (shown inside the mini-map widget when POI preset is active)
+
+/// Compact scrollable list of district POIs shown in place of the satellite map when the user
+/// activates the POI preset. Tapping a row calls `onPOISelected` → camera fly + HUDVenueCard.
+private struct MiniPOIListView: View {
+    let districtId: String
+    let accentColor: Color
+    var onPOISelected: ((String) -> Void)?
+
+    private var pois: [CangguPOI] {
+        CangguPOICollection.load(for: districtId)?.pois ?? []
+    }
+
+    var body: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            LazyVStack(spacing: 0) {
+                ForEach(pois) { poi in
+                    Button {
+                        onPOISelected?(poi.id)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: poi.tier == .featured
+                                  ? "mappin.circle.fill" : "mappin.circle")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(poi.tier == .featured
+                                                 ? accentColor : accentColor.opacity(0.52))
+                                .frame(width: 20)
+
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(poi.name)
+                                    .font(.system(size: 9, weight: .semibold, design: .default))
+                                    .foregroundStyle(Color.white.opacity(0.92))
+                                    .lineLimit(1)
+                                Text(poi.category.displayName.uppercased())
+                                    .font(.system(size: 7, weight: .medium, design: .monospaced))
+                                    .foregroundStyle(accentColor.opacity(0.56))
+                                    .tracking(0.5)
+                            }
+
+                            Spacer(minLength: 0)
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 7, weight: .semibold))
+                                .foregroundStyle(accentColor.opacity(0.35))
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                        .background(Color.white.opacity(0.03))
+                    }
+                    .buttonStyle(.plain)
+
+                    if poi.id != pois.last?.id {
+                        Divider()
+                            .background(accentColor.opacity(0.10))
+                            .padding(.horizontal, 10)
+                    }
+                }
+            }
+        }
+        .background(Color.black.opacity(0.70))
+        .overlay(alignment: .top) {
+            if pois.isEmpty {
+                Text("Aucun POI disponible")
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.35))
+                    .padding(.top, 20)
+            }
         }
     }
 }

@@ -41,7 +41,11 @@ struct DistrictRealityView: UIViewRepresentable {
     /// The currently selected building — mirrored from DiscoverViewModel so the coordinator
     /// can access it when `viewFocusToken` fires without storing state across sessions.
     var selectedBuilding: BuildingFootprint? = nil
+<<<<<<< HEAD
+    /// Current camera preset — used by the coordinator to choose OVERVIEW / POI.
+=======
     /// Current camera preset — used by the coordinator to choose OVERVIEW / CLOSE DISTRICT / POI.
+>>>>>>> origin/main
     var activeViewPreset: ViewPreset = .overview
     /// Day/night mode toggle. When changed, the coordinator discards and rebuilds the district
     /// entity with the appropriate emissive/roughness materials and lighting rig.
@@ -235,10 +239,13 @@ struct DistrictRealityView: UIViewRepresentable {
 
             // Initial camera position respects the active preset.
             switch currentViewPreset {
+<<<<<<< HEAD
+=======
             case .closeDistrict:
                 // CLOSE DISTRICT: tighter district framing, 50% horizontal, 90% height.
                 distance = districtExtent * 0.50
                 height   = districtExtent * 0.90
+>>>>>>> origin/main
             case .overview:
                 // OVERVIEW: bird's-eye ~61° elevation.
                 distance = districtDistance * 0.60
@@ -272,16 +279,6 @@ struct DistrictRealityView: UIViewRepresentable {
 
             self.rotationSpeed = rotationSpeed
             currentViewPreset = activeViewPreset
-
-            // Night mode toggle — rebuild entity and lighting when the mode changes.
-            if isNight != currentIsNight {
-                currentIsNight = isNight
-                if let anchor = districtAnchor {
-                    DistrictRealityScene.installLighting(in: arView, anchor: anchor, mood: mood,
-                                                          extent: districtExtent, isNight: isNight)
-                    loadModel(named: districtName, into: anchor)
-                }
-            }
 
             if isAutoRotating != currentIsAutoRotating {
                 currentIsAutoRotating = isAutoRotating
@@ -381,6 +378,44 @@ struct DistrictRealityView: UIViewRepresentable {
             orbitSubscription?.cancel()
             orbitSubscription = nil
             flyCamera(to: overviewPos, lookAt: lookTarget, scene: scene)
+        }
+
+        // MARK: - POI visitable camera API
+
+        /// Fly the camera to an approach position in front of `poi` (street-level, looking at the
+        /// building face), then call `completion`. Pairs with `exitPOI` to restore the orbit.
+        /// The approach position is derived from the POI's lat/lon + a 12 m forward offset so the
+        /// camera stands on the "street" side rather than inside the geometry.
+        func enterPOI(_ poi: CangguPOI, completion: @escaping () -> Void) {
+            guard let arView, let districtEntry = CityManifest.shared.district(id: districtName)
+            else { completion(); return }
+            let offset = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
+                .sceneOffset(from: districtEntry.anchor)
+            let approachZ  = offset.z + 12      // 12 m in front (south side)
+            let eyeHeight: Float = 1.8          // eye level
+            let eyePos   = SIMD3<Float>(offset.x, eyeHeight, approachZ)
+            let lookPos  = SIMD3<Float>(offset.x, eyeHeight + 1.0, offset.z)
+            orbitSubscription?.cancel()
+            orbitSubscription = nil
+            flyCamera(to: eyePos, lookAt: lookPos, scene: arView.scene) { [weak self] in
+                guard let self else { return }
+                self.startVenueLOD(scene: arView.scene)
+                completion()
+            }
+        }
+
+        /// Restore the orbit camera after a POI visit.
+        func exitPOI(completion: @escaping () -> Void) {
+            guard let arView else { completion(); return }
+            if let anchor = districtAnchor {
+                DistrictRealityKit.restoreGroundColor(in: anchor, mood: mood)
+            }
+            applyOrbitLOD()
+            flyCamera(to: SIMD3(center.x, currentElevation, center.z + currentDistance),
+                      lookAt: center, scene: arView.scene) { [weak self] in
+                self?.restartOrbit(isAutoRotating: self?.currentIsAutoRotating ?? false)
+                completion()
+            }
         }
 
         /// Returns the building whose polygon centroid is closest to `target` within `maxMeters`.

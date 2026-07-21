@@ -1,0 +1,83 @@
+{
+  "districtId": "Harajuku",
+  "overrides": [
+    {
+      "nameMatch": "Omotesando Hills",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 50.0
+    },
+    {
+      "nameMatch": "オモテサンドウヒルズ",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 50.0
+    },
+    {
+      "nameMatch": "Louis Vuitton Omotesando",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 42.0
+    },
+    {
+      "nameMatch": "Prada Aoyama",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 36.0
+    },
+    {
+      "nameMatch": "GYRE",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 38.0
+    },
+    {
+      "nameMatch": "From First Building",
+      "style": "modernGlass",
+      "roofType": "flat",
+      "heightMeters": 34.0
+    },
+    {
+      "nameMatch": "明治神宮",
+      "style": "religious",
+      "roofType": "flat",
+      "heightMeters": 12.0
+    },
+    {
+      "nameMatch": "Meiji Jingu",
+      "style": "religious",
+      "roofType": "flat",
+      "heightMeters": 12.0
+    },
+    {
+      "nameMatch": "代々木体育館",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 42.0
+    },
+    {
+      "nameMatch": "Yoyogi National Gymnasium",
+      "style": "government",
+      "roofType": "flat",
+      "heightMeters": 42.0
+    },
+    {
+      "nameMatch": "NHK",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 48.0
+    },
+    {
+      "nameMatch": "LaForet Harajuku",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 32.0
+    },
+    {
+      "nameMatch": "ラフォーレ原宿",
+      "style": "modernConcrete",
+      "roofType": "flat",
+      "heightMeters": 32.0
+    }
+  ]
+}
