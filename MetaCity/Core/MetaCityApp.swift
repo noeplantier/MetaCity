@@ -14,7 +14,11 @@ struct MetaCityApp: App {
         // GoogleService-Info.plist isn't in the bundle, and that file is gitignored (see
         // .gitignore) since this repo is public. Anyone without it still gets a fully working
         // app on the in-memory mocks — see `AppEnvironment.defaultAuthRepository()`.
+        #if DEBUG
+        let skipAuth = true  // always skip Firebase in Debug so Simulator snapshots work without credentials
+        #else
         let skipAuth = ProcessInfo.processInfo.environment["UITEST_SKIP_AUTH"] == "1"
+        #endif
         if !skipAuth && Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil {
             FirebaseApp.configure()
             // GoogleSignIn reuses the OAuth client ID Firebase already has from the plist, so
@@ -31,7 +35,7 @@ struct MetaCityApp: App {
         // unreliable on this machine's Simulator (see project memory on Simulator quirks); this
         // sidesteps it entirely rather than fighting it again. Inert unless explicitly launched
         // with `-UITEST_SKIP_AUTH 1`, which nothing in the shipped app or its schemes does.
-        if ProcessInfo.processInfo.environment["UITEST_SKIP_AUTH"] == "1" {
+        if skipAuth {
             session.handleSignedIn(User(id: "uitest-debug-user", email: "uitest@metacity.app", displayName: "UI Test"))
         }
         _session = StateObject(wrappedValue: session)
