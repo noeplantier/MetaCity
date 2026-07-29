@@ -194,17 +194,18 @@ struct DistrictRealityView: UIViewRepresentable {
 
         private var currentIsNight: Bool = false
 
-        // MARK: - HUMAN mode state
-        private var humanWalkSubscription: Cancellable?
+        // MARK: - HUMAN mode state (3rd-person)
         private var humanNearbySubscription: Cancellable?
+        private var humanFollowSubscription: Cancellable?
+        private var characterEntity: ModelEntity?
+        private var humanCharacterPos: SIMD3<Float> = .zero
+        private var humanCharacterAzimuth: Float = 0
         private var activeMiniGameEntities: [Entity] = []
         private var miniGameHits: Int = 0
         private var miniGameTotal: Int = 0
         private var activeMiniGamePOIId: String? = nil
-        private var humanWayfindingEntity: Entity? = nil
         private var humanBoostEntity: Entity? = nil
         private var humanNearPOIId: String? = nil
-        private var prevViewPreset: ViewPreset = .overview
 
         var onZoomBack: (() -> Void)? = nil
         var onBuildingSelected: ((BuildingFootprint) -> Void)? = nil
@@ -454,20 +455,15 @@ struct DistrictRealityView: UIViewRepresentable {
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
             guard let arView else { return }
 
-            // HUMAN mode: pan = GTA-style walk at 1.7m AGL
+            // HUMAN mode 3P: horizontal pan turns character, vertical pan walks forward/back
             if currentViewPreset == .human {
                 let delta = gesture.translation(in: arView)
                 gesture.setTranslation(.zero, in: arView)
-                let speed: Float = 0.08
-                // Forward/back along look direction (z-pan), strafe left/right (x-pan)
-                let fwd  = SIMD3<Float>(-sin(azimuth), 0, -cos(azimuth))
-                let side = SIMD3<Float>( cos(azimuth), 0, -sin(azimuth))
-                center += fwd  * Float(-delta.y) * speed
-                center += side * Float( delta.x) * speed
-                let eyePos = SIMD3<Float>(center.x, 1.7, center.z)
-                let lookAt = eyePos + fwd
-                cameraEntity?.position = eyePos
-                cameraEntity?.look(at: lookAt, from: eyePos, relativeTo: nil)
+                humanCharacterAzimuth += Float(delta.x) * 0.008
+                let fwd = SIMD3<Float>(-sin(humanCharacterAzimuth), 0, -cos(humanCharacterAzimuth))
+                humanCharacterPos += fwd * Float(-delta.y) * 0.12
+                characterEntity?.position = SIMD3<Float>(humanCharacterPos.x, 0.75, humanCharacterPos.z)
+                characterEntity?.orientation = simd_quatf(angle: humanCharacterAzimuth, axis: SIMD3(0, 1, 0))
                 return
             }
 
@@ -653,12 +649,19 @@ struct DistrictRealityView: UIViewRepresentable {
                     if e.name.hasPrefix("poi:") {
                         let poiId = String(e.name.dropFirst(4))
                         onPOISelected?(poiId)
-                        // In HUMAN mode: trigger in-world mini-game instead of fly-to
+                        // In HUMAN mode: spawn mini-game at the POI's world position
                         if currentViewPreset == .human {
                             onPOIInteract?(poiId)
                             if let spec = miniGameSpec(for: poiId) {
-                                let pos = cameraEntity?.position ?? center
-                                startMiniGame(poiId: poiId, spec: spec, at: pos, scene: arView.scene)
+                                var spawnPos = humanCharacterPos
+                                if let distEntry = CityManifest.shared.district(id: districtName),
+                                   let collection = CangguPOICollection.load(for: districtName),
+                                   let poi = collection.pois.first(where: { $0.id == poiId }) {
+                                    let off = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
+                                        .sceneOffset(from: distEntry.anchor)
+                                    spawnPos = SIMD3<Float>(off.x, 0, off.z)
+                                }
+                                startMiniGame(poiId: poiId, spec: spec, at: spawnPos, scene: arView.scene)
                             }
                         }
                         return
@@ -741,172 +744,52 @@ struct DistrictRealityView: UIViewRepresentable {
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                                 shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
         
-        #if os(macOS)
-        // MARK: - macOS Trackpad Support
-        
-        /// Adds native macOS trackpad gesture recognizers to the ARView.
-        /// Supports: pinch-to-zoom, drag-to-rotate, swipe-to-pan, force-touch reset.
-        func addMacOSGestureRecognizers(to arView: ARView) {
-            // Pinch → zoom (native trackpad pinch)
-            let pinch = NSPinchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMacOSPinch(_:)))
-            pinch.delegate = context.coordinator
-            arView.addGestureRecognizer(pinch)
-            
-            // Drag → rotation (trackpad drag or mouse drag)
-            let drag = NSPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMacOSDrag(_:)))
-            drag.delegate = context.coordinator
-            arView.addGestureRecognizer(drag)
-            
-            // Swipe (2 fingers) → pan
-            let swipe = NSSwipeGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMacOSSwipe(_:)))
-            swipe.direction = .left  // Will be handled in both directions
-            swipe.numberOfTouchesRequired = 2
-            swipe.delegate = context.coordinator
-            arView.addGestureRecognizer(swipe)
-            
-            // Force touch → reset view (optional, requires compatible hardware)
-            if #available(macOS 10.12.2, *) {
-                let forceTouch = NSForceTouchGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleMacOSForceTouch(_:)))
-                forceTouch.delegate = context.coordinator
-                arView.addGestureRecognizer(forceTouch)
-            }
-        }
-        
-        @objc func handleMacOSPinch(_ gesture: NSPinchGestureRecognizer) {
-            // Reuse the same pinch logic as iOS
-            let scale = Float(gesture.scale)
-            let pinchGesture = UIPinchGestureRecognizer()
-            pinchGesture.scale = CGFloat(scale)
-            
-            // Manually set state based on macOS gesture phase
-            switch gesture.state {
-            case .began: pinchGesture.state = .began
-            case .changed: pinchGesture.state = .changed
-            case .ended, .cancelled: pinchGesture.state = .ended
-            default: pinchGesture.state = .possible
-            }
-            
-            handlePinch(pinchGesture)
-        }
-        
-        @objc func handleMacOSDrag(_ gesture: NSPanGestureRecognizer) {
-            guard let arView else { return }
-            
-            if gesture.state == .began {
-                orbitSubscription?.cancel()
-                orbitSubscription = nil
-                flySubscription?.cancel()
-                flySubscription = nil
-                cinematicSubscription?.cancel()
-                cinematicSubscription = nil
-                panVelocity = CGPoint(x: gesture.velocity(in: arView).x, y: gesture.velocity(in: arView).y)
-            }
-            
-            let translation = gesture.translation(in: arView)
-            let delta = CGPoint(x: translation.x, y: translation.y)
-            
-            azimuth += Float(delta.x) * 0.005
-            let minElev = max(2.0, height * 0.02)
-            let maxElev = height * 2.5
-            let distRatio = currentDistance / max(districtExtent, 1)
-            let elevStep = Float(delta.y) * 0.004 * max(distRatio, 0.2)
-            currentElevation = min(max(currentElevation + elevStep, minElev), maxElev)
-            
-            updateCameraPosition()
-            
-            if gesture.state == .changed {
-                panVelocity = gesture.velocity(in: arView)
-            }
-            
-            if gesture.state == .ended || gesture.state == .cancelled {
-                applyPanMomentum(in: arView.scene)
-                
-                if currentIsAutoRotating {
-                    let orbitCenter = inspectedBuildingCentroid ?? center
-                    startBuildingOrbit360(center: orbitCenter,
-                                          orbDist: currentDistance,
-                                          orbH: currentElevation,
-                                          scene: arView.scene)
-                }
-            }
-        }
-        
-        @objc func handleMacOSSwipe(_ gesture: NSSwipeGestureRecognizer) {
-            guard let arView else { return }
-            
-            // Swipe 2 fingers horizontally → pan camera laterally
-            // Velocity: 5-10 m/s as specified
-            let swipeVelocity: Float = 7.5  // Midpoint of 5-10 m/s range
-            
-            if gesture.state == .began || gesture.state == .changed {
-                // Determine swipe direction from velocity
-                let velocity = gesture.velocity(in: arView)
-                let direction: Float = velocity.x > 0 ? 1.0 : -1.0
-                
-                // Apply lateral pan (perpendicular to current azimuth)
-                let lateralPan = direction * swipeVelocity * 0.1
-                center.x += lateralPan * cos(azimuth)
-                center.z += lateralPan * sin(azimuth)
-                
-                // Clamp to frustum bounds (prevent camera from leaving district)
-                clampCameraToDistrictBounds()
-                updateCameraPosition()
-            }
-        }
-        
-        @objc func handleMacOSForceTouch(_ gesture: NSForceTouchGestureRecognizer) {
-            guard gesture.state == .began else { return }
-            // Force touch resets view to default position
-            resetToDefaultPosition()
-        }
-        
-        /// Clamps the camera target (center) to stay within district bounds
-        private func clampCameraToDistrictBounds() {
-            let margin: Float = districtExtent * 0.1  // 10% margin from edges
-            let minX = districtCenter.x - districtExtent * 0.5 + margin
-            let maxX = districtCenter.x + districtExtent * 0.5 - margin
-            let minZ = districtCenter.z - districtExtent * 0.5 + margin
-            let maxZ = districtCenter.z + districtExtent * 0.5 - margin
-            
-            center.x = min(max(center.x, minX), maxX)
-            center.z = min(max(center.z, minZ), maxZ)
-        }
-        #endif
+        // macOS trackpad support removed — iOS only target.
 
         // MARK: - HUMAN mode
 
-        /// Enter HUMAN mode: drop camera to 1.7m AGL, widen FOV, boost fill lights.
+        /// Enter HUMAN mode: spawn 3rd-person character, position follow-cam behind them.
         private func enterHumanMode(scene: RealityKit.Scene) {
             orbitSubscription?.cancel(); orbitSubscription = nil
             flySubscription?.cancel();   flySubscription = nil
             cinematicSubscription?.cancel(); cinematicSubscription = nil
 
-            // Set FOV to street-level
+            // Character spawns at district center facing north
+            humanCharacterPos = SIMD3<Float>(districtCenter.x, 0, districtCenter.z)
+            humanCharacterAzimuth = 0
+
+            let char = makeCharacterEntity()
+            char.position = SIMD3<Float>(humanCharacterPos.x, 0.75, humanCharacterPos.z)
+            districtAnchor?.addChild(char)
+            characterEntity = char
+
+            // Camera: 5 m behind character, 2.5 m above ground
+            let camPos = SIMD3<Float>(humanCharacterPos.x, 2.5, humanCharacterPos.z + 5.0)
+            let lookAt  = SIMD3<Float>(humanCharacterPos.x, 0.9, humanCharacterPos.z)
+            cameraEntity?.position = camPos
+            cameraEntity?.look(at: lookAt, from: camPos, relativeTo: nil)
+
+            // Widen FOV for immersive 3P feel
             if var cam = cameraEntity?.components[PerspectiveCameraComponent.self] {
                 cam.fieldOfViewInDegrees = mood.humanModeFOV
                 cameraEntity?.components[PerspectiveCameraComponent.self] = cam
             }
-            // Boost fill lighting for storefront immersion
+            // Boost fill lights
             if let anch = districtAnchor {
                 DistrictRealityScene.applyHumanModeLighting(anchor: anch, mood: mood, isHuman: true)
             }
-            // Drop camera to 1.7m AGL at district center
-            currentElevation = 1.7
-            currentDistance  = 0
-            let startPos = SIMD3<Float>(center.x, 1.7, center.z + 0.001)
-            cameraEntity?.position = startPos
-            cameraEntity?.look(at: center, from: startPos, relativeTo: nil)
 
+            startHumanFollowCamera(scene: scene)
             startHumanNearbyCheck(scene: scene)
         }
 
-        /// Exit HUMAN mode: restore FOV, lights, stop proximity check.
+        /// Exit HUMAN mode: remove character, cancel subscriptions, restore FOV + lights.
         private func exitHumanMode() {
-            humanWalkSubscription?.cancel(); humanWalkSubscription = nil
+            humanFollowSubscription?.cancel(); humanFollowSubscription = nil
             humanNearbySubscription?.cancel(); humanNearbySubscription = nil
             endActiveMiniGame()
+            characterEntity?.removeFromParent(); characterEntity = nil
             humanBoostEntity?.removeFromParent(); humanBoostEntity = nil
-            humanWayfindingEntity?.removeFromParent(); humanWayfindingEntity = nil
             humanNearPOIId = nil
             if var cam = cameraEntity?.components[PerspectiveCameraComponent.self] {
                 cam.fieldOfViewInDegrees = mood.fieldOfViewDegrees
@@ -917,21 +800,58 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
-        /// Per-frame proximity check in HUMAN mode — detects when player enters 12m of a POI
-        /// and spawns the portal boost sphere; uses 15m hysteresis for exit.
+        /// Neon-cyan box body (0.4 × 1.2 × 0.24 m) + white sphere head — simple 3rd-person avatar.
+        private func makeCharacterEntity() -> ModelEntity {
+            let body = ModelEntity(
+                mesh: .generateBox(size: SIMD3<Float>(0.40, 1.20, 0.24)),
+                materials: [UnlitMaterial(color: UIColor(red: 0.05, green: 0.85, blue: 1.00, alpha: 0.92))]
+            )
+            let head = ModelEntity(
+                mesh: .generateSphere(radius: 0.20),
+                materials: [UnlitMaterial(color: UIColor(red: 0.92, green: 0.95, blue: 1.00, alpha: 1.0))]
+            )
+            head.position = SIMD3(0, 0.80, 0)
+            body.addChild(head)
+            body.name = "_humanCharacter"
+            body.components.set(CollisionComponent(shapes: [
+                .generateBox(size: SIMD3<Float>(0.40, 1.20, 0.24))
+            ]))
+            return body
+        }
+
+        /// Spring-follow: camera locks 5 m behind + 2.5 m above the character, lerp α = 0.12.
+        private func startHumanFollowCamera(scene: RealityKit.Scene) {
+            humanFollowSubscription?.cancel()
+            humanFollowSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
+                guard let self, let cam = self.cameraEntity else { return }
+                let behindX = sin(self.humanCharacterAzimuth) * 5.0
+                let behindZ = cos(self.humanCharacterAzimuth) * 5.0
+                let targetPos = SIMD3<Float>(
+                    self.humanCharacterPos.x + behindX,
+                    2.5,
+                    self.humanCharacterPos.z + behindZ
+                )
+                let lookTarget = SIMD3<Float>(self.humanCharacterPos.x, 0.9, self.humanCharacterPos.z)
+                let newPos = cam.position + (targetPos - cam.position) * 0.12
+                cam.position = newPos
+                cam.look(at: lookTarget, from: newPos, relativeTo: nil)
+            }
+        }
+
+        /// Per-frame proximity check — uses character position (not camera) to detect POIs.
         private func startHumanNearbyCheck(scene: RealityKit.Scene) {
             humanNearbySubscription?.cancel()
             humanNearbySubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
-                guard let self, let cam = self.cameraEntity else { return }
+                guard let self else { return }
                 guard let collection = CangguPOICollection.load(for: self.districtName),
                       let distEntry = CityManifest.shared.district(id: self.districtName) else { return }
-                let camPos = cam.position
+                let charPos = self.humanCharacterPos
                 var nearestId: String? = nil
                 var nearestDist: Float = .greatestFiniteMagnitude
                 for poi in collection.pois {
                     let off = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
                         .sceneOffset(from: distEntry.anchor)
-                    let dx = camPos.x - off.x, dz = camPos.z - off.z
+                    let dx = charPos.x - off.x, dz = charPos.z - off.z
                     let d = sqrt(dx*dx + dz*dz)
                     if d < nearestDist { nearestDist = d; nearestId = poi.id }
                 }
@@ -1001,16 +921,16 @@ struct DistrictRealityView: UIViewRepresentable {
             miniGameTotal = spec.count
             guard let anch = districtAnchor else { return }
             for _ in 0..<spec.count {
-                let rx = Float.random(in: -3...3)
-                let rz = Float.random(in: -3...3)
-                let ry = Float.random(in: 1.2...2.5)
+                let rx = Float.random(in: -4...4)
+                let rz = Float.random(in: -4...4)
+                let ry = Float.random(in: 1.0...2.8)
                 let target = ModelEntity(
-                    mesh: .generateSphere(radius: 1.0),
-                    materials: [UnlitMaterial(color: spec.color.withAlphaComponent(0.85))]
+                    mesh: .generateSphere(radius: 0.45),
+                    materials: [UnlitMaterial(color: spec.color.withAlphaComponent(0.90))]
                 )
                 target.position = SIMD3<Float>(pos.x + rx, pos.y + ry, pos.z + rz)
                 target.name = "_minigame_\(poiId)"
-                target.components.set(CollisionComponent(shapes: [.generateSphere(radius: 2.5)]))
+                target.components.set(CollisionComponent(shapes: [.generateSphere(radius: 0.70)]))
                 anch.addChild(target)
                 activeMiniGameEntities.append(target)
             }
