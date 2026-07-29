@@ -1120,18 +1120,6 @@
               "id": "Harajuku",
               "displayName": "Harajuku",
               "anchor": {
-<<<<<<< HEAD
-                "latitude": 35.6712,
-                "longitude": 139.7030
-              },
-              "boundingBox": {
-                "south": 35.668,
-                "west": 139.698,
-                "north": 35.675,
-                "east": 139.708
-              },
-              "focusBuildingName": "Takeshita Street",
-=======
                 "latitude": 35.6702,
                 "longitude": 139.7027
               },
@@ -1142,7 +1130,6 @@
                 "east": 139.713
               },
               "focusBuildingName": "Omotesando Hills",
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
               "moodKey": "shibuyaNeon",
               "dataBundled": true,
               "dataPath": "Districts/Harajuku.json",
@@ -1152,15 +1139,6 @@
               "id": "Ikebukuro",
               "displayName": "Ikebukuro",
               "anchor": {
-<<<<<<< HEAD
-                "latitude": 35.7295,
-                "longitude": 139.7130
-              },
-              "boundingBox": {
-                "south": 35.725,
-                "west": 139.708,
-                "north": 35.734,
-=======
                 "latitude": 35.73,
                 "longitude": 139.7109
               },
@@ -1168,7 +1146,6 @@
                 "south": 35.724,
                 "west": 139.705,
                 "north": 35.736,
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
                 "east": 139.718
               },
               "focusBuildingName": "Sunshine 60",
@@ -1181,41 +1158,6 @@
               "id": "Ueno",
               "displayName": "Ueno",
               "anchor": {
-<<<<<<< HEAD
-                "latitude": 35.7141,
-                "longitude": 139.7774
-              },
-              "boundingBox": {
-                "south": 35.710,
-                "west": 139.773,
-                "north": 35.718,
-                "east": 139.782
-              },
-              "focusBuildingName": "Tokyo National Museum",
-              "moodKey": "shibuyaNeon",
-              "dataBundled": true,
-              "dataPath": "Districts/Ueno.json",
-              "supportsAR": false
-            },
-            {
-              "id": "Tsukiji",
-              "displayName": "Tsukiji",
-              "anchor": {
-                "latitude": 35.6654,
-                "longitude": 139.7707
-              },
-              "boundingBox": {
-                "south": 35.662,
-                "west": 139.766,
-                "north": 35.669,
-                "east": 139.775
-              },
-              "focusBuildingName": "Tsukiji Market",
-              "moodKey": "shibuyaNeon",
-              "dataBundled": true,
-              "dataPath": "Districts/Tsukiji.json",
-              "supportsAR": false
-=======
                 "latitude": 35.7148,
                 "longitude": 139.7764
               },
@@ -1230,7 +1172,6 @@
               "dataBundled": true,
               "dataPath": "Districts/Ueno.json",
               "supportsAR": false
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
             }
           ]
         }

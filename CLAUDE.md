@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# MetaCity — Clean + POI Reality Max Implementation
-=======
 # MetaCity — Day-only mode + Tokyo sky fix + POI Mode
 
 ## Date: 2026-07-21
@@ -50,7 +47,6 @@
 ★ = featured tier (filled mappin.circle.fill icon)
 
 ---
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
 
 ## Date: 2026-07-20
 

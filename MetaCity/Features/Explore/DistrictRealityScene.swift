@@ -286,6 +286,18 @@ enum DistrictRealityScene {
             }
         }
 
+        /// FOV for HUMAN mode (1.7m AGL street-level walk). Wider than overview to give a GTA-style
+        /// immersive first-person field — 70° for Shibuya's dense commercial canyons, 65° for European
+        /// fabric, 63° default (comfortable for street-level without excessive barrel distortion).
+        var humanModeFOV: Float {
+            switch self {
+            case .shibuyaNeon:                              return 70
+            case .skyscraperCorridor, .nycDusk, .laSunset: return 68
+            case .parisianCore, .bordeauxWaterfront, .londonSilver, .madridAfternoon, .romanGoldenHour: return 65
+            default:                                        return 63
+            }
+        }
+
         /// Night-mode emissive intensity multiplier applied to all building materials in this
         /// district. Values above 1.0 push neon/glow-heavy cities toward their real character:
         /// Shibuya's dense advertising towers glow far brighter than a Balinese compound, and
@@ -550,6 +562,25 @@ enum DistrictRealityScene {
                 center.z + distance * sin(angle)
             )
             camera.look(at: center, from: position, relativeTo: nil)
+        }
+    }
+
+    // MARK: - HUMAN mode lighting
+
+    /// Boosts fill + fill2 by 1.40× on HUMAN mode entry (storefront immersion) and restores on exit.
+    static func applyHumanModeLighting(anchor: AnchorEntity, mood: Mood, isHuman: Bool) {
+        let boost: Float = isHuman ? 1.40 : 1.0
+        if let fillEnt = anchor.findEntity(named: "fill") {
+            let intensity = mood.sunIntensity * 0.18 * boost
+            var c = fillEnt.components[DirectionalLightComponent.self] ?? DirectionalLightComponent()
+            c = DirectionalLightComponent(color: c.color, intensity: intensity)
+            fillEnt.components[DirectionalLightComponent.self] = c
+        }
+        if let fill2Ent = anchor.findEntity(named: "fill2") {
+            let intensity = mood.sunIntensity * 0.09 * boost
+            var c = fill2Ent.components[DirectionalLightComponent.self] ?? DirectionalLightComponent()
+            c = DirectionalLightComponent(color: c.color, intensity: intensity)
+            fill2Ent.components[DirectionalLightComponent.self] = c
         }
     }
 

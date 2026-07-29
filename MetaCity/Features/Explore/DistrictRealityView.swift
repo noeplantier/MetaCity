@@ -27,6 +27,8 @@ struct DistrictRealityView: UIViewRepresentable {
     /// Called when the user taps a POI beacon sphere. Argument is the POI id string
     /// (the `"poi:<id>"` entity name with the prefix stripped).
     var onPOISelected: ((String) -> Void)? = nil
+    /// Called in HUMAN mode when the player taps a POI to trigger the in-world mini-game.
+    var onPOIInteract: ((String) -> Void)? = nil
     /// POI id to fly the camera to. Non-nil → compute approach position from the POI's
     /// lat/lon + approachBearing and call flyCamera. Nil → return to default orbit.
     var venueTargetPOIId: String? = nil
@@ -41,11 +43,7 @@ struct DistrictRealityView: UIViewRepresentable {
     /// The currently selected building — mirrored from DiscoverViewModel so the coordinator
     /// can access it when `viewFocusToken` fires without storing state across sessions.
     var selectedBuilding: BuildingFootprint? = nil
-<<<<<<< HEAD
-    /// Current camera preset — used by the coordinator to choose OVERVIEW / CLOSE DISTRICT / POI.
-=======
     /// Current camera preset — used by the coordinator to choose OVERVIEW / POI.
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
     var activeViewPreset: ViewPreset = .overview
     /// Day/night mode toggle. When changed, the coordinator discards and rebuilds the district
     /// entity with the appropriate emissive/roughness materials and lighting rig.
@@ -69,6 +67,7 @@ struct DistrictRealityView: UIViewRepresentable {
         context.coordinator.onZoomBack = onZoomBack
         context.coordinator.onBuildingSelected = onBuildingSelected
         context.coordinator.onPOISelected = onPOISelected
+        context.coordinator.onPOIInteract = onPOIInteract
         context.coordinator.setUp(
             in: arView,
             districtName: districtName,
@@ -110,6 +109,7 @@ struct DistrictRealityView: UIViewRepresentable {
         context.coordinator.onZoomBack = onZoomBack
         context.coordinator.onBuildingSelected = onBuildingSelected
         context.coordinator.onPOISelected = onPOISelected
+        context.coordinator.onPOIInteract = onPOIInteract
         context.coordinator.update(
             isAutoRotating: isAutoRotating,
             rotationSpeed: rotationSpeed,
@@ -194,9 +194,22 @@ struct DistrictRealityView: UIViewRepresentable {
 
         private var currentIsNight: Bool = false
 
+        // MARK: - HUMAN mode state
+        private var humanWalkSubscription: Cancellable?
+        private var humanNearbySubscription: Cancellable?
+        private var activeMiniGameEntities: [Entity] = []
+        private var miniGameHits: Int = 0
+        private var miniGameTotal: Int = 0
+        private var activeMiniGamePOIId: String? = nil
+        private var humanWayfindingEntity: Entity? = nil
+        private var humanBoostEntity: Entity? = nil
+        private var humanNearPOIId: String? = nil
+        private var prevViewPreset: ViewPreset = .overview
+
         var onZoomBack: (() -> Void)? = nil
         var onBuildingSelected: ((BuildingFootprint) -> Void)? = nil
         var onPOISelected: ((String) -> Void)? = nil
+        var onPOIInteract: ((String) -> Void)? = nil
 
         func setUp(in arView: ARView, districtName: String, mood: DistrictRealityScene.Mood,
                    isAutoRotating: Bool, rotationSpeed: Double, isNight: Bool = false,
@@ -239,13 +252,6 @@ struct DistrictRealityView: UIViewRepresentable {
 
             // Initial camera position respects the active preset.
             switch currentViewPreset {
-<<<<<<< HEAD
-            case .closeDistrict:
-                // CLOSE DISTRICT: tighter district framing, 50% horizontal, 90% height.
-                distance = districtExtent * 0.50
-                height   = districtExtent * 0.90
-=======
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
             case .overview:
                 // OVERVIEW: bird's-eye ~61° elevation.
                 distance = districtDistance * 0.60
@@ -278,7 +284,15 @@ struct DistrictRealityView: UIViewRepresentable {
             if let poiId = venueTargetPOIId { lastFocusedPOIId = poiId }
 
             self.rotationSpeed = rotationSpeed
+            let prevPreset = currentViewPreset
             currentViewPreset = activeViewPreset
+
+            // HUMAN mode transition
+            if prevPreset != .human && activeViewPreset == .human {
+                enterHumanMode(scene: arView.scene)
+            } else if prevPreset == .human && activeViewPreset != .human {
+                exitHumanMode()
+            }
 
             if isAutoRotating != currentIsAutoRotating {
                 currentIsAutoRotating = isAutoRotating
@@ -440,6 +454,23 @@ struct DistrictRealityView: UIViewRepresentable {
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
             guard let arView else { return }
 
+            // HUMAN mode: pan = GTA-style walk at 1.7m AGL
+            if currentViewPreset == .human {
+                let delta = gesture.translation(in: arView)
+                gesture.setTranslation(.zero, in: arView)
+                let speed: Float = 0.08
+                // Forward/back along look direction (z-pan), strafe left/right (x-pan)
+                let fwd  = SIMD3<Float>(-sin(azimuth), 0, -cos(azimuth))
+                let side = SIMD3<Float>( cos(azimuth), 0, -sin(azimuth))
+                center += fwd  * Float(-delta.y) * speed
+                center += side * Float( delta.x) * speed
+                let eyePos = SIMD3<Float>(center.x, 1.7, center.z)
+                let lookAt = eyePos + fwd
+                cameraEntity?.position = eyePos
+                cameraEntity?.look(at: lookAt, from: eyePos, relativeTo: nil)
+                return
+            }
+
             // Cancel any in-flight camera animation when the user starts dragging.
             // Both orbitSubscription AND flySubscription/cinematicSubscription can be active
             // simultaneously — without cancelling all three, the fly animation and the pan
@@ -596,18 +627,40 @@ struct DistrictRealityView: UIViewRepresentable {
         }
 
         /// Single-tap handler. Priority order:
-        /// 1. POI beacon hit (works in any camera mode) — exact entity hit-test.
-        /// 2. Building selection (only in buildings mode) — geometric ray-cast.
+        /// 1. Mini-game target hit (HUMAN mode) — exact entity hit-test.
+        /// 2. POI beacon hit — traverse ancestors for "poi:" name.
+        /// 3. Building selection — geometric ray-cast.
         @objc func handleSingleTap(_ gesture: UITapGestureRecognizer) {
             guard let arView else { return }
             let loc = gesture.location(in: arView)
+
+            // Mini-game target hit (HUMAN mode)
+            if currentViewPreset == .human, let hit = arView.entity(at: loc) {
+                var cursor: Entity? = hit
+                while let e = cursor {
+                    if e.name.hasPrefix("_minigame_") {
+                        scoreMiniGameHit(e)
+                        return
+                    }
+                    cursor = e.parent
+                }
+            }
 
             // POI beacon tap — traverse hit entity and its ancestors for a "poi:" name.
             if let hit = arView.entity(at: loc) {
                 var cursor: Entity? = hit
                 while let e = cursor {
                     if e.name.hasPrefix("poi:") {
-                        onPOISelected?(String(e.name.dropFirst(4)))
+                        let poiId = String(e.name.dropFirst(4))
+                        onPOISelected?(poiId)
+                        // In HUMAN mode: trigger in-world mini-game instead of fly-to
+                        if currentViewPreset == .human {
+                            onPOIInteract?(poiId)
+                            if let spec = miniGameSpec(for: poiId) {
+                                let pos = cameraEntity?.position ?? center
+                                startMiniGame(poiId: poiId, spec: spec, at: pos, scene: arView.scene)
+                            }
+                        }
                         return
                     }
                     cursor = e.parent
@@ -666,17 +719,7 @@ struct DistrictRealityView: UIViewRepresentable {
             facadeDetailEnabled = false
             guard let arView else { return }
 
-            if currentViewPreset == .closeDistrict {
-                // CLOSE DISTRICT: tighter district framing.
-                let closeDist = districtExtent * 0.50
-                let closeH    = districtExtent * 0.90
-                currentDistance  = closeDist
-                currentElevation = closeH
-                flyCamera(to: SIMD3(center.x, closeH, center.z + closeDist),
-                          lookAt: center, scene: arView.scene)
-                orbitSubscription?.cancel()
-                orbitSubscription = nil
-            } else if currentViewPreset == .overview {
+            if currentViewPreset == .overview {
                 // OVERVIEW: bird's-eye ~61°.
                 let overviewDist = districtDistance * 0.60
                 let overviewH    = overviewDist * 1.10
@@ -829,6 +872,163 @@ struct DistrictRealityView: UIViewRepresentable {
             center.z = min(max(center.z, minZ), maxZ)
         }
         #endif
+
+        // MARK: - HUMAN mode
+
+        /// Enter HUMAN mode: drop camera to 1.7m AGL, widen FOV, boost fill lights.
+        private func enterHumanMode(scene: RealityKit.Scene) {
+            orbitSubscription?.cancel(); orbitSubscription = nil
+            flySubscription?.cancel();   flySubscription = nil
+            cinematicSubscription?.cancel(); cinematicSubscription = nil
+
+            // Set FOV to street-level
+            if var cam = cameraEntity?.components[PerspectiveCameraComponent.self] {
+                cam.fieldOfViewInDegrees = mood.humanModeFOV
+                cameraEntity?.components[PerspectiveCameraComponent.self] = cam
+            }
+            // Boost fill lighting for storefront immersion
+            if let anch = districtAnchor {
+                DistrictRealityScene.applyHumanModeLighting(anchor: anch, mood: mood, isHuman: true)
+            }
+            // Drop camera to 1.7m AGL at district center
+            currentElevation = 1.7
+            currentDistance  = 0
+            let startPos = SIMD3<Float>(center.x, 1.7, center.z + 0.001)
+            cameraEntity?.position = startPos
+            cameraEntity?.look(at: center, from: startPos, relativeTo: nil)
+
+            startHumanNearbyCheck(scene: scene)
+        }
+
+        /// Exit HUMAN mode: restore FOV, lights, stop proximity check.
+        private func exitHumanMode() {
+            humanWalkSubscription?.cancel(); humanWalkSubscription = nil
+            humanNearbySubscription?.cancel(); humanNearbySubscription = nil
+            endActiveMiniGame()
+            humanBoostEntity?.removeFromParent(); humanBoostEntity = nil
+            humanWayfindingEntity?.removeFromParent(); humanWayfindingEntity = nil
+            humanNearPOIId = nil
+            if var cam = cameraEntity?.components[PerspectiveCameraComponent.self] {
+                cam.fieldOfViewInDegrees = mood.fieldOfViewDegrees
+                cameraEntity?.components[PerspectiveCameraComponent.self] = cam
+            }
+            if let anch = districtAnchor {
+                DistrictRealityScene.applyHumanModeLighting(anchor: anch, mood: mood, isHuman: false)
+            }
+        }
+
+        /// Per-frame proximity check in HUMAN mode — detects when player enters 12m of a POI
+        /// and spawns the portal boost sphere; uses 15m hysteresis for exit.
+        private func startHumanNearbyCheck(scene: RealityKit.Scene) {
+            humanNearbySubscription?.cancel()
+            humanNearbySubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
+                guard let self, let cam = self.cameraEntity else { return }
+                guard let collection = CangguPOICollection.load(for: self.districtName),
+                      let distEntry = CityManifest.shared.district(id: self.districtName) else { return }
+                let camPos = cam.position
+                var nearestId: String? = nil
+                var nearestDist: Float = .greatestFiniteMagnitude
+                for poi in collection.pois {
+                    let off = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
+                        .sceneOffset(from: distEntry.anchor)
+                    let dx = camPos.x - off.x, dz = camPos.z - off.z
+                    let d = sqrt(dx*dx + dz*dz)
+                    if d < nearestDist { nearestDist = d; nearestId = poi.id }
+                }
+                let enterThresh: Float = 12
+                let exitThresh: Float  = 15
+                if nearestDist < enterThresh, let id = nearestId, id != self.humanNearPOIId {
+                    self.humanNearPOIId = id
+                    self.boostNearbyPortal(poiId: id, scene: scene)
+                } else if nearestDist > exitThresh, self.humanNearPOIId != nil {
+                    self.humanNearPOIId = nil
+                    self.humanBoostEntity?.removeFromParent(); self.humanBoostEntity = nil
+                }
+            }
+        }
+
+        /// Spawns a color-coded proximity sphere above the portal when player enters 12m.
+        private func boostNearbyPortal(poiId: String, scene: RealityKit.Scene) {
+            humanBoostEntity?.removeFromParent()
+            guard let anch = districtAnchor,
+                  let collection = CangguPOICollection.load(for: districtName),
+                  let poi = collection.pois.first(where: { $0.id == poiId }),
+                  let distEntry = CityManifest.shared.district(id: districtName) else { return }
+
+            let off = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
+                .sceneOffset(from: distEntry.anchor)
+
+            let color = portalColor(for: poi)
+            let sphere = ModelEntity(
+                mesh: .generateSphere(radius: 0.35),
+                materials: [UnlitMaterial(color: color.withAlphaComponent(0.92))]
+            )
+            sphere.position = SIMD3<Float>(off.x, 2.5, off.z)
+            sphere.name = "_humanPrompt_\(poiId)"
+            anch.addChild(sphere)
+            humanBoostEntity = sphere
+        }
+
+        /// Category-aware portal color for the proximity sphere.
+        private func portalColor(for poi: CangguPOI) -> UIColor {
+            switch poi.category {
+            case .shop:                    return UIColor(red: 1.00, green: 0.18, blue: 0.62, alpha: 1)
+            case .restaurant, .cafe:       return UIColor(red: 1.00, green: 0.60, blue: 0.08, alpha: 1)
+            case .temple:                  return UIColor(red: 0.95, green: 0.22, blue: 0.12, alpha: 1)
+            case .beach, .surf:            return UIColor(red: 0.18, green: 0.95, blue: 0.38, alpha: 1)
+            case .nightlife:               return UIColor(red: 0.75, green: 0.10, blue: 1.00, alpha: 1)
+            default:                       return UIColor(red: 0.00, green: 0.92, blue: 1.00, alpha: 1)
+            }
+        }
+
+        // MARK: - Mini-game
+
+        private struct MiniGameSpec {
+            let color: UIColor
+            let count: Int
+        }
+
+        private func miniGameSpec(for poiId: String) -> MiniGameSpec? {
+            guard let collection = CangguPOICollection.load(for: districtName),
+                  let poi = collection.pois.first(where: { $0.id == poiId }) else { return nil }
+            return MiniGameSpec(color: portalColor(for: poi), count: 5)
+        }
+
+        private func startMiniGame(poiId: String, spec: MiniGameSpec, at pos: SIMD3<Float>, scene: RealityKit.Scene) {
+            endActiveMiniGame()
+            activeMiniGamePOIId = poiId
+            miniGameHits = 0
+            miniGameTotal = spec.count
+            guard let anch = districtAnchor else { return }
+            for _ in 0..<spec.count {
+                let rx = Float.random(in: -3...3)
+                let rz = Float.random(in: -3...3)
+                let ry = Float.random(in: 1.2...2.5)
+                let target = ModelEntity(
+                    mesh: .generateSphere(radius: 1.0),
+                    materials: [UnlitMaterial(color: spec.color.withAlphaComponent(0.85))]
+                )
+                target.position = SIMD3<Float>(pos.x + rx, pos.y + ry, pos.z + rz)
+                target.name = "_minigame_\(poiId)"
+                target.components.set(CollisionComponent(shapes: [.generateSphere(radius: 2.5)]))
+                anch.addChild(target)
+                activeMiniGameEntities.append(target)
+            }
+        }
+
+        private func endActiveMiniGame() {
+            activeMiniGameEntities.forEach { $0.removeFromParent() }
+            activeMiniGameEntities.removeAll()
+            activeMiniGamePOIId = nil
+            miniGameHits = 0
+        }
+
+        private func scoreMiniGameHit(_ entity: Entity) {
+            entity.removeFromParent()
+            activeMiniGameEntities.removeAll { $0 === entity }
+            miniGameHits += 1
+            if activeMiniGameEntities.isEmpty { endActiveMiniGame() }
+        }
 
         // MARK: - Model loading
 
@@ -1069,10 +1269,11 @@ struct DistrictRealityView: UIViewRepresentable {
         /// Smoothly flies the camera from its current position to `target`, looking at `lookAt`,
         /// with a cubic-Hermite ease. Duration scales with travel distance (0.6–1.4s) so close
         /// taps feel snappy and long cross-district flies feel deliberate.
-        private func flyCamera(to target: SIMD3<Float>, lookAt: SIMD3<Float>, scene: RealityKit.Scene) {
+        private func flyCamera(to target: SIMD3<Float>, lookAt: SIMD3<Float>, scene: RealityKit.Scene,
+                                completion: (() -> Void)? = nil) {
             cinematicSubscription?.cancel()
             cinematicSubscription = nil
-            guard let camera = cameraEntity else { return }
+            guard let camera = cameraEntity else { completion?(); return }
             let startPos = camera.position
             // 0.6s for a 0-distance no-op; scales linearly with travel until capped at 1.4s.
             let travelDist = simd_length(target - startPos)
@@ -1099,6 +1300,7 @@ struct DistrictRealityView: UIViewRepresentable {
                 if t >= 1.0 {
                     self.flySubscription?.cancel()
                     self.flySubscription = nil
+                    completion?()
                 }
             }
         }
@@ -1135,7 +1337,6 @@ struct DistrictRealityView: UIViewRepresentable {
         /// `currentDistance`, and `currentElevation` as side effects so post-fly pan/orbit resume
         /// from the landed position.
         private func flyToBuildingWithFraming(_ building: BuildingFootprint, scene: RealityKit.Scene) {
-            lastFocusedBuilding = building
             let pts = building.polygon
             guard !pts.isEmpty else { return }
 

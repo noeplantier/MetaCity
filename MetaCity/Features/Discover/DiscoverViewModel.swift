@@ -23,47 +23,28 @@ struct DistrictSearchResult: Identifiable {
     let localCentroid: SIMD3<Float>
 }
 
-<<<<<<< HEAD
-/// 3-preset camera view selector — controls which camera mode the district 3D inspector is in.
-/// OVERVIEW is the default bird's-eye; CLOSE DISTRICT is a tighter framing of the district;
-/// POI is entered via POI tap and frames the selected point of interest.
-enum ViewPreset: String, CaseIterable {
-    case overview     // OVERVIEW — bird's-eye at ~61°, districtDistance×0.60
-    case closeDistrict // CLOSE DISTRICT — tighter district framing, districtExtent×0.50 horiz, ×0.90 height
-    case poi          // POI — frames selected POI with context
-
-    var label: String {
-        switch self {
-        case .overview:      return "OVERVIEW"
-        case .closeDistrict: return "QUARTIER"
-        case .poi:           return "POI"
-=======
-/// 2-preset camera view selector — OVERVIEW is the default bird's-eye orbit;
-/// POI activates the points-of-interest panel in the mini-map widget.
-/// (SURVOL / `.ciel` removed 2026-07-21 — its overhead framing is now .overview's default position
-/// and the magenta-pink shibuyaNeon sky it exposed has been replaced with a day-blue gradient.)
+/// Camera view presets for the district 3D view.
 enum ViewPreset: String, CaseIterable {
     case overview // OVERVIEW — bird's-eye at ~61°, districtDistance×0.60
     case focus    // POI — reveals the district's landmark list; camera stays at overview
+    case drone    // DRONE — FPV cockpit, low altitude
+    case human    // HUMAN — 1.7m AGL street-level walk (GTA style)
 
     var label: String {
         switch self {
         case .overview: return "OVERVIEW"
         case .focus:    return "POI"
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
+        case .drone:    return "DRONE"
+        case .human:    return "HUMAN"
         }
     }
 
     var icon: String {
         switch self {
-<<<<<<< HEAD
-        case .overview:      return "viewfinder"
-        case .closeDistrict: return "map.fill"
-        case .poi:           return "mappin.circle.fill"
-=======
         case .overview: return "viewfinder"
         case .focus:    return "mappin.and.ellipse"
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
+        case .drone:    return "airplane"
+        case .human:    return "figure.walk"
         }
     }
 }
@@ -395,39 +376,21 @@ final class DiscoverViewModel: ObservableObject {
         cameraResetToken += 1
     }
 
-<<<<<<< HEAD
-    /// Applies a named camera preset. OVERVIEW = bird's-eye ~61°;
-    /// CLOSE DISTRICT = tighter district framing; POI = fly to selected POI.
-=======
     /// Applies a named camera preset. OVERVIEW = bird's-eye ~61°; POI = reveals the landmark list
     /// in the mini-map widget and, if a building is already selected, flies the camera to it.
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
     func setViewPreset(_ preset: ViewPreset) {
         activeViewPreset = preset
         switch preset {
         case .overview:
             isAutoRotating = false
             cameraResetToken += 1
-<<<<<<< HEAD
-        case .closeDistrict:
-            isAutoRotating = false
-            cameraResetToken += 1
-        case .poi:
-            guard selectedVenuePOI != nil else {
-                activeViewPreset = .overview
-                isAutoRotating = false
-                cameraResetToken += 1
-                return
-            }
-            poiFocusToken += 1
-=======
         case .focus:
             isAutoRotating = false
             if selectedBuilding != nil {
-                viewFocusToken += 1
+                buildingOrbitToken += 1
             }
-            // No cameraResetToken — camera holds its current position in POI mode.
->>>>>>> 2a663cf (feat: Tokyo 10-district POI enhance — day sky, SURVOL removal, SafeRun, cameraPaths)
+        case .drone, .human:
+            isAutoRotating = false
         }
     }
 
@@ -457,7 +420,7 @@ final class DiscoverViewModel: ObservableObject {
         venueTargetPOIId = poiId
         // Auto-switch to POI preset when a POI is selected
         if selectedVenuePOI != nil {
-            activeViewPreset = .poi
+            activeViewPreset = .focus
             poiFocusToken += 1
         }
     }
@@ -570,7 +533,7 @@ final class DiscoverViewModel: ObservableObject {
             setViewPreset(.overview)
         case .poi(let poi, let district, let city):
             selectVenuePOI(poi, in: district, city: city)
-            setViewPreset(.poi)
+            setViewPreset(.focus)
         }
     }
 
