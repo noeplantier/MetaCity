@@ -31,6 +31,9 @@ struct DistrictRealityView: UIViewRepresentable {
     var onPOIInteract: ((String) -> Void)? = nil
     /// Published at ~5 fps in DRONE mode: (altitudeMetres, headingDegrees, speedMs).
     var onDroneTelemetry: ((Float, Float, Float) -> Void)? = nil
+    /// Fires true when drone is within 12 m of a building wall, false when clear.
+    /// Caller can display a red border / alarm in the cockpit overlay.
+    var onDroneCollisionWarning: ((Bool) -> Void)? = nil
     /// POI id to fly the camera to. Non-nil → compute approach position from the POI's
     /// lat/lon + approachBearing and call flyCamera. Nil → return to default orbit.
     var venueTargetPOIId: String? = nil
@@ -71,6 +74,7 @@ struct DistrictRealityView: UIViewRepresentable {
         context.coordinator.onPOISelected = onPOISelected
         context.coordinator.onPOIInteract = onPOIInteract
         context.coordinator.onDroneTelemetry = onDroneTelemetry
+        context.coordinator.onDroneCollisionWarning = onDroneCollisionWarning
         context.coordinator.setUp(
             in: arView,
             districtName: districtName,
@@ -114,6 +118,7 @@ struct DistrictRealityView: UIViewRepresentable {
         context.coordinator.onPOISelected = onPOISelected
         context.coordinator.onPOIInteract = onPOIInteract
         context.coordinator.onDroneTelemetry = onDroneTelemetry
+        context.coordinator.onDroneCollisionWarning = onDroneCollisionWarning
         context.coordinator.update(
             isAutoRotating: isAutoRotating,
             rotationSpeed: rotationSpeed,
@@ -204,6 +209,11 @@ struct DistrictRealityView: UIViewRepresentable {
         private var droneAltitude: Float = 30    // scene metres AGL
         private let droneForwardSpeed: Float = 10 // m/s constant cruise
         var onDroneTelemetry: ((Float, Float, Float) -> Void)? = nil  // (alt, hdg°, spd)
+        var onDroneCollisionWarning: ((Bool) -> Void)? = nil
+        /// Flat list of (cx, cz, maxHeight) for every building — pre-computed once after load.
+        /// Used by drone collision check per frame to avoid re-reducing polygon arrays.
+        private var buildingCentroids: [(cx: Float, cz: Float, maxH: Float)] = []
+        private var droneInCollisionWarning: Bool = false
 
         // MARK: - HUMAN mode state (3rd-person)
         private var humanNearbySubscription: Cancellable?
@@ -242,9 +252,17 @@ struct DistrictRealityView: UIViewRepresentable {
             let radius: Float; let altitude: Float
             let angularSpeed: Float; let phase: Float
         }
+        private struct StratPet {
+            let entity: Entity
+            let path: [SIMD3<Float>]
+            let pathLength: Float
+            let speed: Float
+            let phase: Float
+        }
         private var trafficCars: [TrafficCar] = []
         private var pedestrians: [PedestrianWalker] = []
         private var stratBirds: [StratBird] = []
+        private var petAnimals: [StratPet] = []
         private var ecosystemStartTime: Double = 0
 
         var onZoomBack: (() -> Void)? = nil
@@ -526,7 +544,7 @@ struct DistrictRealityView: UIViewRepresentable {
                 humanCharacterAzimuth += Float(delta.x) * 0.008
                 let fwd = SIMD3<Float>(-sin(humanCharacterAzimuth), 0, -cos(humanCharacterAzimuth))
                 humanCharacterPos += fwd * Float(-delta.y) * 0.12
-                characterEntity?.position = SIMD3<Float>(humanCharacterPos.x, 0.75, humanCharacterPos.z)
+                characterEntity?.position = SIMD3<Float>(humanCharacterPos.x, 0.94, humanCharacterPos.z)
                 characterEntity?.orientation = simd_quatf(angle: humanCharacterAzimuth, axis: SIMD3(0, 1, 0))
                 return
             }
@@ -849,6 +867,45 @@ struct DistrictRealityView: UIViewRepresentable {
 
             startHumanFollowCamera(scene: scene)
             startHumanNearbyCheck(scene: scene)
+            if districtName == "Shibuya" { startShibuyaSideQuests(scene: scene) }
+        }
+
+        /// Spawns 5 Shibuya side-quest waypoints at iconic real-world locations.
+        /// Each waypoint is a neon-magenta floating marker with a CollisionComponent
+        /// so `handleSingleTap` can detect them like mini-game targets.
+        private func startShibuyaSideQuests(scene: RealityKit.Scene) {
+            guard let anch = districtAnchor else { return }
+            // (x, z) offsets in scene-metres from the district anchor, hand-tuned to the
+            // Shibuya OSM tile: Scramble Crossing centre is near (0, 0) for this district.
+            let waypoints: [(name: String, x: Float, z: Float)] = [
+                ("_sq_scramble",   0.0,  0.0),   // Shibuya Scramble Crossing
+                ("_sq_hachiko",  -18.0,  12.0),  // Hachiko statue plaza
+                ("_sq_tsutaya",    8.0, -22.0),  // Tsutaya Books / 109 tower
+                ("_sq_stream",   -35.0,  28.0),  // Shibuya Stream riverside
+                ("_sq_meijiDori", 55.0,  18.0),  // Meiji Dori fashion strip
+            ]
+            let magenta = UIColor(red: 1.00, green: 0.10, blue: 0.72, alpha: 1)
+            let mat = [UnlitMaterial(color: magenta)]
+            for wp in waypoints {
+                let marker = Entity()
+                marker.name = wp.name
+                // Thin vertical pole
+                let pole = ModelEntity(
+                    mesh: .generateBox(size: SIMD3<Float>(0.18, 3.5, 0.18)),
+                    materials: mat
+                )
+                // Wide horizontal cap (≈ street sign shape)
+                let cap = ModelEntity(
+                    mesh: .generateBox(size: SIMD3<Float>(1.8, 0.28, 0.18)),
+                    materials: mat
+                )
+                cap.position = SIMD3(0, 1.95, 0)
+                pole.addChild(cap)
+                marker.addChild(pole)
+                marker.position = SIMD3<Float>(wp.x, 0, wp.z)
+                marker.components.set(CollisionComponent(shapes: [.generateSphere(radius: 3.0)]))
+                anch.addChild(marker)
+            }
         }
 
         /// Exit HUMAN mode: remove character, cancel subscriptions, restore FOV + lights.
@@ -1145,10 +1202,10 @@ struct DistrictRealityView: UIViewRepresentable {
             return (pts.last ?? .zero, SIMD3(0, 0, 1))
         }
 
-        /// Spawns traffic, pedestrians, and strategic birds, then drives them each frame.
+        /// Spawns traffic, pedestrians, strategic birds, and ground animals, then drives them each frame.
         private func setupEcosystem(district: District, anchor: AnchorEntity, scene: RealityKit.Scene) {
             ecosystemSubscription?.cancel(); ecosystemSubscription = nil
-            trafficCars.removeAll(); pedestrians.removeAll(); stratBirds.removeAll()
+            trafficCars.removeAll(); pedestrians.removeAll(); stratBirds.removeAll(); petAnimals.removeAll()
             ecosystemStartTime = Date().timeIntervalSince1970
 
             // --- Traffic cars ---
@@ -1198,7 +1255,20 @@ struct DistrictRealityView: UIViewRepresentable {
                 ))
             }
 
-            guard !trafficCars.isEmpty || !pedestrians.isEmpty || !stratBirds.isEmpty else { return }
+            // --- Dogs & cats (footway-following ground animals) ---
+            let petData = DistrictRealityKit.makeDogCatEntityData(from: district, maxPets: 8)
+            for d in petData {
+                anchor.addChild(d.entity)
+                petAnimals.append(StratPet(
+                    entity: d.entity,
+                    path: d.path,
+                    pathLength: pathLength(d.path),
+                    speed: d.speed,
+                    phase: d.phase
+                ))
+            }
+
+            guard !trafficCars.isEmpty || !pedestrians.isEmpty || !stratBirds.isEmpty || !petAnimals.isEmpty else { return }
 
             ecosystemSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
                 guard let self else { return }
@@ -1206,6 +1276,7 @@ struct DistrictRealityView: UIViewRepresentable {
                 self.tickTrafficCars(t: t)
                 self.tickPedestrians(t: t)
                 self.tickBirds(t: t)
+                self.tickPets(t: t)
             }
         }
 
@@ -1260,6 +1331,23 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
+        /// Animates dogs and cats along footway segments (bounce-free path following).
+        private func tickPets(t: Float) {
+            for pet in petAnimals {
+                let cycleLen = pet.pathLength * 2
+                let raw = fmodf(t * pet.speed + pet.phase * pet.pathLength, cycleLen)
+                let forward = raw < pet.pathLength
+                let dist = forward ? raw : cycleLen - raw
+                let (pos, dir) = interpolateAlongPath(pet.path, t: dist)
+                // Ground level — pets hug the pavement
+                pet.entity.position = SIMD3<Float>(pos.x, 0.10, pos.z)
+                let fwd: SIMD3<Float> = forward ? dir : -dir
+                if simd_length(fwd) > 0.01 {
+                    pet.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: fwd)
+                }
+            }
+        }
+
         // MARK: - Model loading
 
         private func loadModel(named districtName: String, into anchor: AnchorEntity) {
@@ -1290,7 +1378,17 @@ struct DistrictRealityView: UIViewRepresentable {
                 if self.currentVenueTargetPOIId == nil {
                     self.applyOrbitLOD()
                 }
-                // Spawn living ecosystem (traffic, pedestrians, birds).
+                // Pre-compute building centroids for O(1)-per-building drone collision checks.
+                if let dist = self.cachedDistrict {
+                    self.buildingCentroids = dist.buildings.compactMap { b -> (Float, Float, Float)? in
+                        guard !b.polygon.isEmpty else { return nil }
+                        let n = Float(b.polygon.count)
+                        let cx = b.polygon.map(\.x).reduce(0, +) / n
+                        let cz = b.polygon.map(\.z).reduce(0, +) / n
+                        return (cx, cz, b.heightMeters)
+                    }
+                }
+                // Spawn living ecosystem (traffic, pedestrians, birds, dogs/cats).
                 if let dist = self.cachedDistrict, let scene = self.arView?.scene {
                     self.setupEcosystem(district: dist, anchor: anchor, scene: scene)
                 }
@@ -1394,16 +1492,53 @@ struct DistrictRealityView: UIViewRepresentable {
         private func startDroneFlight(scene: RealityKit.Scene) {
             droneSubscription?.cancel()
             var telemetryAccum: Double = 0
+            // Collision avoidance thresholds
+            let warnDist: Float   = 12.0   // metres — alarm + evasion
+            let clearDist: Float  = 18.0   // must clear this to cancel alarm
+            let warnDistSq        = warnDist * warnDist
+            let coarseSq: Float   = 900.0  // 30m coarse cull (centroid)
+
             droneSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] event in
                 guard let self, let cam = self.cameraEntity else { return }
                 let dt = Float(event.deltaTime)
+
                 // Forward direction derived from yaw — no pitch (drone flies level)
                 let fwd = SIMD3<Float>(-sin(self.droneYaw), 0, -cos(self.droneYaw))
                 cam.position += fwd * self.droneForwardSpeed * dt
                 cam.position.y = self.droneAltitude
+
+                // --- Collision avoidance (O(n) over pre-computed centroids) ---
+                let px = cam.position.x, pz = cam.position.z
+                var nearestSq: Float = .greatestFiniteMagnitude
+                var hitWall = false
+                for c in self.buildingCentroids {
+                    let dx = px - c.cx, dz = pz - c.cz
+                    let horizSq = dx * dx + dz * dz
+                    guard horizSq < coarseSq else { continue }
+                    guard self.droneAltitude < c.maxH + 4 else { continue }
+                    if horizSq < nearestSq { nearestSq = horizSq }
+                    if horizSq < warnDistSq { hitWall = true; break }
+                }
+
+                if hitWall {
+                    // Evasion: hard yaw 90° to the right + climb
+                    self.droneYaw += (.pi * 0.5) * dt * 3.0
+                    self.droneAltitude = min(self.districtExtent * 0.35,
+                                            self.droneAltitude + 22.0 * dt)
+                    if !self.droneInCollisionWarning {
+                        self.droneInCollisionWarning = true
+                        self.onDroneCollisionWarning?(true)
+                    }
+                } else if self.droneInCollisionWarning && nearestSq > clearDist * clearDist {
+                    self.droneInCollisionWarning = false
+                    self.onDroneCollisionWarning?(false)
+                }
+
                 // Look slightly downward (−8°) for an immersive drone camera angle
-                let lookTarget = cam.position + fwd + SIMD3(0, -0.14, 0)
+                let recalcFwd = SIMD3<Float>(-sin(self.droneYaw), 0, -cos(self.droneYaw))
+                let lookTarget = cam.position + recalcFwd + SIMD3(0, -0.14, 0)
                 cam.look(at: lookTarget, from: cam.position, relativeTo: nil)
+
                 // Telemetry callback at ~5 fps
                 telemetryAccum += Double(event.deltaTime)
                 if telemetryAccum >= 0.20 {
@@ -1479,11 +1614,17 @@ struct DistrictRealityView: UIViewRepresentable {
             facadeDetailEnabled = false
         }
 
-        /// Venue mode: per-frame camera-proximity check. Quadrants within
-        /// `districtExtent × 0.5` show full quality (palms included); farther ones use AABB boxes.
+        /// Venue mode: per-frame camera-proximity check. Quadrants within the threshold show full
+        /// quality (palms included); farther ones use AABB boxes. Tokyo's high-density districts
+        /// (Shibuya 3,271 bldgs, Asakusa 3,928) use 35% instead of 50% to reduce GPU overdraw.
+        private static let tokyoDenseDistricts: Set<String> = [
+            "Shibuya", "Ginza", "Asakusa", "Shinjuku", "Harajuku",
+            "Roppongi", "Akihabara", "Ikebukuro", "Ueno", "Odaiba"
+        ]
         private func startVenueLOD(scene: RealityKit.Scene) {
             lodSubscription?.cancel()
-            let threshold = districtExtent * 0.5
+            let fraction: Float = Self.tokyoDenseDistricts.contains(districtName) ? 0.35 : 0.50
+            let threshold = districtExtent * fraction
             let thresholdSq = threshold * threshold  // avoid sqrt per frame per quadrant
             lodSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
                 guard let self, let cam = self.cameraEntity else { return }

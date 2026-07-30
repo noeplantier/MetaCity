@@ -5218,6 +5218,100 @@ enum DistrictRealityKit {
         return results
     }
 
+    /// Creates up to `maxPets` dog and cat entities walking along footway segments.
+    /// Dogs are slightly larger (0.60×0.30×0.80m), cats smaller (0.30×0.22×0.48m).
+    /// Named `_pet_dog_N` / `_pet_cat_N`. Coordinator animates them via `tickPets`.
+    @MainActor
+    static func makeDogCatEntityData(
+        from district: District, maxPets: Int = 8
+    ) -> [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] {
+
+        let walkable: Set<String> = ["footway", "pedestrian", "path", "steps", "living_street"]
+        let segs = district.roads.filter { r in
+            walkable.contains(r.kind ?? "") && r.points.count >= 2
+        }
+        guard !segs.isEmpty else { return [] }
+
+        var results: [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
+
+        let dogColors: [UIColor] = [
+            UIColor(red: 0.55, green: 0.38, blue: 0.22, alpha: 1),  // tan
+            UIColor(red: 0.20, green: 0.18, blue: 0.16, alpha: 1),  // near-black
+            UIColor(red: 0.78, green: 0.72, blue: 0.62, alpha: 1),  // cream
+        ]
+        let catColors: [UIColor] = [
+            UIColor(red: 0.82, green: 0.78, blue: 0.72, alpha: 1),  // white-grey
+            UIColor(red: 0.30, green: 0.24, blue: 0.18, alpha: 1),  // tabby dark
+            UIColor(red: 0.62, green: 0.48, blue: 0.30, alpha: 1),  // calico orange
+        ]
+
+        for (i, seg) in segs.prefix(maxPets).enumerated() {
+            guard seg.points.count >= 2 else { continue }
+            let path = seg.points.map { SIMD3<Float>($0.x, 0, $0.z) }
+            let isDog = i % 3 != 2   // 2 dogs : 1 cat ratio
+
+            let color = isDog ? dogColors[i % dogColors.count] : catColors[i % catColors.count]
+            let mat = [UnlitMaterial(color: color)]
+            let darkMat = [UnlitMaterial(color: UIColor(red: 0.08, green: 0.06, blue: 0.04, alpha: 1))]
+
+            let root = Entity()
+
+            if isDog {
+                root.name = "_pet_dog_\(i)"
+                // Body
+                let body = ModelEntity(mesh: .generateBox(size: SIMD3(0.60, 0.30, 0.80)), materials: mat)
+                // Head
+                let head = ModelEntity(mesh: .generateBox(size: SIMD3(0.28, 0.24, 0.34)), materials: mat)
+                head.position = SIMD3(0, 0.10, 0.50)
+                // Snout
+                let snout = ModelEntity(mesh: .generateBox(size: SIMD3(0.16, 0.12, 0.22)), materials: darkMat)
+                snout.position = SIMD3(0, -0.04, 0.26)
+                head.addChild(snout)
+                // Legs (4 stubs)
+                let legSize = SIMD3<Float>(0.10, 0.22, 0.10)
+                for lx: Float in [-0.22, 0.22] {
+                    for lz: Float in [-0.28, 0.28] {
+                        let leg = ModelEntity(mesh: .generateBox(size: legSize), materials: mat)
+                        leg.position = SIMD3(lx, -0.26, lz)
+                        body.addChild(leg)
+                    }
+                }
+                // Tail
+                let tail = ModelEntity(mesh: .generateBox(size: SIMD3(0.06, 0.06, 0.42)), materials: mat)
+                tail.position = SIMD3(0, 0.18, -0.54)
+                body.addChild(head)
+                body.addChild(tail)
+                root.addChild(body)
+            } else {
+                root.name = "_pet_cat_\(i)"
+                // Body (smaller, sleeker)
+                let body = ModelEntity(mesh: .generateBox(size: SIMD3(0.30, 0.22, 0.48)), materials: mat)
+                // Head (rounder)
+                let head = ModelEntity(mesh: .generateSphere(radius: 0.13), materials: mat)
+                head.position = SIMD3(0, 0.08, 0.30)
+                // Ears
+                let earMat = [UnlitMaterial(color: color)]
+                for ex: Float in [-0.08, 0.08] {
+                    let ear = ModelEntity(mesh: .generateBox(size: SIMD3(0.05, 0.09, 0.04)), materials: earMat)
+                    ear.position = SIMD3(ex, 0.14, 0)
+                    head.addChild(ear)
+                }
+                // Tail (upright curve — approximate with angled box)
+                let tail = ModelEntity(mesh: .generateBox(size: SIMD3(0.04, 0.32, 0.04)), materials: mat)
+                tail.position = SIMD3(0, 0.18, -0.30)
+                body.addChild(head)
+                body.addChild(tail)
+                root.addChild(body)
+            }
+
+            root.position = path[0]
+            let speed: Float = isDog ? Float.random(in: 0.8...1.6) : Float.random(in: 0.4...1.0)
+            let phase = Float.random(in: 0...1)
+            results.append((entity: root, path: path, speed: speed, phase: phase))
+        }
+        return results
+    }
+
     /// Ring-disc mini-game target: outer ring quad + glowing inner sphere.
     /// Named `_minigame_<poiId>_<index>`.
     @MainActor
