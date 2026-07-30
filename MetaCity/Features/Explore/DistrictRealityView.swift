@@ -208,7 +208,7 @@ struct DistrictRealityView: UIViewRepresentable {
         // MARK: - HUMAN mode state (3rd-person)
         private var humanNearbySubscription: Cancellable?
         private var humanFollowSubscription: Cancellable?
-        private var characterEntity: ModelEntity?
+        private var characterEntity: Entity?
         private var humanCharacterPos: SIMD3<Float> = .zero
         private var humanCharacterAzimuth: Float = 0
         private var activeMiniGameEntities: [Entity] = []
@@ -217,6 +217,35 @@ struct DistrictRealityView: UIViewRepresentable {
         private var activeMiniGamePOIId: String? = nil
         private var humanBoostEntity: Entity? = nil
         private var humanNearPOIId: String? = nil
+
+        // MARK: - Living ecosystem state
+        private var ecosystemSubscription: Cancellable?
+        private struct TrafficCar {
+            let entity: Entity
+            let path: [SIMD3<Float>]
+            let pathLength: Float
+            let speed: Float
+            let phase: Float
+        }
+        private struct PedestrianWalker {
+            let entity: Entity
+            let path: [SIMD3<Float>]
+            let pathLength: Float
+            let speed: Float
+            let phase: Float
+            weak var lArm: Entity?; weak var rArm: Entity?
+            weak var lLeg: Entity?; weak var rLeg: Entity?
+        }
+        private struct StratBird {
+            let entity: Entity
+            let cx: Float; let cz: Float
+            let radius: Float; let altitude: Float
+            let angularSpeed: Float; let phase: Float
+        }
+        private var trafficCars: [TrafficCar] = []
+        private var pedestrians: [PedestrianWalker] = []
+        private var stratBirds: [StratBird] = []
+        private var ecosystemStartTime: Double = 0
 
         var onZoomBack: (() -> Void)? = nil
         var onBuildingSelected: ((BuildingFootprint) -> Void)? = nil
@@ -839,39 +868,116 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
-        /// Neon-cyan box body (0.4 × 1.2 × 0.24 m) + white sphere head — simple 3rd-person avatar.
-        private func makeCharacterEntity() -> ModelEntity {
-            let body = ModelEntity(
-                mesh: .generateBox(size: SIMD3<Float>(0.40, 1.20, 0.24)),
-                materials: [UnlitMaterial(color: UIColor(red: 0.05, green: 0.85, blue: 1.00, alpha: 0.92))]
-            )
-            let head = ModelEntity(
-                mesh: .generateSphere(radius: 0.20),
-                materials: [UnlitMaterial(color: UIColor(red: 0.92, green: 0.95, blue: 1.00, alpha: 1.0))]
-            )
-            head.position = SIMD3(0, 0.80, 0)
-            body.addChild(head)
-            body.name = "_humanCharacter"
-            body.components.set(CollisionComponent(shapes: [
-                .generateBox(size: SIMD3<Float>(0.40, 1.20, 0.24))
-            ]))
-            return body
+        /// Realistic 6-part humanoid avatar: torso/head/2 arms/2 legs with neon-cyan accent.
+        private func makeCharacterEntity() -> Entity {
+            let cyanMat  = [UnlitMaterial(color: UIColor(red: 0.05, green: 0.88, blue: 1.00, alpha: 1))]
+            let darkMat  = [UnlitMaterial(color: UIColor(red: 0.08, green: 0.10, blue: 0.14, alpha: 1))]
+            let skinMat  = [UnlitMaterial(color: UIColor(red: 0.88, green: 0.78, blue: 0.66, alpha: 1))]
+
+            // Torso — slightly tapered jacket shape
+            let torso = ModelEntity(mesh: .generateBox(size: SIMD3(0.44, 0.56, 0.22)), materials: cyanMat)
+            torso.name = "_humanCharacter"
+            // Neck
+            let neck = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.12, 0.10)), materials: skinMat)
+            neck.position = SIMD3(0, 0.36, 0)
+            // Head
+            let head = ModelEntity(mesh: .generateSphere(radius: 0.19), materials: skinMat)
+            head.position = SIMD3(0, 0.26, 0)
+            neck.addChild(head)
+            // Left arm (shoulder-elbow-forearm)
+            let lUpper = ModelEntity(mesh: .generateBox(size: SIMD3(0.11, 0.30, 0.11)), materials: cyanMat)
+            lUpper.position = SIMD3(-0.28, 0.10, 0)
+            lUpper.name = "_lArm"
+            let lFore = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.26, 0.10)), materials: darkMat)
+            lFore.position = SIMD3(0, -0.30, 0)
+            lUpper.addChild(lFore)
+            // Right arm
+            let rUpper = ModelEntity(mesh: .generateBox(size: SIMD3(0.11, 0.30, 0.11)), materials: cyanMat)
+            rUpper.position = SIMD3(0.28, 0.10, 0)
+            rUpper.name = "_rArm"
+            let rFore = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.26, 0.10)), materials: darkMat)
+            rFore.position = SIMD3(0, -0.30, 0)
+            rUpper.addChild(rFore)
+            // Left leg
+            let lThigh = ModelEntity(mesh: .generateBox(size: SIMD3(0.14, 0.34, 0.14)), materials: darkMat)
+            lThigh.position = SIMD3(-0.13, -0.45, 0)
+            lThigh.name = "_lLeg"
+            let lShin = ModelEntity(mesh: .generateBox(size: SIMD3(0.12, 0.30, 0.12)), materials: cyanMat)
+            lShin.position = SIMD3(0, -0.34, 0)
+            lThigh.addChild(lShin)
+            // Right leg
+            let rThigh = ModelEntity(mesh: .generateBox(size: SIMD3(0.14, 0.34, 0.14)), materials: darkMat)
+            rThigh.position = SIMD3(0.13, -0.45, 0)
+            rThigh.name = "_rLeg"
+            let rShin = ModelEntity(mesh: .generateBox(size: SIMD3(0.12, 0.30, 0.12)), materials: cyanMat)
+            rShin.position = SIMD3(0, -0.34, 0)
+            rThigh.addChild(rShin)
+            // Neon ground-glow ring at feet (two crossed flat bars — no alpha/sorting issues)
+            let ringMat = [UnlitMaterial(color: UIColor(red: 0.05, green: 0.88, blue: 1.00, alpha: 1))]
+            let ringA = ModelEntity(mesh: .generateBox(size: SIMD3(0.70, 0.025, 0.10)), materials: ringMat)
+            let ringB = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.025, 0.70)), materials: ringMat)
+            ringA.position = SIMD3(0, -0.94, 0)
+            ringB.position = SIMD3(0, -0.94, 0)
+            // Eye details (tiny dark rectangles on front of head)
+            let eyeMat = [UnlitMaterial(color: UIColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1))]
+            let lEye = ModelEntity(mesh: .generateBox(size: SIMD3(0.055, 0.035, 0.025)), materials: eyeMat)
+            lEye.position = SIMD3(-0.07, 0.28, -0.17)
+            let rEye = ModelEntity(mesh: .generateBox(size: SIMD3(0.055, 0.035, 0.025)), materials: eyeMat)
+            rEye.position = SIMD3(0.07, 0.28, -0.17)
+            neck.addChild(lEye); neck.addChild(rEye)
+
+            torso.addChild(neck)
+            torso.addChild(lUpper); torso.addChild(rUpper)
+            torso.addChild(lThigh); torso.addChild(rThigh)
+            torso.addChild(ringA); torso.addChild(ringB)
+            torso.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3(0.44, 1.75, 0.22))]))
+            return torso
         }
 
-        /// Spring-follow: camera locks 5 m behind + 2.5 m above the character, lerp α = 0.12.
+        /// Finds named limb sub-entities in the character for walk animation.
+        private func characterLimbs() -> (lArm: Entity?, rArm: Entity?, lLeg: Entity?, rLeg: Entity?) {
+            guard let c = characterEntity else { return (nil, nil, nil, nil) }
+            return (
+                lArm: c.findEntity(named: "_lArm"),
+                rArm: c.findEntity(named: "_rArm"),
+                lLeg: c.findEntity(named: "_lLeg"),
+                rLeg: c.findEntity(named: "_rLeg")
+            )
+        }
+
+        /// Spring-follow camera + walk animation (arm/leg swing, body bob).
         private func startHumanFollowCamera(scene: RealityKit.Scene) {
             humanFollowSubscription?.cancel()
+            let limbs = characterLimbs()
             humanFollowSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
                 guard let self, let cam = self.cameraEntity else { return }
-                let behindX = sin(self.humanCharacterAzimuth) * 5.0
-                let behindZ = cos(self.humanCharacterAzimuth) * 5.0
+                let t = Float(Date().timeIntervalSince1970)
+                let walkFreq: Float = 2.4   // steps per second
+                let walkAmp: Float  = 0.36  // swing angle radians
+
+                // Limb swing — arms/legs alternate in opposition
+                let swing = sin(t * walkFreq * .pi * 2) * walkAmp
+                limbs.lArm?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
+                limbs.rArm?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                limbs.lLeg?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                limbs.rLeg?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
+
+                // Body bob
+                let bob = abs(sin(t * walkFreq * .pi * 2)) * 0.06
+                self.characterEntity?.position = SIMD3<Float>(
+                    self.humanCharacterPos.x, 0.94 + bob, self.humanCharacterPos.z
+                )
+
+                // Spring-follow camera (tighter spring: α=0.18, higher cam eye: 3.2m)
+                let behindX = Float(sin(Double(self.humanCharacterAzimuth))) * 5.5
+                let behindZ = Float(cos(Double(self.humanCharacterAzimuth))) * 5.5
                 let targetPos = SIMD3<Float>(
                     self.humanCharacterPos.x + behindX,
-                    2.5,
+                    3.2,
                     self.humanCharacterPos.z + behindZ
                 )
-                let lookTarget = SIMD3<Float>(self.humanCharacterPos.x, 0.9, self.humanCharacterPos.z)
-                let newPos = cam.position + (targetPos - cam.position) * 0.12
+                let lookTarget = SIMD3<Float>(self.humanCharacterPos.x, 1.1, self.humanCharacterPos.z)
+                let newPos = cam.position + (targetPos - cam.position) * 0.18
                 cam.position = newPos
                 cam.look(at: lookTarget, from: newPos, relativeTo: nil)
             }
@@ -959,23 +1065,47 @@ struct DistrictRealityView: UIViewRepresentable {
             miniGameHits = 0
             miniGameTotal = spec.count
             guard let anch = districtAnchor else { return }
-            for _ in 0..<spec.count {
-                let rx = Float.random(in: -4...4)
-                let rz = Float.random(in: -4...4)
-                let ry = Float.random(in: 1.0...2.8)
-                let target = ModelEntity(
-                    mesh: .generateSphere(radius: 0.45),
-                    materials: [UnlitMaterial(color: spec.color.withAlphaComponent(0.90))]
-                )
+            for i in 0..<spec.count {
+                // Scatter in a ring around the POI at chest/eye height
+                let angle = Float(i) / Float(spec.count) * .pi * 2 + Float.random(in: -0.4...0.4)
+                let radii: Float = Float.random(in: 2.5...5.5)
+                let rx = cos(angle) * radii
+                let rz = sin(angle) * radii
+                let ry = Float.random(in: 1.2...2.8)
+                let target = DistrictRealityKit.makeMiniGameTarget(poiId: poiId, index: i, color: spec.color)
                 target.position = SIMD3<Float>(pos.x + rx, pos.y + ry, pos.z + rz)
-                target.name = "_minigame_\(poiId)"
-                target.components.set(CollisionComponent(shapes: [.generateSphere(radius: 0.70)]))
+                // Orient ring to face the player's start position
+                let toPlayer = SIMD3<Float>(-rx, 0, -rz)
+                if simd_length(toPlayer) > 0.1 {
+                    let norm = simd_normalize(toPlayer)
+                    target.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: norm)
+                }
                 anch.addChild(target)
                 activeMiniGameEntities.append(target)
+            }
+            // Animate targets: slow pulse + rotation via SceneEvents.Update
+            startMiniGameAnimation(scene: scene)
+        }
+
+        private var miniGameAnimSubscription: Cancellable?
+        private func startMiniGameAnimation(scene: RealityKit.Scene) {
+            miniGameAnimSubscription?.cancel()
+            miniGameAnimSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
+                guard let self, !self.activeMiniGameEntities.isEmpty else { return }
+                let t = Float(Date().timeIntervalSince1970)
+                for (i, e) in self.activeMiniGameEntities.enumerated() {
+                    let phase = Float(i) * 0.4
+                    // Pulsing scale
+                    let s = 1.0 + sin(t * 3.0 + phase) * 0.12
+                    e.scale = SIMD3(s, s, s)
+                    // Slow Y-axis spin
+                    e.orientation = simd_quatf(angle: t * 0.8 + phase, axis: SIMD3(0, 1, 0))
+                }
             }
         }
 
         private func endActiveMiniGame() {
+            miniGameAnimSubscription?.cancel(); miniGameAnimSubscription = nil
             activeMiniGameEntities.forEach { $0.removeFromParent() }
             activeMiniGameEntities.removeAll()
             activeMiniGamePOIId = nil
@@ -987,6 +1117,147 @@ struct DistrictRealityView: UIViewRepresentable {
             activeMiniGameEntities.removeAll { $0 === entity }
             miniGameHits += 1
             if activeMiniGameEntities.isEmpty { endActiveMiniGame() }
+        }
+
+        // MARK: - Living ecosystem
+
+        private func pathLength(_ pts: [SIMD3<Float>]) -> Float {
+            var total: Float = 0
+            for i in 1..<pts.count {
+                total += simd_length(pts[i] - pts[i-1])
+            }
+            return max(total, 0.01)
+        }
+
+        private func interpolateAlongPath(_ pts: [SIMD3<Float>], t: Float) -> (pos: SIMD3<Float>, dir: SIMD3<Float>) {
+            var remaining = t
+            for i in 1..<pts.count {
+                let seg = pts[i] - pts[i-1]
+                let len = simd_length(seg)
+                if remaining <= len || i == pts.count - 1 {
+                    let frac = len > 0 ? remaining / len : 0
+                    let pos = pts[i-1] + seg * frac
+                    let dir = len > 0 ? simd_normalize(seg) : SIMD3(0, 0, 1)
+                    return (pos, dir)
+                }
+                remaining -= len
+            }
+            return (pts.last ?? .zero, SIMD3(0, 0, 1))
+        }
+
+        /// Spawns traffic, pedestrians, and strategic birds, then drives them each frame.
+        private func setupEcosystem(district: District, anchor: AnchorEntity, scene: RealityKit.Scene) {
+            ecosystemSubscription?.cancel(); ecosystemSubscription = nil
+            trafficCars.removeAll(); pedestrians.removeAll(); stratBirds.removeAll()
+            ecosystemStartTime = Date().timeIntervalSince1970
+
+            // --- Traffic cars ---
+            let rawCars = DistrictRealityKit.makeTrafficCarData(from: district, maxCars: 48)
+            for d in rawCars {
+                anchor.addChild(d.entity)
+                trafficCars.append(TrafficCar(
+                    entity: d.entity,
+                    path: d.path,
+                    pathLength: pathLength(d.path),
+                    speed: d.speed,
+                    phase: d.phase
+                ))
+            }
+
+            // --- Pedestrians ---
+            let rawPeds = DistrictRealityKit.makeStreetPedestrianData(from: district, maxPeds: 24)
+            for d in rawPeds {
+                anchor.addChild(d.entity)
+                let la = d.entity.findEntity(named: "_lArm")
+                let ra = d.entity.findEntity(named: "_rArm")
+                let ll = d.entity.findEntity(named: "_lLeg")
+                let rl = d.entity.findEntity(named: "_rLeg")
+                pedestrians.append(PedestrianWalker(
+                    entity: d.entity,
+                    path: d.path,
+                    pathLength: pathLength(d.path),
+                    speed: d.speed,
+                    phase: d.phase,
+                    lArm: la, rArm: ra, lLeg: ll, rLeg: rl
+                ))
+            }
+
+            // --- Birds ---
+            let birdData = DistrictRealityKit.makeBirdEntityData(
+                extent: district.extent,
+                center: (x: district.buildingCentroid.x, z: district.buildingCentroid.z),
+                count: 10
+            )
+            for d in birdData {
+                anchor.addChild(d.entity)
+                stratBirds.append(StratBird(
+                    entity: d.entity,
+                    cx: d.cx, cz: d.cz,
+                    radius: d.radius, altitude: d.altitude,
+                    angularSpeed: d.angularSpeed, phase: d.phase
+                ))
+            }
+
+            guard !trafficCars.isEmpty || !pedestrians.isEmpty || !stratBirds.isEmpty else { return }
+
+            ecosystemSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
+                guard let self else { return }
+                let t = Float(Date().timeIntervalSince1970 - self.ecosystemStartTime)
+                self.tickTrafficCars(t: t)
+                self.tickPedestrians(t: t)
+                self.tickBirds(t: t)
+            }
+        }
+
+        private func tickTrafficCars(t: Float) {
+            for car in trafficCars {
+                let cycleLen = car.pathLength * 2
+                let raw = fmodf(t * car.speed + car.phase * car.pathLength, cycleLen)
+                let forward = raw < car.pathLength
+                let dist = forward ? raw : cycleLen - raw
+                let (pos, dir) = interpolateAlongPath(car.path, t: dist)
+                car.entity.position = pos
+                let fwd: SIMD3<Float> = forward ? dir : -dir
+                if simd_length(fwd) > 0.01 {
+                    car.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: fwd)
+                }
+            }
+        }
+
+        private func tickPedestrians(t: Float) {
+            let walkFreq: Float = 3.0
+            let walkAmp: Float  = 0.28
+            for ped in pedestrians {
+                let cycleLen = ped.pathLength * 2
+                let raw = fmodf(t * ped.speed + ped.phase * ped.pathLength, cycleLen)
+                let forward = raw < ped.pathLength
+                let dist = forward ? raw : cycleLen - raw
+                let (pos, dir) = interpolateAlongPath(ped.path, t: dist)
+                ped.entity.position = SIMD3<Float>(pos.x, 0.60, pos.z)
+                let fwd: SIMD3<Float> = forward ? dir : -dir
+                if simd_length(fwd) > 0.01 {
+                    ped.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: fwd)
+                }
+                let swing = sin(t * walkFreq * .pi * 2 + ped.phase * .pi * 2) * walkAmp
+                ped.lArm?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
+                ped.rArm?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                ped.lLeg?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                ped.rLeg?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
+            }
+        }
+
+        private func tickBirds(t: Float) {
+            for bird in stratBirds {
+                let angle = t * bird.angularSpeed + bird.phase
+                let x = bird.cx + cos(angle) * bird.radius
+                let z = bird.cz + sin(angle) * bird.radius
+                bird.entity.position = SIMD3<Float>(x, bird.altitude, z)
+                let heading = angle + .pi / 2
+                let bankAmt = simd_clamp(bird.angularSpeed * 6, -0.35, 0.35)
+                let yaw  = simd_quatf(angle: heading, axis: SIMD3(0, 1, 0))
+                let bank = simd_quatf(angle: bankAmt,  axis: SIMD3(0, 0, 1))
+                bird.entity.orientation = yaw * bank
+            }
         }
 
         // MARK: - Model loading
@@ -1001,6 +1272,11 @@ struct DistrictRealityView: UIViewRepresentable {
                 else { return }
                 guard let self, self.loadGeneration == generation else { return }
                 anchor.children.first(where: { $0.name == "districtModel" })?.removeFromParent()
+                // Clear old ecosystem entities (named _traffic_*, _ped_*, _bird_*)
+                self.ecosystemSubscription?.cancel(); self.ecosystemSubscription = nil
+                anchor.children.filter { e in
+                    e.name.hasPrefix("_traffic_") || e.name.hasPrefix("_ped_") || e.name.hasPrefix("_bird_")
+                }.forEach { $0.removeFromParent() }
                 entity.name = "districtModel"
                 anchor.addChild(entity)
                 self.extractQuadrantLOD(from: entity)
@@ -1013,6 +1289,10 @@ struct DistrictRealityView: UIViewRepresentable {
                 // subscription that will correct on its next tick regardless.
                 if self.currentVenueTargetPOIId == nil {
                     self.applyOrbitLOD()
+                }
+                // Spawn living ecosystem (traffic, pedestrians, birds).
+                if let dist = self.cachedDistrict, let scene = self.arView?.scene {
+                    self.setupEcosystem(district: dist, anchor: anchor, scene: scene)
                 }
                 // POI beacons are shown only in .focus mode (wired via showPOIBeacons/hidePOIBeacons
                 // in update()). Not placed here to avoid polluting OVERVIEW/DRONE with collision geometry.

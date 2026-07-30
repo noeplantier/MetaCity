@@ -5055,4 +5055,205 @@ enum DistrictRealityKit {
     static func clearSelectionRing(in anchor: AnchorEntity) {
         anchor.children.first(where: { $0.name == "selectionRing" })?.removeFromParent()
     }
+
+    // MARK: - Living ecosystem
+
+    /// Seven-shade car palette — keeps the palette city-realistic (not toy-bright).
+    private static let carPalette: [UIColor] = [
+        UIColor(red: 0.86, green: 0.86, blue: 0.86, alpha: 1), // silver
+        UIColor(red: 0.12, green: 0.12, blue: 0.14, alpha: 1), // near-black
+        UIColor(red: 0.78, green: 0.14, blue: 0.10, alpha: 1), // city red
+        UIColor(red: 0.10, green: 0.28, blue: 0.60, alpha: 1), // navy
+        UIColor(red: 0.92, green: 0.86, blue: 0.64, alpha: 1), // cab yellow
+        UIColor(red: 0.46, green: 0.58, blue: 0.42, alpha: 1), // muted green
+        UIColor(red: 0.68, green: 0.60, blue: 0.52, alpha: 1), // warm beige
+    ]
+
+    /// Eight-shade pedestrian skin/jacket palette.
+    private static let pedPalette: [UIColor] = [
+        UIColor(red: 0.88, green: 0.62, blue: 0.52, alpha: 1), // sakura
+        UIColor(red: 0.12, green: 0.18, blue: 0.38, alpha: 1), // navy
+        UIColor(red: 0.52, green: 0.52, blue: 0.54, alpha: 1), // urban grey
+        UIColor(red: 0.46, green: 0.72, blue: 0.86, alpha: 1), // sky blue
+        UIColor(red: 0.18, green: 0.18, blue: 0.18, alpha: 1), // charcoal
+        UIColor(red: 0.88, green: 0.80, blue: 0.68, alpha: 1), // beige
+        UIColor(red: 0.80, green: 0.16, blue: 0.14, alpha: 1), // crimson
+        UIColor(red: 0.14, green: 0.38, blue: 0.20, alpha: 1), // forest
+    ]
+
+    /// Creates up to `maxCars` car-shaped boxes, one per drivable road segment.
+    /// Entities are placed at the segment start; the Coordinator animates them along their path.
+    /// Returns `(entity, path, speed, phase)` — path is world-local [SIMD3<Float>] along the road.
+    @MainActor
+    static func makeTrafficCarData(
+        from district: District, maxCars: Int = 48
+    ) -> [(entity: ModelEntity, path: [SIMD3<Float>], speed: Float, phase: Float)] {
+
+        let drivable: Set<String> = ["primary", "secondary", "tertiary", "residential",
+                                     "unclassified", "trunk", "motorway", "service", "_default"]
+        let segs = district.roads.filter { r in
+            let k = r.kind ?? "_default"
+            return drivable.contains(k) && r.points.count >= 2
+        }
+        guard !segs.isEmpty else { return [] }
+
+        var results: [(entity: ModelEntity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
+        var idx = 0
+
+        for seg in segs {
+            if results.count >= maxCars { break }
+            guard seg.points.count >= 2 else { continue }
+            let path = seg.points.map { SIMD3<Float>($0.x, 0.55, $0.z) }
+
+            let color = carPalette[idx % carPalette.count]
+            let carMesh = MeshResource.generateBox(size: SIMD3<Float>(1.8, 0.6, 3.8))
+            let car = ModelEntity(mesh: carMesh, materials: [UnlitMaterial(color: color)])
+            car.name = "_traffic_\(idx)"
+            car.position = path[0]
+
+            let speed = Float.random(in: 6...14)
+            let phase = Float.random(in: 0...1)
+            results.append((entity: car, path: path, speed: speed, phase: phase))
+            idx += 1
+        }
+        return results
+    }
+
+    /// Creates a multi-segment humanoid pedestrian figure (body + head + 2 arms + 2 legs).
+    /// Returns `(entity, path, speed, phase)` — path is along a footway/pedestrian segment.
+    @MainActor
+    static func makeStreetPedestrianData(
+        from district: District, maxPeds: Int = 24
+    ) -> [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] {
+
+        let walkable: Set<String> = ["footway", "pedestrian", "path", "steps", "living_street"]
+        let segs = district.roads.filter { r in
+            walkable.contains(r.kind ?? "") && r.points.count >= 2
+        }
+        guard !segs.isEmpty else { return [] }
+
+        var results: [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
+
+        for (i, seg) in segs.prefix(maxPeds).enumerated() {
+            guard seg.points.count >= 2 else { continue }
+            let path = seg.points.map { SIMD3<Float>($0.x, 0, $0.z) }
+
+            let color = pedPalette[i % pedPalette.count]
+            let mat = [UnlitMaterial(color: color)]
+            let headMat = [UnlitMaterial(color: UIColor(red: 0.88, green: 0.76, blue: 0.64, alpha: 1))]
+
+            // Body
+            let body = ModelEntity(mesh: .generateBox(size: SIMD3(0.28, 0.50, 0.16)), materials: mat)
+            // Head
+            let head = ModelEntity(mesh: .generateSphere(radius: 0.14), materials: headMat)
+            head.position = SIMD3(0, 0.36, 0)
+            // Left arm
+            let lArm = ModelEntity(mesh: .generateBox(size: SIMD3(0.09, 0.38, 0.09)), materials: mat)
+            lArm.position = SIMD3(-0.20, 0.06, 0)
+            lArm.name = "_lArm"
+            // Right arm
+            let rArm = ModelEntity(mesh: .generateBox(size: SIMD3(0.09, 0.38, 0.09)), materials: mat)
+            rArm.position = SIMD3(0.20, 0.06, 0)
+            rArm.name = "_rArm"
+            // Left leg
+            let lLeg = ModelEntity(mesh: .generateBox(size: SIMD3(0.11, 0.44, 0.11)),
+                                   materials: [UnlitMaterial(color: UIColor(red: 0.10, green: 0.10, blue: 0.10, alpha: 1))])
+            lLeg.position = SIMD3(-0.09, -0.47, 0)
+            lLeg.name = "_lLeg"
+            // Right leg
+            let rLeg = ModelEntity(mesh: .generateBox(size: SIMD3(0.11, 0.44, 0.11)),
+                                   materials: [UnlitMaterial(color: UIColor(red: 0.10, green: 0.10, blue: 0.10, alpha: 1))])
+            rLeg.position = SIMD3(0.09, -0.47, 0)
+            rLeg.name = "_rLeg"
+
+            let root = Entity()
+            root.name = "_ped_\(i)"
+            root.position = path[0]
+            root.addChild(body)
+            body.addChild(head)
+            body.addChild(lArm)
+            body.addChild(rArm)
+            body.addChild(lLeg)
+            body.addChild(rLeg)
+
+            let speed = Float.random(in: 1.0...2.2)
+            let phase = Float.random(in: 0...1)
+            results.append((entity: root, path: path, speed: speed, phase: phase))
+        }
+        return results
+    }
+
+    /// Creates `count` bird entities at altitude 120–280m, each with a distinct radius/phase.
+    /// The Coordinator drives their circular paths each frame.
+    @MainActor
+    static func makeBirdEntityData(
+        extent: Float, center: (x: Float, z: Float), count: Int = 10
+    ) -> [(entity: ModelEntity, cx: Float, cz: Float, radius: Float, altitude: Float, angularSpeed: Float, phase: Float)] {
+
+        var results: [(entity: ModelEntity, cx: Float, cz: Float, radius: Float, altitude: Float, angularSpeed: Float, phase: Float)] = []
+        let birdMat = UnlitMaterial(color: UIColor(red: 0.92, green: 0.90, blue: 0.84, alpha: 1))
+
+        for i in 0..<count {
+            // Wing-spread plane: wide flat box mimicking an outstretched gull silhouette
+            let wingspan: Float = (i % 2 == 0) ? 28 : 18
+            let bird = ModelEntity(
+                mesh: .generateBox(size: SIMD3<Float>(wingspan, 0.8, 7.0)),
+                materials: [birdMat]
+            )
+            bird.name = "_bird_\(i)"
+
+            let radius   = min(extent * Float.random(in: 0.18...0.42), 200)
+            let altitude = Float.random(in: 60...180)
+            let speed    = Float.random(in: 0.06...0.14) * (i % 2 == 0 ? 1 : -1)
+            let phase    = Float(i) / Float(count) * .pi * 2
+
+            let jitter = min(extent * 0.10, 80.0)
+            let cx = center.x + Float.random(in: -jitter...jitter)
+            let cz = center.z + Float.random(in: -jitter...jitter)
+
+            bird.position = SIMD3<Float>(cx + cos(phase) * radius, altitude, cz + sin(phase) * radius)
+            results.append((entity: bird, cx: cx, cz: cz, radius: radius,
+                             altitude: altitude, angularSpeed: speed, phase: phase))
+        }
+        return results
+    }
+
+    /// Ring-disc mini-game target: outer ring quad + glowing inner sphere.
+    /// Named `_minigame_<poiId>_<index>`.
+    @MainActor
+    static func makeMiniGameTarget(poiId: String, index: Int, color: UIColor) -> Entity {
+        let root = Entity()
+        root.name = "_minigame_\(poiId)_\(index)"
+
+        // Outer ring — approximated with 4 thin rectangular arcs
+        let ringMat = UnlitMaterial(color: color.withAlphaComponent(0.95))
+        let ringOuter: Float = 0.56
+        let ringInner: Float = 0.34
+        let barW = ringOuter - ringInner
+        let barH = ringOuter * 2
+
+        // Top bar
+        let top = ModelEntity(mesh: .generateBox(size: SIMD3(barH, barW, 0.06)), materials: [ringMat])
+        top.position = SIMD3(0, ringOuter - barW/2, 0)
+        // Bottom bar
+        let bot = ModelEntity(mesh: .generateBox(size: SIMD3(barH, barW, 0.06)), materials: [ringMat])
+        bot.position = SIMD3(0, -(ringOuter - barW/2), 0)
+        // Left bar
+        let lft = ModelEntity(mesh: .generateBox(size: SIMD3(barW, barH, 0.06)), materials: [ringMat])
+        lft.position = SIMD3(-(ringOuter - barW/2), 0, 0)
+        // Right bar
+        let rgt = ModelEntity(mesh: .generateBox(size: SIMD3(barW, barH, 0.06)), materials: [ringMat])
+        rgt.position = SIMD3(ringOuter - barW/2, 0, 0)
+
+        // Glowing core sphere
+        let coreMat = UnlitMaterial(color: color.withAlphaComponent(0.70))
+        let core = ModelEntity(mesh: .generateSphere(radius: 0.22), materials: [coreMat])
+
+        root.addChild(top); root.addChild(bot); root.addChild(lft); root.addChild(rgt)
+        root.addChild(core)
+
+        // Collision uses a sphere large enough to tolerate imprecise taps
+        root.components.set(CollisionComponent(shapes: [.generateSphere(radius: 0.70)]))
+        return root
+    }
 }

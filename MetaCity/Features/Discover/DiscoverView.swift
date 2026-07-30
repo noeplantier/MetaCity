@@ -1894,42 +1894,41 @@ private struct DroneCockpitOverlay: View {
     let onExit: () -> Void
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // Top-left: back to overview (fills full height so Spacer works correctly)
-            VStack {
-                HStack {
-                    Button(action: onExit) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "arrow.left")
-                                .font(.system(size: 13, weight: .semibold))
-                            Text("OVERVIEW")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                .tracking(1.2)
-                        }
-                        .foregroundStyle(Color.metacityPrimary)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(.ultraThinMaterial, in: Capsule())
-                        .overlay(Capsule().strokeBorder(Color.metacityPrimary.opacity(0.35), lineWidth: 0.5))
+        // Transparent VStack — only the individual HUD chips have material backgrounds.
+        // The 3D scene is fully visible through the Spacer in the middle.
+        VStack(spacing: 0) {
+            // ── Top row: back button + DRONE badge ──────────────────────────
+            HStack {
+                Button(action: onExit) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("OVERVIEW")
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                            .tracking(1.2)
                     }
-                    Spacer()
-                    // Top-right DRONE badge
-                    Text("◈ DRONE")
-                        .font(.system(size: 10, weight: .black, design: .monospaced))
-                        .tracking(2)
-                        .foregroundStyle(Color.metacityPrimary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color.metacityPrimary.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
-                        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Color.metacityPrimary.opacity(0.4), lineWidth: 0.5))
+                    .foregroundStyle(Color.metacityPrimary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .overlay(Capsule().strokeBorder(Color.metacityPrimary.opacity(0.35), lineWidth: 0.5))
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 56)
                 Spacer()
+                Text("◈ DRONE")
+                    .font(.system(size: 10, weight: .black, design: .monospaced))
+                    .tracking(2)
+                    .foregroundStyle(Color.metacityPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.metacityPrimary.opacity(0.15), in: RoundedRectangle(cornerRadius: 4))
+                    .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Color.metacityPrimary.opacity(0.5), lineWidth: 0.5))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .padding(.horizontal, 20)
+            .padding(.top, 56)
 
-            // Bottom telemetry strip
+            Spacer() // 3D scene fully visible through here
+
+            // ── Bottom telemetry strip ───────────────────────────────────────
             HStack(spacing: 0) {
                 telemetryCell(label: "ALT", value: String(format: "%.0f m", altitude))
                 divider
@@ -1937,13 +1936,13 @@ private struct DroneCockpitOverlay: View {
                 divider
                 telemetryCell(label: "SPD", value: String(format: "%.0f m/s", speed))
             }
+            .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: 320)
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.metacityPrimary.opacity(0.3), lineWidth: 0.5))
-            .padding(.bottom, 36)
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.metacityPrimary.opacity(0.35), lineWidth: 0.5))
+            .padding(.bottom, 52)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea()
     }
 
     private func telemetryCell(label: String, value: String) -> some View {
@@ -1965,8 +1964,7 @@ private struct DroneCockpitOverlay: View {
     private var divider: some View {
         Rectangle()
             .fill(Color.metacityPrimary.opacity(0.2))
-            .frame(width: 0.5)
-            .padding(.vertical, 10)
+            .frame(width: 0.5, height: 32)
     }
 }
 
