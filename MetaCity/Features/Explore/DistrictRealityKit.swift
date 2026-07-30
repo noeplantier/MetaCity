@@ -3330,23 +3330,17 @@ enum DistrictRealityKit {
 
         let root = Entity()
         root.name = "poiBeacons"
-        let beaconY: Float = districtExtent * 0.008
-        let featuredPOIs = collection.pois.filter(\.isFeatured)
-
-        // Thin flat quads connecting consecutive featured POIs
-        if featuredPOIs.count >= 2,
-           let paths = makePOIPathLines(between: featuredPOIs, anchor: districtAnchor,
-                                        y: beaconY, extent: districtExtent) {
-            root.addChild(paths)
-        }
+        // Beacon height: 1.2% of extent — sits above tallest buildings without dominating skyline
+        let beaconY: Float = districtExtent * 0.012
 
         for poi in collection.pois {
             let offset = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
                 .sceneOffset(from: districtAnchor)
-            let radius: Float = poi.isFeatured ? districtExtent * 0.006 : districtExtent * 0.003
+            // Radii are small by design — these are tap targets, not visual landmarks.
+            // Featured = 0.25% extent (a ~2.5m sphere for a 1km district), standard = 0.12%.
+            let radius: Float = poi.isFeatured ? districtExtent * 0.0025 : districtExtent * 0.0012
 
             if poi.isFeatured {
-                // Cyan neon: PBR with high-intensity emissive glow
                 var mat = PhysicallyBasedMaterial()
                 mat.baseColor = .init(tint: UIColor(red: 0.20, green: 0.85, blue: 1.0, alpha: 1))
                 mat.emissiveColor = .init(color: UIColor(red: 0.35, green: 0.95, blue: 1.0, alpha: 1))
@@ -3360,27 +3354,11 @@ enum DistrictRealityKit {
                 sphere.name = "poi:\(poi.id)"
                 sphere.position = SIMD3(offset.x, beaconY, offset.z)
                 sphere.components.set(CollisionComponent(shapes: [.generateSphere(radius: radius)]))
-
-                // Floating text label: same font approach as makeFocusBeacon
-                let fontSize = CGFloat(districtExtent * 0.014)
-                let labelMesh = MeshResource.generateText(
-                    poi.name,
-                    extrusionDepth: 0.05,
-                    font: .systemFont(ofSize: fontSize, weight: .semibold)
-                )
-                let label = ModelEntity(mesh: labelMesh,
-                    materials: [UnlitMaterial(color: UIColor(red: 0.35, green: 0.95, blue: 1.0, alpha: 0.92))])
-                label.position = SIMD3(offset.x, beaconY + radius * 2.8, offset.z)
-                // No BillboardComponent (iOS 18+ only) — orient toward +Z at creation
-                label.look(at: label.position + SIMD3(0, 0, 1), from: label.position, relativeTo: nil)
-                label.name = "poi_label:\(poi.id)"
-
                 root.addChild(sphere)
-                root.addChild(label)
             } else {
                 let sphere = ModelEntity(
                     mesh: MeshResource.generateSphere(radius: radius),
-                    materials: [UnlitMaterial(color: UIColor(white: 0.65, alpha: 0.55))]
+                    materials: [UnlitMaterial(color: UIColor(red: 0.45, green: 0.45, blue: 0.55, alpha: 0.50))]
                 )
                 sphere.name = "poi:\(poi.id)"
                 sphere.position = SIMD3(offset.x, beaconY, offset.z)

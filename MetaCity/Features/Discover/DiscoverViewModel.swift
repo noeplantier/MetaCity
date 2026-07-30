@@ -122,6 +122,10 @@ final class DiscoverViewModel: ObservableObject {
     // District 3D inspector controls — owned here so the values survive
     // back-and-forth navigation without resetting every time.
     @Published var activeViewPreset: ViewPreset = .overview
+    // DRONE telemetry — updated at ~5 fps by DistrictRealityView coordinator
+    @Published var droneAltitude: Float = 30
+    @Published var droneHeading: Float = 0
+    @Published var droneSpeed: Float = 10
     @Published var isAutoRotating = false
     @Published var rotationSpeed: Double = 1.0
     /// Bumped by `resetCamera()`. `DistrictRealityView` observes changes and flies the

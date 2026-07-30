@@ -29,6 +29,8 @@ struct DistrictRealityView: UIViewRepresentable {
     var onPOISelected: ((String) -> Void)? = nil
     /// Called in HUMAN mode when the player taps a POI to trigger the in-world mini-game.
     var onPOIInteract: ((String) -> Void)? = nil
+    /// Published at ~5 fps in DRONE mode: (altitudeMetres, headingDegrees, speedMs).
+    var onDroneTelemetry: ((Float, Float, Float) -> Void)? = nil
     /// POI id to fly the camera to. Non-nil → compute approach position from the POI's
     /// lat/lon + approachBearing and call flyCamera. Nil → return to default orbit.
     var venueTargetPOIId: String? = nil
@@ -68,6 +70,7 @@ struct DistrictRealityView: UIViewRepresentable {
         context.coordinator.onBuildingSelected = onBuildingSelected
         context.coordinator.onPOISelected = onPOISelected
         context.coordinator.onPOIInteract = onPOIInteract
+        context.coordinator.onDroneTelemetry = onDroneTelemetry
         context.coordinator.setUp(
             in: arView,
             districtName: districtName,
@@ -110,6 +113,7 @@ struct DistrictRealityView: UIViewRepresentable {
         context.coordinator.onBuildingSelected = onBuildingSelected
         context.coordinator.onPOISelected = onPOISelected
         context.coordinator.onPOIInteract = onPOIInteract
+        context.coordinator.onDroneTelemetry = onDroneTelemetry
         context.coordinator.update(
             isAutoRotating: isAutoRotating,
             rotationSpeed: rotationSpeed,
@@ -193,6 +197,13 @@ struct DistrictRealityView: UIViewRepresentable {
         private var cachedDistrict: District?
 
         private var currentIsNight: Bool = false
+
+        // MARK: - DRONE mode state
+        private var droneSubscription: Cancellable?
+        private var droneYaw: Float = 0          // heading in radians
+        private var droneAltitude: Float = 30    // scene metres AGL
+        private let droneForwardSpeed: Float = 10 // m/s constant cruise
+        var onDroneTelemetry: ((Float, Float, Float) -> Void)? = nil  // (alt, hdg°, spd)
 
         // MARK: - HUMAN mode state (3rd-person)
         private var humanNearbySubscription: Cancellable?
@@ -288,11 +299,25 @@ struct DistrictRealityView: UIViewRepresentable {
             let prevPreset = currentViewPreset
             currentViewPreset = activeViewPreset
 
+            // DRONE mode transition
+            if prevPreset != .drone && activeViewPreset == .drone {
+                enterDroneMode(scene: arView.scene)
+            } else if prevPreset == .drone && activeViewPreset != .drone {
+                exitDroneMode()
+            }
+
             // HUMAN mode transition
             if prevPreset != .human && activeViewPreset == .human {
                 enterHumanMode(scene: arView.scene)
             } else if prevPreset == .human && activeViewPreset != .human {
                 exitHumanMode()
+            }
+
+            // POI beacons: visible only in .focus — show on entry, remove on exit
+            if prevPreset != .focus && activeViewPreset == .focus {
+                if let anchor = districtAnchor { showPOIBeacons(anchor: anchor, scene: arView.scene) }
+            } else if prevPreset == .focus && activeViewPreset != .focus {
+                hidePOIBeacons()
             }
 
             if isAutoRotating != currentIsAutoRotating {
@@ -454,6 +479,16 @@ struct DistrictRealityView: UIViewRepresentable {
 
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
             guard let arView else { return }
+
+            // DRONE mode: horizontal pan = yaw, vertical = altitude
+            if currentViewPreset == .drone {
+                let delta = gesture.translation(in: arView)
+                gesture.setTranslation(.zero, in: arView)
+                droneYaw += Float(delta.x) * 0.003
+                // Inverted Y: swipe up (negative delta.y) → ascend
+                droneAltitude = max(5, min(districtExtent * 0.35, droneAltitude - Float(delta.y) * 0.15))
+                return
+            }
 
             // HUMAN mode 3P: horizontal pan turns character, vertical pan walks forward/back
             if currentViewPreset == .human {
@@ -642,8 +677,12 @@ struct DistrictRealityView: UIViewRepresentable {
                 }
             }
 
-            // POI beacon tap — traverse hit entity and its ancestors for a "poi:" name.
-            if let hit = arView.entity(at: loc) {
+            // POI beacon tap — only active in modes where beacons are visible.
+            // In OVERVIEW / DRONE the collision spheres don't exist, so entity(at:) won't
+            // find them. This guard prevents a stale poiBeaconsEntity from being found and
+            // firing an unexpected navigation if beacons somehow linger across a mode switch.
+            if (currentViewPreset == .focus || currentViewPreset == .human),
+               let hit = arView.entity(at: loc) {
                 var cursor: Entity? = hit
                 while let e = cursor {
                     if e.name.hasPrefix("poi:") {
@@ -975,18 +1014,8 @@ struct DistrictRealityView: UIViewRepresentable {
                 if self.currentVenueTargetPOIId == nil {
                     self.applyOrbitLOD()
                 }
-                // Re-add POI beacons (CollisionComponent-equipped so entity(at:) finds them in HUMAN mode)
-                anchor.children.first(where: { $0.name == "poiBeacons" })?.removeFromParent()
-                if let distEntry = CityManifest.shared.district(id: districtName),
-                   let dist = self.cachedDistrict,
-                   let beacons = DistrictRealityKit.makePOIBeaconEntities(
-                       districtName: districtName,
-                       districtAnchor: distEntry.anchor,
-                       districtExtent: dist.extent) {
-                    anchor.addChild(beacons)
-                    self.poiBeaconsEntity = beacons
-                    if let scene = self.arView?.scene { self.startPOIPulse(scene: scene) }
-                }
+                // POI beacons are shown only in .focus mode (wired via showPOIBeacons/hidePOIBeacons
+                // in update()). Not placed here to avoid polluting OVERVIEW/DRONE with collision geometry.
             }
         }
 
@@ -1046,6 +1075,85 @@ struct DistrictRealityView: UIViewRepresentable {
 
         private func setFacadeDetailEnabled(_ enabled: Bool) {
             for e in facadeDetailEntities { e.isEnabled = enabled }
+        }
+
+        // MARK: - DRONE mode
+
+        private func enterDroneMode(scene: RealityKit.Scene) {
+            orbitSubscription?.cancel(); orbitSubscription = nil
+            flySubscription?.cancel();   flySubscription = nil
+            cinematicSubscription?.cancel(); cinematicSubscription = nil
+
+            // Start at district edge, 6% of extent above ground, heading inward
+            droneYaw = 0
+            droneAltitude = max(20, districtExtent * 0.06)
+            let startPos = SIMD3<Float>(
+                districtCenter.x,
+                droneAltitude,
+                districtCenter.z + districtDistance * 0.45
+            )
+            if var cam = cameraEntity?.components[PerspectiveCameraComponent.self] {
+                cam.fieldOfViewInDegrees = 58
+                cameraEntity?.components[PerspectiveCameraComponent.self] = cam
+            }
+            cameraEntity?.position = startPos
+            let lookFwd = SIMD3<Float>(districtCenter.x, droneAltitude * 0.6, districtCenter.z)
+            cameraEntity?.look(at: lookFwd, from: startPos, relativeTo: nil)
+            startDroneFlight(scene: scene)
+        }
+
+        private func exitDroneMode() {
+            droneSubscription?.cancel(); droneSubscription = nil
+            if var cam = cameraEntity?.components[PerspectiveCameraComponent.self] {
+                cam.fieldOfViewInDegrees = mood.fieldOfViewDegrees
+                cameraEntity?.components[PerspectiveCameraComponent.self] = cam
+            }
+            resetToDefaultPosition()
+        }
+
+        private func startDroneFlight(scene: RealityKit.Scene) {
+            droneSubscription?.cancel()
+            var telemetryAccum: Double = 0
+            droneSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] event in
+                guard let self, let cam = self.cameraEntity else { return }
+                let dt = Float(event.deltaTime)
+                // Forward direction derived from yaw — no pitch (drone flies level)
+                let fwd = SIMD3<Float>(-sin(self.droneYaw), 0, -cos(self.droneYaw))
+                cam.position += fwd * self.droneForwardSpeed * dt
+                cam.position.y = self.droneAltitude
+                // Look slightly downward (−8°) for an immersive drone camera angle
+                let lookTarget = cam.position + fwd + SIMD3(0, -0.14, 0)
+                cam.look(at: lookTarget, from: cam.position, relativeTo: nil)
+                // Telemetry callback at ~5 fps
+                telemetryAccum += Double(event.deltaTime)
+                if telemetryAccum >= 0.20 {
+                    telemetryAccum = 0
+                    let hdg = (self.droneYaw * 180 / .pi).truncatingRemainder(dividingBy: 360)
+                    let hdgPositive = hdg < 0 ? hdg + 360 : hdg
+                    self.onDroneTelemetry?(self.droneAltitude, hdgPositive, self.droneForwardSpeed)
+                }
+            }
+        }
+
+        // MARK: - POI beacons (focus mode only)
+
+        private func showPOIBeacons(anchor: AnchorEntity, scene: RealityKit.Scene) {
+            anchor.children.first(where: { $0.name == "poiBeacons" })?.removeFromParent()
+            guard let distEntry = CityManifest.shared.district(id: districtName),
+                  let dist = cachedDistrict,
+                  let beacons = DistrictRealityKit.makePOIBeaconEntities(
+                      districtName: districtName,
+                      districtAnchor: distEntry.anchor,
+                      districtExtent: dist.extent) else { return }
+            anchor.addChild(beacons)
+            poiBeaconsEntity = beacons
+            startPOIPulse(scene: scene)
+        }
+
+        private func hidePOIBeacons() {
+            poiPulseSubscription?.cancel(); poiPulseSubscription = nil
+            poiBeaconsEntity?.removeFromParent()
+            poiBeaconsEntity = nil
         }
 
         /// Pulses the cyan neon featured POI beacons at 1.5 Hz (scale 0.92–1.08).

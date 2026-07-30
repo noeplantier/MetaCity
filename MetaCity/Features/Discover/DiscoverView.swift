@@ -95,6 +95,11 @@ struct DiscoverView: View {
                 onZoomBack: { viewModel.back() },
                 onBuildingSelected: { viewModel.selectBuilding($0) },
                 onPOISelected: { viewModel.selectPOIById($0, districtId: district.id) },
+                onDroneTelemetry: { alt, hdg, spd in
+                    viewModel.droneAltitude = alt
+                    viewModel.droneHeading  = hdg
+                    viewModel.droneSpeed    = spd
+                },
                 venueTargetPOIId: viewModel.venueTargetPOIId,
                 searchFlyToken: viewModel.searchFlyToken,
                 searchFlyCentroid: viewModel.searchFlyCentroid,
@@ -292,58 +297,73 @@ struct DiscoverView: View {
     // MARK: - districtExplore overlay
 
     private func districtExploreOverlay(city: CityEntry, district: DistrictEntry) -> some View {
-        VStack(spacing: 0) {
-            // Unified nav row: back | search bar | globe
-            HStack(spacing: Spacing.sm) {
-                backButton
-                DistrictSearchBar(query: $viewModel.districtSearchQuery)
-                EarthGlobeButton(onTap: { viewModel.resetToWorldMap() })
-            }
-            .padding(.horizontal, Spacing.lg)
-            .padding(.top, Spacing.md)
-            .padding(.bottom, Spacing.sm)
-            .background(.ultraThinMaterial)
-            .overlay(alignment: .bottom) { ScanLineView() }
-
-            // Autocomplete dropdown
-            let results = viewModel.searchResults(in: district)
-            if !viewModel.districtSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
-                DistrictSearchDropdown(results: results) { result in
-                    viewModel.selectSearchResult(result)
-                }
-                .padding(.horizontal, Spacing.lg)
-                .padding(.top, 4)
-            }
-
-            Spacer()
-
-            // Floating mini-map — hidden when a venue card is open
-            let hasCard = viewModel.selectedVenuePOI != nil
-            if !hasCard {
-                HStack {
-                    Spacer()
-                    DistrictMiniMapView(
-                        district: district,
-                        activePreset: viewModel.activeViewPreset,
-                        onPresetChange: { viewModel.setViewPreset($0) },
-                        onPOISelected: { viewModel.selectPOIById($0, districtId: district.id) }
-                    )
-                    .padding(.trailing, Spacing.lg)
+        ZStack {
+            Color.clear // anchor ZStack to full parent frame
+            // DRONE mode: full-screen cockpit HUD (hides normal chrome)
+            if viewModel.activeViewPreset == .drone {
+                DroneCockpitOverlay(
+                    altitude: viewModel.droneAltitude,
+                    heading: viewModel.droneHeading,
+                    speed: viewModel.droneSpeed,
+                    onExit: { viewModel.setViewPreset(.overview) }
+                )
+                .transition(.opacity)
+                .animation(.easeInOut(duration: 0.25), value: viewModel.activeViewPreset == .drone)
+            } else {
+                VStack(spacing: 0) {
+                    // Unified nav row: back | search bar | globe
+                    HStack(spacing: Spacing.sm) {
+                        backButton
+                        DistrictSearchBar(query: $viewModel.districtSearchQuery)
+                        EarthGlobeButton(onTap: { viewModel.resetToWorldMap() })
+                    }
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.top, Spacing.md)
                     .padding(.bottom, Spacing.sm)
+                    .background(.ultraThinMaterial)
+                    .overlay(alignment: .bottom) { ScanLineView() }
+
+                    // Autocomplete dropdown
+                    let results = viewModel.searchResults(in: district)
+                    if !viewModel.districtSearchQuery.trimmingCharacters(in: .whitespaces).isEmpty {
+                        DistrictSearchDropdown(results: results) { result in
+                            viewModel.selectSearchResult(result)
+                        }
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.top, 4)
+                    }
+
+                    Spacer()
+
+                    // Floating mini-map — hidden when a venue card is open
+                    let hasCard = viewModel.selectedVenuePOI != nil
+                    if !hasCard {
+                        HStack {
+                            Spacer()
+                            DistrictMiniMapView(
+                                district: district,
+                                activePreset: viewModel.activeViewPreset,
+                                onPresetChange: { viewModel.setViewPreset($0) },
+                                onPOISelected: { viewModel.selectPOIById($0, districtId: district.id) }
+                            )
+                            .padding(.trailing, Spacing.lg)
+                            .padding(.bottom, Spacing.sm)
+                        }
+                        .transition(.opacity.combined(with: .scale(scale: 0.92)))
+                        .animation(.easeInOut(duration: 0.22), value: hasCard)
+                    }
+
+                    // VenueCard
+                    if let poi = viewModel.selectedVenuePOI {
+                        HUDVenueCard(poi: poi, onDismiss: { viewModel.dismissVenue() })
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.bottom, Spacing.sm)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
                 }
-                .transition(.opacity.combined(with: .scale(scale: 0.92)))
-                .animation(.easeInOut(duration: 0.22), value: hasCard)
             }
-
-            // VenueCard
-            if let poi = viewModel.selectedVenuePOI {
-                HUDVenueCard(poi: poi, onDismiss: { viewModel.dismissVenue() })
-                .padding(.horizontal, Spacing.lg)
-                .padding(.bottom, Spacing.sm)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-
         }
+        .animation(.easeInOut(duration: 0.3), value: viewModel.activeViewPreset)
     }
 
     // MARK: - Helpers
@@ -1860,6 +1880,93 @@ private struct MiniPOIListView: View {
                     .padding(.top, 20)
             }
         }
+    }
+}
+
+// MARK: - Drone cockpit overlay
+
+/// Full-screen heads-up display shown while `activeViewPreset == .drone`.
+/// Hides when any other preset is active. Shows ALT / HDG / SPD telemetry and a back button.
+private struct DroneCockpitOverlay: View {
+    let altitude: Float
+    let heading: Float
+    let speed: Float
+    let onExit: () -> Void
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            // Top-left: back to overview (fills full height so Spacer works correctly)
+            VStack {
+                HStack {
+                    Button(action: onExit) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.left")
+                                .font(.system(size: 13, weight: .semibold))
+                            Text("OVERVIEW")
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .tracking(1.2)
+                        }
+                        .foregroundStyle(Color.metacityPrimary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(.ultraThinMaterial, in: Capsule())
+                        .overlay(Capsule().strokeBorder(Color.metacityPrimary.opacity(0.35), lineWidth: 0.5))
+                    }
+                    Spacer()
+                    // Top-right DRONE badge
+                    Text("◈ DRONE")
+                        .font(.system(size: 10, weight: .black, design: .monospaced))
+                        .tracking(2)
+                        .foregroundStyle(Color.metacityPrimary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.metacityPrimary.opacity(0.12), in: RoundedRectangle(cornerRadius: 4))
+                        .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Color.metacityPrimary.opacity(0.4), lineWidth: 0.5))
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 56)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+            // Bottom telemetry strip
+            HStack(spacing: 0) {
+                telemetryCell(label: "ALT", value: String(format: "%.0f m", altitude))
+                divider
+                telemetryCell(label: "HDG", value: String(format: "%03.0f°", heading))
+                divider
+                telemetryCell(label: "SPD", value: String(format: "%.0f m/s", speed))
+            }
+            .frame(maxWidth: 320)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.metacityPrimary.opacity(0.3), lineWidth: 0.5))
+            .padding(.bottom, 36)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
+    }
+
+    private func telemetryCell(label: String, value: String) -> some View {
+        VStack(spacing: 2) {
+            Text(label)
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .tracking(1.4)
+                .foregroundStyle(Color.metacityPrimary.opacity(0.65))
+            Text(value)
+                .font(.system(size: 18, weight: .bold, design: .monospaced))
+                .foregroundStyle(Color.metacityPrimary)
+                .contentTransition(.numericText())
+                .animation(.easeOut(duration: 0.15), value: value)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+    }
+
+    private var divider: some View {
+        Rectangle()
+            .fill(Color.metacityPrimary.opacity(0.2))
+            .frame(width: 0.5)
+            .padding(.vertical, 10)
     }
 }
 
