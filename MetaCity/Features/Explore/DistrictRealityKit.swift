@@ -3320,7 +3320,7 @@ enum DistrictRealityKit {
     /// Consecutive featured POIs connected by semi-transparent cyan flat quads.
     /// Named "poi:<id>" / "poi_label:<id>" / "poiPaths" for hit-testing + pulse animation.
     @MainActor
-    private static func makePOIBeaconEntities(
+    static func makePOIBeaconEntities(
         districtName: String,
         districtAnchor: GeoCoord,
         districtExtent: Float
@@ -3359,6 +3359,7 @@ enum DistrictRealityKit {
                 )
                 sphere.name = "poi:\(poi.id)"
                 sphere.position = SIMD3(offset.x, beaconY, offset.z)
+                sphere.components.set(CollisionComponent(shapes: [.generateSphere(radius: radius)]))
 
                 // Floating text label: same font approach as makeFocusBeacon
                 let fontSize = CGFloat(districtExtent * 0.014)
@@ -3383,6 +3384,7 @@ enum DistrictRealityKit {
                 )
                 sphere.name = "poi:\(poi.id)"
                 sphere.position = SIMD3(offset.x, beaconY, offset.z)
+                sphere.components.set(CollisionComponent(shapes: [.generateSphere(radius: radius)]))
                 root.addChild(sphere)
             }
         }

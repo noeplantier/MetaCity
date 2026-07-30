@@ -975,7 +975,18 @@ struct DistrictRealityView: UIViewRepresentable {
                 if self.currentVenueTargetPOIId == nil {
                     self.applyOrbitLOD()
                 }
-                // (POI beacons removed — no pulse subscription needed)
+                // Re-add POI beacons (CollisionComponent-equipped so entity(at:) finds them in HUMAN mode)
+                anchor.children.first(where: { $0.name == "poiBeacons" })?.removeFromParent()
+                if let distEntry = CityManifest.shared.district(id: districtName),
+                   let dist = self.cachedDistrict,
+                   let beacons = DistrictRealityKit.makePOIBeaconEntities(
+                       districtName: districtName,
+                       districtAnchor: distEntry.anchor,
+                       districtExtent: dist.extent) {
+                    anchor.addChild(beacons)
+                    self.poiBeaconsEntity = beacons
+                    if let scene = self.arView?.scene { self.startPOIPulse(scene: scene) }
+                }
             }
         }
 
