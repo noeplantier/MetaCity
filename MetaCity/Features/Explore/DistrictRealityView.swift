@@ -214,6 +214,10 @@ struct DistrictRealityView: UIViewRepresentable {
         /// Used by drone collision check per frame to avoid re-reducing polygon arrays.
         private var buildingCentroids: [(cx: Float, cz: Float, maxH: Float)] = []
         private var droneInCollisionWarning: Bool = false
+        // Enhanced drone physics
+        private var droneVerticalSpeed: Float = 0       // vertical velocity m/s (+up, decays with drag)
+        private var droneForwardThrottle: Float = 1.0   // speed multiplier 0.3–2.5 (pinch to control)
+        private var droneCameraPitch: Float = 0          // camera pitch radians, smoothed per-frame
 
         // MARK: - HUMAN mode state (3rd-person)
         private var humanNearbySubscription: Cancellable?
@@ -227,6 +231,10 @@ struct DistrictRealityView: UIViewRepresentable {
         private var activeMiniGamePOIId: String? = nil
         private var humanBoostEntity: Entity? = nil
         private var humanNearPOIId: String? = nil
+        // Enhanced human interaction
+        private var nearestPedestrianIdx: Int? = nil     // index in pedestrians array within 8m
+        private var pedestrianReactionEntity: Entity? = nil  // speech-bubble sphere above ped
+        private var humanArmRaiseTimer: Float = 0        // countdown for greeting arm-raise anim (1.2s)
 
         // MARK: - Living ecosystem state
         private var ecosystemSubscription: Cancellable?
@@ -527,13 +535,19 @@ struct DistrictRealityView: UIViewRepresentable {
         @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
             guard let arView else { return }
 
-            // DRONE mode: horizontal pan = yaw, vertical = altitude
+            // DRONE mode: horizontal = yaw turn, vertical = vertical thrust
             if currentViewPreset == .drone {
                 let delta = gesture.translation(in: arView)
                 gesture.setTranslation(.zero, in: arView)
-                droneYaw += Float(delta.x) * 0.003
-                // Inverted Y: swipe up (negative delta.y) → ascend
-                droneAltitude = max(5, min(districtExtent * 0.35, droneAltitude - Float(delta.y) * 0.15))
+                // Yaw: viewport-relative, 3× less sensitive than before
+                let viewW = max(Float(arView.bounds.width), 1)
+                droneYaw += Float(delta.x) / viewW * .pi * 0.55
+                // Vertical: accumulate speed (inverted Y: swipe up → ascend)
+                // Clamped velocity, decays naturally via drag in startDroneFlight
+                droneVerticalSpeed = simd_clamp(
+                    droneVerticalSpeed + Float(-delta.y) * 0.07,
+                    -20.0, 30.0
+                )
                 return
             }
 
@@ -567,7 +581,9 @@ struct DistrictRealityView: UIViewRepresentable {
             let delta = gesture.translation(in: arView)
             gesture.setTranslation(.zero, in: arView)
 
-            azimuth += Float(delta.x) * 0.005
+            // Viewport-relative: ~70° of arc per full-width swipe (was 286° with * 0.005)
+            let viewW = max(Float(arView.bounds.width), 1)
+            azimuth += Float(delta.x) / viewW * 1.22
             // Allow descending to near-ground-level (2 m floor) so the user can look at
             // building walls and window grids, not just rooftops, at close zoom.
             let minElev = max(2.0, height * 0.02)
@@ -575,7 +591,7 @@ struct DistrictRealityView: UIViewRepresentable {
             // Scale elevation sensitivity proportionally to distance so close-up dragging
             // is precise and wide-orbit dragging isn't too sluggish.
             let distRatio = currentDistance / max(districtExtent, 1)
-            let elevStep = Float(delta.y) * 0.004 * max(distRatio, 0.2)
+            let elevStep = Float(delta.y) * 0.0022 * max(distRatio, 0.15)
             currentElevation = min(max(currentElevation + elevStep, minElev), maxElev)
 
             updateCameraPosition()
@@ -604,6 +620,12 @@ struct DistrictRealityView: UIViewRepresentable {
             let rawScale = Float(gesture.scale)
             gesture.scale = 1.0
             guard rawScale > 0, rawScale != 1.0 else { return }
+
+            // DRONE mode: pinch controls forward speed (throttle)
+            if currentViewPreset == .drone {
+                droneForwardThrottle = simd_clamp(droneForwardThrottle * rawScale, 0.3, 2.5)
+                return
+            }
 
             let minDist = max(6.0, districtExtent * 0.010)
             let maxDist = districtExtent * 5.0
@@ -651,54 +673,44 @@ struct DistrictRealityView: UIViewRepresentable {
         private var panVelocity: CGPoint = .zero
         private var momentumSubscription: Cancellable?
         
-        /// Applies momentum/inertia to the camera after a pan gesture ends.
-        /// The camera continues moving with decreasing velocity until it naturally stops.
+        /// Time-based momentum: `panVelocity` from UIKit is in pt/s; multiply by `dt` each frame
+        /// so 30-turn overspin at 60fps is impossible — total arc ≤ v × azRad / decayPerSec.
         private func applyPanMomentum(in scene: RealityKit.Scene) {
-            guard let arView else { return }
-            
             let velocity = panVelocity
             guard velocity != .zero else { return }
-            
-            // Decay factor: controls how quickly momentum fades
-            // Higher = longer momentum (0.92 = ~2 seconds of noticeable movement)
-            let decay: Float = 0.92
-            let minVelocity: Float = 0.5  // Stop when velocity drops below this
-            
-            // Scale velocity to reasonable camera movement speeds
-            // 5-10 m/s as specified in requirements
-            let azimuthSpeed: Float = 0.003
-            let elevationSpeed: Float = 0.002
-            
-            var currentVelocity = SIMD2<Float>(Float(velocity.x), Float(velocity.y))
-            
+
+            // pt/s → rad/s: 500pt/s fast swipe ≈ 45° total arc (reasonable feel)
+            let azRadPerPtSec: Float   = 0.00155
+            let elevRadPerPtSec: Float = 0.00090
+            // Velocity decays to ~0 in ≈ 0.25 s  (decayPerSec = 5 → half-life ~0.14 s)
+            let decayPerSec: Float     = 5.0
+
+            var vel = SIMD2<Float>(Float(velocity.x), Float(velocity.y))
             momentumSubscription?.cancel()
-            momentumSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
+            momentumSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] event in
                 guard let self else { return }
-                
-                // Apply velocity
-                self.azimuth += currentVelocity.x * azimuthSpeed
-                let elevDelta = currentVelocity.y * elevationSpeed
+                let dt = Float(event.deltaTime)
+
+                // Per-second movement (velocity in pt/s × dt = angular change this frame)
+                self.azimuth += vel.x * azRadPerPtSec * dt
                 let minElev = max(2.0, self.height * 0.02)
                 let maxElev = self.height * 2.5
+                let elevDelta = vel.y * elevRadPerPtSec * dt
                 self.currentElevation = min(max(self.currentElevation + elevDelta, minElev), maxElev)
-                
                 self.updateCameraPosition()
-                
-                // Decay velocity
-                currentVelocity *= decay
-                
-                // Stop when velocity is negligible
-                if length(currentVelocity) < minVelocity {
+
+                // Frame-rate-independent exponential decay
+                vel *= max(1.0 - decayPerSec * dt, 0)
+
+                if simd_length(vel) < 1.0 {
                     self.momentumSubscription?.cancel()
                     self.momentumSubscription = nil
-                    
-                    // Resume orbit if auto-rotate is enabled
                     if self.currentIsAutoRotating {
                         let orbitCenter = self.inspectedBuildingCentroid ?? self.center
                         self.startBuildingOrbit360(center: orbitCenter,
-                                                  orbDist: self.currentDistance,
-                                                  orbH: self.currentElevation,
-                                                  scene: scene)
+                                                   orbDist: self.currentDistance,
+                                                   orbH: self.currentElevation,
+                                                   scene: scene)
                     }
                 }
             }
@@ -721,6 +733,20 @@ struct DistrictRealityView: UIViewRepresentable {
                         return
                     }
                     cursor = e.parent
+                }
+            }
+
+            // Pedestrian greeting tap (HUMAN mode): tap near the nearest ped → arm-raise
+            if currentViewPreset == .human,
+               let pedIdx = nearestPedestrianIdx, pedIdx < pedestrians.count {
+                if let hit = arView.entity(at: loc) {
+                    var cursor: Entity? = hit
+                    var hitPed = false
+                    while let e = cursor {
+                        if e === pedestrians[pedIdx].entity { hitPed = true; break }
+                        cursor = e.parent
+                    }
+                    if hitPed { humanArmRaiseTimer = 1.2; return }
                 }
             }
 
@@ -908,14 +934,17 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
-        /// Exit HUMAN mode: remove character, cancel subscriptions, restore FOV + lights.
+        /// Exit HUMAN mode: remove character + accessories, cancel subscriptions, restore FOV + lights.
         private func exitHumanMode() {
             humanFollowSubscription?.cancel(); humanFollowSubscription = nil
             humanNearbySubscription?.cancel(); humanNearbySubscription = nil
             endActiveMiniGame()
             characterEntity?.removeFromParent(); characterEntity = nil
             humanBoostEntity?.removeFromParent(); humanBoostEntity = nil
+            pedestrianReactionEntity?.removeFromParent(); pedestrianReactionEntity = nil
             humanNearPOIId = nil
+            nearestPedestrianIdx = nil
+            humanArmRaiseTimer = 0
             if var cam = cameraEntity?.components[PerspectiveCameraComponent.self] {
                 cam.fieldOfViewInDegrees = mood.fieldOfViewDegrees
                 cameraEntity?.components[PerspectiveCameraComponent.self] = cam
@@ -925,69 +954,112 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
-        /// Realistic 6-part humanoid avatar: torso/head/2 arms/2 legs with neon-cyan accent.
+        /// Full humanoid avatar with accessories: jacket + backpack + cap + sneakers + watch + neon accent.
         private func makeCharacterEntity() -> Entity {
-            let cyanMat  = [UnlitMaterial(color: UIColor(red: 0.05, green: 0.88, blue: 1.00, alpha: 1))]
-            let darkMat  = [UnlitMaterial(color: UIColor(red: 0.08, green: 0.10, blue: 0.14, alpha: 1))]
-            let skinMat  = [UnlitMaterial(color: UIColor(red: 0.88, green: 0.78, blue: 0.66, alpha: 1))]
+            let jacketMat   = [UnlitMaterial(color: UIColor(red: 0.06, green: 0.10, blue: 0.22, alpha: 1))]  // dark navy
+            let pantsMat    = [UnlitMaterial(color: UIColor(red: 0.13, green: 0.13, blue: 0.15, alpha: 1))]  // charcoal
+            let skinMat     = [UnlitMaterial(color: UIColor(red: 0.92, green: 0.78, blue: 0.63, alpha: 1))]  // warm skin
+            let shoeMat     = [UnlitMaterial(color: UIColor(red: 0.94, green: 0.92, blue: 0.90, alpha: 1))]  // white sneakers
+            let hatMat      = [UnlitMaterial(color: UIColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1))]  // black cap
+            let cyanMat     = [UnlitMaterial(color: UIColor(red: 0.04, green: 0.86, blue: 0.98, alpha: 1))]  // neon cyan accent
+            let backpackMat = [UnlitMaterial(color: UIColor(red: 0.22, green: 0.18, blue: 0.44, alpha: 1))]  // purple-black backpack
+            let watchMat    = [UnlitMaterial(color: UIColor(red: 0.84, green: 0.64, blue: 0.08, alpha: 1))]  // gold watch
+            let eyeMat      = [UnlitMaterial(color: UIColor(red: 0.05, green: 0.05, blue: 0.08, alpha: 1))]  // dark eyes
 
-            // Torso — slightly tapered jacket shape
-            let torso = ModelEntity(mesh: .generateBox(size: SIMD3(0.44, 0.56, 0.22)), materials: cyanMat)
+            // === TORSO (jacket) ===
+            let torso = ModelEntity(mesh: .generateBox(size: SIMD3(0.45, 0.58, 0.24)), materials: jacketMat)
             torso.name = "_humanCharacter"
-            // Neck
-            let neck = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.12, 0.10)), materials: skinMat)
-            neck.position = SIMD3(0, 0.36, 0)
-            // Head
-            let head = ModelEntity(mesh: .generateSphere(radius: 0.19), materials: skinMat)
-            head.position = SIMD3(0, 0.26, 0)
-            neck.addChild(head)
-            // Left arm (shoulder-elbow-forearm)
-            let lUpper = ModelEntity(mesh: .generateBox(size: SIMD3(0.11, 0.30, 0.11)), materials: cyanMat)
-            lUpper.position = SIMD3(-0.28, 0.10, 0)
-            lUpper.name = "_lArm"
-            let lFore = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.26, 0.10)), materials: darkMat)
-            lFore.position = SIMD3(0, -0.30, 0)
-            lUpper.addChild(lFore)
-            // Right arm
-            let rUpper = ModelEntity(mesh: .generateBox(size: SIMD3(0.11, 0.30, 0.11)), materials: cyanMat)
-            rUpper.position = SIMD3(0.28, 0.10, 0)
-            rUpper.name = "_rArm"
-            let rFore = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.26, 0.10)), materials: darkMat)
-            rFore.position = SIMD3(0, -0.30, 0)
-            rUpper.addChild(rFore)
-            // Left leg
-            let lThigh = ModelEntity(mesh: .generateBox(size: SIMD3(0.14, 0.34, 0.14)), materials: darkMat)
-            lThigh.position = SIMD3(-0.13, -0.45, 0)
-            lThigh.name = "_lLeg"
-            let lShin = ModelEntity(mesh: .generateBox(size: SIMD3(0.12, 0.30, 0.12)), materials: cyanMat)
-            lShin.position = SIMD3(0, -0.34, 0)
-            lThigh.addChild(lShin)
-            // Right leg
-            let rThigh = ModelEntity(mesh: .generateBox(size: SIMD3(0.14, 0.34, 0.14)), materials: darkMat)
-            rThigh.position = SIMD3(0.13, -0.45, 0)
-            rThigh.name = "_rLeg"
-            let rShin = ModelEntity(mesh: .generateBox(size: SIMD3(0.12, 0.30, 0.12)), materials: cyanMat)
-            rShin.position = SIMD3(0, -0.34, 0)
-            rThigh.addChild(rShin)
-            // Neon ground-glow ring at feet (two crossed flat bars — no alpha/sorting issues)
-            let ringMat = [UnlitMaterial(color: UIColor(red: 0.05, green: 0.88, blue: 1.00, alpha: 1))]
-            let ringA = ModelEntity(mesh: .generateBox(size: SIMD3(0.70, 0.025, 0.10)), materials: ringMat)
-            let ringB = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.025, 0.70)), materials: ringMat)
-            ringA.position = SIMD3(0, -0.94, 0)
-            ringB.position = SIMD3(0, -0.94, 0)
-            // Eye details (tiny dark rectangles on front of head)
-            let eyeMat = [UnlitMaterial(color: UIColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1))]
-            let lEye = ModelEntity(mesh: .generateBox(size: SIMD3(0.055, 0.035, 0.025)), materials: eyeMat)
-            lEye.position = SIMD3(-0.07, 0.28, -0.17)
-            let rEye = ModelEntity(mesh: .generateBox(size: SIMD3(0.055, 0.035, 0.025)), materials: eyeMat)
-            rEye.position = SIMD3(0.07, 0.28, -0.17)
-            neck.addChild(lEye); neck.addChild(rEye)
 
+            // === NECK ===
+            let neck = ModelEntity(mesh: .generateBox(size: SIMD3(0.09, 0.11, 0.09)), materials: skinMat)
+            neck.position = SIMD3(0, 0.38, 0)
+
+            // === HEAD ===
+            let head = ModelEntity(mesh: .generateSphere(radius: 0.185), materials: skinMat)
+            head.position = SIMD3(0, 0.25, 0)
+            // Eyes
+            let lEye = ModelEntity(mesh: .generateBox(size: SIMD3(0.046, 0.030, 0.022)), materials: eyeMat)
+            lEye.position = SIMD3(-0.068, 0.27, -0.165)
+            let rEye = ModelEntity(mesh: .generateBox(size: SIMD3(0.046, 0.030, 0.022)), materials: eyeMat)
+            rEye.position = SIMD3( 0.068, 0.27, -0.165)
+            neck.addChild(lEye); neck.addChild(rEye)
+            neck.addChild(head)
+
+            // === CAP (dome + brim) ===
+            let hatDome = ModelEntity(mesh: .generateBox(size: SIMD3(0.37, 0.16, 0.35)), materials: hatMat)
+            hatDome.position = SIMD3(0, 0.47, 0)
+            let hatBrim = ModelEntity(mesh: .generateBox(size: SIMD3(0.45, 0.035, 0.18)), materials: hatMat)
+            hatBrim.position = SIMD3(0, 0.43, -0.21)
+            // Cyan cap logo band
+            let hatBand = ModelEntity(mesh: .generateBox(size: SIMD3(0.36, 0.038, 0.36)), materials: cyanMat)
+            hatBand.position = SIMD3(0, 0.395, 0)
+            neck.addChild(hatDome); neck.addChild(hatBrim); neck.addChild(hatBand)
+
+            // === LEFT ARM (jacket sleeve + skin forearm) ===
+            let lUpper = ModelEntity(mesh: .generateBox(size: SIMD3(0.105, 0.29, 0.105)), materials: jacketMat)
+            lUpper.position = SIMD3(-0.28, 0.12, 0)
+            lUpper.name = "_lArm"
+            let lFore = ModelEntity(mesh: .generateBox(size: SIMD3(0.092, 0.24, 0.092)), materials: skinMat)
+            lFore.position = SIMD3(0, -0.28, 0)
+            // Gold watch on left wrist
+            let watch = ModelEntity(mesh: .generateBox(size: SIMD3(0.075, 0.038, 0.092)), materials: watchMat)
+            watch.position = SIMD3(0, -0.08, 0)
+            lFore.addChild(watch)
+            lUpper.addChild(lFore)
+
+            // === RIGHT ARM ===
+            let rUpper = ModelEntity(mesh: .generateBox(size: SIMD3(0.105, 0.29, 0.105)), materials: jacketMat)
+            rUpper.position = SIMD3(0.28, 0.12, 0)
+            rUpper.name = "_rArm"
+            let rFore = ModelEntity(mesh: .generateBox(size: SIMD3(0.092, 0.24, 0.092)), materials: skinMat)
+            rFore.position = SIMD3(0, -0.28, 0)
+            rUpper.addChild(rFore)
+
+            // === BACKPACK (behind torso) ===
+            let backpack = ModelEntity(mesh: .generateBox(size: SIMD3(0.30, 0.40, 0.13)), materials: backpackMat)
+            backpack.position = SIMD3(0, 0.06, 0.20)
+            // Shoulder straps (neon cyan)
+            let lStrap = ModelEntity(mesh: .generateBox(size: SIMD3(0.038, 0.38, 0.038)), materials: cyanMat)
+            lStrap.position = SIMD3(-0.10, 0.06, 0.155)
+            let rStrap = ModelEntity(mesh: .generateBox(size: SIMD3(0.038, 0.38, 0.038)), materials: cyanMat)
+            rStrap.position = SIMD3( 0.10, 0.06, 0.155)
+            // Chest strap horizontal
+            let chestStrap = ModelEntity(mesh: .generateBox(size: SIMD3(0.22, 0.032, 0.038)), materials: cyanMat)
+            chestStrap.position = SIMD3(0, 0.10, 0.155)
+            torso.addChild(backpack); torso.addChild(lStrap); torso.addChild(rStrap); torso.addChild(chestStrap)
+
+            // === LEFT LEG ===
+            let lThigh = ModelEntity(mesh: .generateBox(size: SIMD3(0.145, 0.36, 0.145)), materials: pantsMat)
+            lThigh.position = SIMD3(-0.13, -0.47, 0)
+            lThigh.name = "_lLeg"
+            let lShin = ModelEntity(mesh: .generateBox(size: SIMD3(0.120, 0.30, 0.120)), materials: pantsMat)
+            lShin.position = SIMD3(0, -0.35, 0)
+            let lShoe = ModelEntity(mesh: .generateBox(size: SIMD3(0.145, 0.072, 0.230)), materials: shoeMat)
+            lShoe.position = SIMD3(0, -0.172, -0.042)
+            lShin.addChild(lShoe); lThigh.addChild(lShin)
+
+            // === RIGHT LEG ===
+            let rThigh = ModelEntity(mesh: .generateBox(size: SIMD3(0.145, 0.36, 0.145)), materials: pantsMat)
+            rThigh.position = SIMD3(0.13, -0.47, 0)
+            rThigh.name = "_rLeg"
+            let rShin = ModelEntity(mesh: .generateBox(size: SIMD3(0.120, 0.30, 0.120)), materials: pantsMat)
+            rShin.position = SIMD3(0, -0.35, 0)
+            let rShoe = ModelEntity(mesh: .generateBox(size: SIMD3(0.145, 0.072, 0.230)), materials: shoeMat)
+            rShoe.position = SIMD3(0, -0.172, -0.042)
+            rShin.addChild(rShoe); rThigh.addChild(rShin)
+
+            // === NEON GROUND-GLOW (crossed bars at feet) ===
+            let ringA = ModelEntity(mesh: .generateBox(size: SIMD3(0.78, 0.022, 0.10)), materials: cyanMat)
+            let ringB = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.022, 0.78)), materials: cyanMat)
+            ringA.position = SIMD3(0, -0.945, 0)
+            ringB.position = SIMD3(0, -0.945, 0)
+
+            // === ASSEMBLE ===
             torso.addChild(neck)
             torso.addChild(lUpper); torso.addChild(rUpper)
             torso.addChild(lThigh); torso.addChild(rThigh)
-            torso.addChild(ringA); torso.addChild(ringB)
-            torso.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3(0.44, 1.75, 0.22))]))
+            torso.addChild(ringA);  torso.addChild(ringB)
+            torso.components.set(CollisionComponent(shapes: [.generateBox(size: SIMD3(0.45, 1.90, 0.24))]))
             return torso
         }
 
@@ -1002,30 +1074,50 @@ struct DistrictRealityView: UIViewRepresentable {
             )
         }
 
-        /// Spring-follow camera + walk animation (arm/leg swing, body bob).
+        /// Spring-follow camera + walk animation + arm-raise greeting + pedestrian bubble tracking.
         private func startHumanFollowCamera(scene: RealityKit.Scene) {
             humanFollowSubscription?.cancel()
             let limbs = characterLimbs()
-            humanFollowSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
+            humanFollowSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] event in
                 guard let self, let cam = self.cameraEntity else { return }
-                let t = Float(Date().timeIntervalSince1970)
-                let walkFreq: Float = 2.4   // steps per second
-                let walkAmp: Float  = 0.36  // swing angle radians
-
-                // Limb swing — arms/legs alternate in opposition
+                let dt   = Float(event.deltaTime)
+                let t    = Float(Date().timeIntervalSince1970)
+                let walkFreq: Float = 2.4
+                let walkAmp: Float  = 0.34
                 let swing = sin(t * walkFreq * .pi * 2) * walkAmp
-                limbs.lArm?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
-                limbs.rArm?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+
+                // Arm-raise greeting animation (1.2 s, smooth arc)
+                if self.humanArmRaiseTimer > 0 {
+                    self.humanArmRaiseTimer = max(0, self.humanArmRaiseTimer - dt)
+                    let phase = 1.0 - self.humanArmRaiseTimer / 1.2
+                    let raiseAngle = -.pi * 0.68 * Float(sin(Double(phase) * .pi))
+                    limbs.lArm?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
+                    limbs.rArm?.orientation = simd_quatf(angle: raiseAngle, axis: SIMD3(1, 0, 0))
+                } else {
+                    limbs.lArm?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
+                    limbs.rArm?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                }
                 limbs.lLeg?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
                 limbs.rLeg?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
 
                 // Body bob
-                let bob = abs(sin(t * walkFreq * .pi * 2)) * 0.06
+                let bob = abs(sin(t * walkFreq * .pi * 2)) * 0.055
                 self.characterEntity?.position = SIMD3<Float>(
                     self.humanCharacterPos.x, 0.94 + bob, self.humanCharacterPos.z
                 )
 
-                // Spring-follow camera (tighter spring: α=0.18, higher cam eye: 3.2m)
+                // Pedestrian reaction bubble follows nearest ped (pulsing scale)
+                if let bubble = self.pedestrianReactionEntity,
+                   let pedIdx = self.nearestPedestrianIdx,
+                   pedIdx < self.pedestrians.count {
+                    let pedPos = self.pedestrians[pedIdx].entity.position
+                    let pulse: Float = 0.90 + 0.10 * sin(t * 5.0 * .pi)
+                    bubble.position = SIMD3(pedPos.x, 2.3, pedPos.z)
+                    bubble.scale    = SIMD3(repeating: pulse)
+                }
+
+                // Frame-rate-independent spring follow (k=9: snappy 3P feel)
+                // α = 1 − e^(−k·dt) → at 60fps, α ≈ 0.14 per frame
                 let behindX = Float(sin(Double(self.humanCharacterAzimuth))) * 5.5
                 let behindZ = Float(cos(Double(self.humanCharacterAzimuth))) * 5.5
                 let targetPos = SIMD3<Float>(
@@ -1034,39 +1126,83 @@ struct DistrictRealityView: UIViewRepresentable {
                     self.humanCharacterPos.z + behindZ
                 )
                 let lookTarget = SIMD3<Float>(self.humanCharacterPos.x, 1.1, self.humanCharacterPos.z)
-                let newPos = cam.position + (targetPos - cam.position) * 0.18
+                let alpha = 1.0 - exp(-9.0 * dt)
+                let newPos = cam.position + (targetPos - cam.position) * alpha
                 cam.position = newPos
                 cam.look(at: lookTarget, from: newPos, relativeTo: nil)
             }
         }
 
-        /// Per-frame proximity check — uses character position (not camera) to detect POIs.
+        /// Per-frame proximity check — POI zones + nearest pedestrian interaction.
         private func startHumanNearbyCheck(scene: RealityKit.Scene) {
             humanNearbySubscription?.cancel()
             humanNearbySubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
                 guard let self else { return }
-                guard let collection = CangguPOICollection.load(for: self.districtName),
-                      let distEntry = CityManifest.shared.district(id: self.districtName) else { return }
                 let charPos = self.humanCharacterPos
-                var nearestId: String? = nil
-                var nearestDist: Float = .greatestFiniteMagnitude
-                for poi in collection.pois {
-                    let off = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
-                        .sceneOffset(from: distEntry.anchor)
-                    let dx = charPos.x - off.x, dz = charPos.z - off.z
-                    let d = sqrt(dx*dx + dz*dz)
-                    if d < nearestDist { nearestDist = d; nearestId = poi.id }
+
+                // --- POI proximity ---
+                if let collection = CangguPOICollection.load(for: self.districtName),
+                   let distEntry = CityManifest.shared.district(id: self.districtName) {
+                    var nearestId: String? = nil
+                    var nearestDist: Float = .greatestFiniteMagnitude
+                    for poi in collection.pois {
+                        let off = GeoCoord(latitude: poi.latitude, longitude: poi.longitude)
+                            .sceneOffset(from: distEntry.anchor)
+                        let dx = charPos.x - off.x, dz = charPos.z - off.z
+                        let d = sqrt(dx*dx + dz*dz)
+                        if d < nearestDist { nearestDist = d; nearestId = poi.id }
+                    }
+                    let enterThresh: Float = 12
+                    let exitThresh: Float  = 15
+                    if nearestDist < enterThresh, let id = nearestId, id != self.humanNearPOIId {
+                        self.humanNearPOIId = id
+                        self.boostNearbyPortal(poiId: id, scene: scene)
+                        // Greet the place with a brief arm-raise
+                        if self.humanArmRaiseTimer <= 0 { self.humanArmRaiseTimer = 1.2 }
+                    } else if nearestDist > exitThresh, self.humanNearPOIId != nil {
+                        self.humanNearPOIId = nil
+                        self.humanBoostEntity?.removeFromParent(); self.humanBoostEntity = nil
+                    }
                 }
-                let enterThresh: Float = 12
-                let exitThresh: Float  = 15
-                if nearestDist < enterThresh, let id = nearestId, id != self.humanNearPOIId {
-                    self.humanNearPOIId = id
-                    self.boostNearbyPortal(poiId: id, scene: scene)
-                } else if nearestDist > exitThresh, self.humanNearPOIId != nil {
-                    self.humanNearPOIId = nil
-                    self.humanBoostEntity?.removeFromParent(); self.humanBoostEntity = nil
+
+                // --- Pedestrian proximity: nearest walker within 8 m ---
+                var nearPedDist: Float = .greatestFiniteMagnitude
+                var nearPedIdx: Int?   = nil
+                for (idx, ped) in self.pedestrians.enumerated() {
+                    let p = ped.entity.position
+                    let dx = charPos.x - p.x, dz = charPos.z - p.z
+                    let d  = sqrt(dx*dx + dz*dz)
+                    if d < nearPedDist { nearPedDist = d; nearPedIdx = idx }
+                }
+                let prevPedIdx = self.nearestPedestrianIdx
+                if nearPedDist < 8.0 {
+                    self.nearestPedestrianIdx = nearPedIdx
+                    if prevPedIdx != nearPedIdx {
+                        self.updatePedestrianReaction(idx: nearPedIdx, show: true)
+                        // Mutual greeting: player raises arm on first contact
+                        if self.humanArmRaiseTimer <= 0 { self.humanArmRaiseTimer = 1.2 }
+                    }
+                } else if self.nearestPedestrianIdx != nil {
+                    self.nearestPedestrianIdx = nil
+                    self.updatePedestrianReaction(idx: prevPedIdx, show: false)
                 }
             }
+        }
+
+        /// Shows/hides a yellow speech-bubble indicator above the nearest pedestrian.
+        private func updatePedestrianReaction(idx: Int?, show: Bool) {
+            pedestrianReactionEntity?.removeFromParent()
+            pedestrianReactionEntity = nil
+            guard show, let idx, idx < pedestrians.count, let anch = districtAnchor else { return }
+            let pedPos = pedestrians[idx].entity.position
+            let bubble = ModelEntity(
+                mesh: .generateSphere(radius: 0.20),
+                materials: [UnlitMaterial(color: UIColor(red: 1.0, green: 0.88, blue: 0.08, alpha: 1))]
+            )
+            bubble.name = "_pedReaction"
+            bubble.position = SIMD3(pedPos.x, 2.35, pedPos.z)
+            anch.addChild(bubble)
+            pedestrianReactionEntity = bubble
         }
 
         /// Spawns a color-coded proximity sphere above the portal when player enters 12m.
@@ -1298,22 +1434,39 @@ struct DistrictRealityView: UIViewRepresentable {
         private func tickPedestrians(t: Float) {
             let walkFreq: Float = 3.0
             let walkAmp: Float  = 0.28
-            for ped in pedestrians {
+            for (i, ped) in pedestrians.enumerated() {
                 let cycleLen = ped.pathLength * 2
                 let raw = fmodf(t * ped.speed + ped.phase * ped.pathLength, cycleLen)
                 let forward = raw < ped.pathLength
                 let dist = forward ? raw : cycleLen - raw
                 let (pos, dir) = interpolateAlongPath(ped.path, t: dist)
                 ped.entity.position = SIMD3<Float>(pos.x, 0.60, pos.z)
-                let fwd: SIMD3<Float> = forward ? dir : -dir
-                if simd_length(fwd) > 0.01 {
-                    ped.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: fwd)
+
+                // Nearest pedestrian in HUMAN mode turns to face the player
+                if currentViewPreset == .human, nearestPedestrianIdx == i {
+                    let toPlayer = SIMD3<Float>(humanCharacterPos.x - pos.x, 0,
+                                               humanCharacterPos.z - pos.z)
+                    if simd_length(toPlayer) > 0.1 {
+                        ped.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1),
+                                                            to: simd_normalize(toPlayer))
+                    }
+                    // Idle arm-wave instead of walk swing when facing player
+                    let wave = sin(t * 3.8 * .pi) * 0.52
+                    ped.lArm?.orientation = simd_quatf(angle:  wave, axis: SIMD3(1, 0, 0))
+                    ped.rArm?.orientation = simd_quatf(angle: -wave * 0.4, axis: SIMD3(1, 0, 0))
+                    ped.lLeg?.orientation = simd_quatf(angle: 0, axis: SIMD3(1, 0, 0))
+                    ped.rLeg?.orientation = simd_quatf(angle: 0, axis: SIMD3(1, 0, 0))
+                } else {
+                    let fwd: SIMD3<Float> = forward ? dir : -dir
+                    if simd_length(fwd) > 0.01 {
+                        ped.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: fwd)
+                    }
+                    let swing = sin(t * walkFreq * .pi * 2 + ped.phase * .pi * 2) * walkAmp
+                    ped.lArm?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
+                    ped.rArm?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                    ped.lLeg?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                    ped.rLeg?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
                 }
-                let swing = sin(t * walkFreq * .pi * 2 + ped.phase * .pi * 2) * walkAmp
-                ped.lArm?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
-                ped.rArm?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
-                ped.lLeg?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
-                ped.rLeg?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
             }
         }
 
@@ -1462,8 +1615,12 @@ struct DistrictRealityView: UIViewRepresentable {
             flySubscription?.cancel();   flySubscription = nil
             cinematicSubscription?.cancel(); cinematicSubscription = nil
 
-            // Start at district edge, 6% of extent above ground, heading inward
-            droneYaw = 0
+            // Reset all drone physics state
+            droneYaw            = 0
+            droneVerticalSpeed  = 0
+            droneForwardThrottle = 1.0
+            droneCameraPitch    = 0
+            droneInCollisionWarning = false
             droneAltitude = max(20, districtExtent * 0.06)
             let startPos = SIMD3<Float>(
                 districtCenter.x,
@@ -1482,6 +1639,10 @@ struct DistrictRealityView: UIViewRepresentable {
 
         private func exitDroneMode() {
             droneSubscription?.cancel(); droneSubscription = nil
+            droneVerticalSpeed   = 0
+            droneForwardThrottle = 1.0
+            droneCameraPitch     = 0
+            droneInCollisionWarning = false
             if var cam = cameraEntity?.components[PerspectiveCameraComponent.self] {
                 cam.fieldOfViewInDegrees = mood.fieldOfViewDegrees
                 cameraEntity?.components[PerspectiveCameraComponent.self] = cam
@@ -1502,9 +1663,15 @@ struct DistrictRealityView: UIViewRepresentable {
                 guard let self, let cam = self.cameraEntity else { return }
                 let dt = Float(event.deltaTime)
 
-                // Forward direction derived from yaw — no pitch (drone flies level)
+                // Forward movement: variable speed via throttle (pinch to accelerate/brake)
+                let effectiveSpeed = self.droneForwardSpeed * self.droneForwardThrottle
                 let fwd = SIMD3<Float>(-sin(self.droneYaw), 0, -cos(self.droneYaw))
-                cam.position += fwd * self.droneForwardSpeed * dt
+                cam.position += fwd * effectiveSpeed * dt
+
+                // Vertical physics: droneVerticalSpeed decays with air drag each frame
+                self.droneVerticalSpeed *= max(1.0 - 3.8 * dt, 0)
+                self.droneAltitude = max(5, min(self.districtExtent * 0.40,
+                                               self.droneAltitude + self.droneVerticalSpeed * dt))
                 cam.position.y = self.droneAltitude
 
                 // --- Collision avoidance (O(n) over pre-computed centroids) ---
@@ -1534,9 +1701,15 @@ struct DistrictRealityView: UIViewRepresentable {
                     self.onDroneCollisionWarning?(false)
                 }
 
-                // Look slightly downward (−8°) for an immersive drone camera angle
+                // Camera pitch: tilt down when descending fast, level at cruise, slightly up when climbing
+                // pitchTarget negative = looking slightly down (realistic drone horizon)
+                let pitchTarget = simd_clamp(-self.droneVerticalSpeed * 0.009, -.pi * 0.14, .pi * 0.05)
+                self.droneCameraPitch += (pitchTarget - self.droneCameraPitch) * min(7.0 * dt, 1.0)
+
                 let recalcFwd = SIMD3<Float>(-sin(self.droneYaw), 0, -cos(self.droneYaw))
-                let lookTarget = cam.position + recalcFwd + SIMD3(0, -0.14, 0)
+                // Blend forward direction with pitch (Y component = sin of pitch angle)
+                let lookDir = SIMD3<Float>(recalcFwd.x, sin(self.droneCameraPitch), recalcFwd.z)
+                let lookTarget = cam.position + lookDir * 14.0
                 cam.look(at: lookTarget, from: cam.position, relativeTo: nil)
 
                 // Telemetry callback at ~5 fps
@@ -1595,20 +1768,23 @@ struct DistrictRealityView: UIViewRepresentable {
             }
         }
 
-        /// Orbit mode: every quadrant at full quality, but palms hidden.
-        ///
-        /// Palm trunk geometry (4-sided prisms 0.17–0.28 m wide, 6.5–11.5 m tall) is sub-pixel at
-        /// typical orbit camera distances yet still present in the near mesh batch → they appear as
-        /// a forest of thin coloured spikes across the skyline. Hiding them in orbit mode costs
-        /// nothing visually (sub-pixel = invisible) and eliminates the noise.  They reappear
-        /// automatically when venue mode activates (camera drops to ~8m height / 40m forward).
+        /// Orbit mode: per-quadrant quality based on camera altitude.
+        /// - Very high (>40% extent): far-only AABB boxes (lowest GPU cost)
+        /// - Normal orbit: near containers, palms hidden (sub-pixel at orbit distance)
         private func applyOrbitLOD() {
             lodSubscription?.cancel()
             lodSubscription = nil
+            let camY = cameraEntity?.position.y ?? 0
+            let highAlt = camY > districtExtent * 0.40
             for node in quadrantLOD {
-                node.near.isEnabled = true
-                node.far.isEnabled  = false
-                setPalmsEnabled(false, in: node.near)
+                if highAlt {
+                    node.near.isEnabled = false
+                    node.far.isEnabled  = true
+                } else {
+                    node.near.isEnabled = true
+                    node.far.isEnabled  = false
+                    setPalmsEnabled(false, in: node.near)
+                }
             }
             setFacadeDetailEnabled(false)
             facadeDetailEnabled = false
@@ -1624,20 +1800,41 @@ struct DistrictRealityView: UIViewRepresentable {
         private func startVenueLOD(scene: RealityKit.Scene) {
             lodSubscription?.cancel()
             let fraction: Float = Self.tokyoDenseDistricts.contains(districtName) ? 0.35 : 0.50
-            let threshold = districtExtent * fraction
-            let thresholdSq = threshold * threshold  // avoid sqrt per frame per quadrant
+            let threshold    = districtExtent * fraction
+            let thresholdSq  = threshold * threshold
+            // Facade detail: auto-reveal at 18% extent; altitude-gated (higher cam → less detail)
+            let facadeBase   = districtExtent * 0.18
+            let facadeBaseSq = facadeBase * facadeBase
+
             lodSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
                 guard let self, let cam = self.cameraEntity else { return }
-                let camX = cam.position.x, camZ = cam.position.z
+                let camX = cam.position.x, camY = cam.position.y, camZ = cam.position.z
+
+                // --- Quadrant near/far switching ---
                 for node in self.quadrantLOD {
                     let dx = camX - node.center.x, dz = camZ - node.center.z
-                    let isNear = dx * dx + dz * dz <= thresholdSq
+                    let isNear  = dx * dx + dz * dz <= thresholdSq
                     let wasNear = node.near.isEnabled
                     node.near.isEnabled = isNear
                     node.far.isEnabled  = !isNear
-                    // Sync palm visibility: show when near, hide when far.
-                    if isNear != wasNear {
-                        self.setPalmsEnabled(isNear, in: node.near)
+                    if isNear != wasNear { self.setPalmsEnabled(isNear, in: node.near) }
+                }
+
+                // --- Auto facade detail: altitude-weighted XZ distance ---
+                // Higher camera → effective threshold shrinks (far-above = less detail needed)
+                if self.inspectedBuildingCentroid == nil {
+                    var nearestQuadSq: Float = .greatestFiniteMagnitude
+                    for node in self.quadrantLOD {
+                        let dx = camX - node.center.x, dz = camZ - node.center.z
+                        nearestQuadSq = min(nearestQuadSq, dx*dx + dz*dz)
+                    }
+                    // Altitude penalty: at camY = facadeBase the threshold halves
+                    let altFactor = max(0.1, 1.0 - camY / max(self.districtExtent * 0.22, 1))
+                    let effectiveSq = facadeBaseSq * altFactor * altFactor
+                    let showFacade  = nearestQuadSq < effectiveSq
+                    if showFacade != self.facadeDetailEnabled {
+                        self.facadeDetailEnabled = showFacade
+                        self.setFacadeDetailEnabled(showFacade)
                     }
                 }
             }
