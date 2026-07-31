@@ -270,6 +270,11 @@ enum DistrictRealityKit {
             root.addChild(markings)
         }
 
+        // Zebra crossings at footway/drivable junctions
+        if let crosswalks = try makeCrosswalkEntities(from: district) {
+            root.addChild(crosswalks)
+        }
+
         // Split buildings into 4 spatial quadrants (NW/NE/SW/SE relative to buildingCentroid).
         // Each quadrant gets a near tier (full polygon detail) and a far tier (simplified AABB boxes).
         // In orbit mode all quads show near; in venue (close-up) mode only near-camera quads show near.
@@ -328,6 +333,9 @@ enum DistrictRealityKit {
                 nearContainer.addChild(entity)
             }
             for entity in makePalmEntities(positions: palmsByQuadrant[i], isNight: isNight, quadrantIndex: i) {
+                nearContainer.addChild(entity)
+            }
+            for entity in makeNeonSignageEntities(buildings: qBuildings, districtName: name, quadrantIndex: i) {
                 nearContainer.addChild(entity)
             }
             if let farEntity = makeFarTierEntity(buildings: qBuildings, isNight: isNight, quadrantIndex: i) {
@@ -1591,6 +1599,94 @@ enum DistrictRealityKit {
         mat.color = .init(tint: UIColor(white: 0.82, alpha: 1.0))
         let entity = ModelEntity(mesh: mesh, materials: [mat])
         entity.name = "roadMarkings"
+        return entity
+    }
+
+    // MARK: - Crosswalk geometry
+
+    /// Zebra-crossing stripes at footway/pedestrian endpoints that abut a drivable road.
+    /// 7 stripes per crossing, oriented perpendicular to the footway direction, y=0.025m
+    /// (same level as road markings). Returns nil if no qualifying junctions found.
+    private static func makeCrosswalkEntities(from district: District) throws -> ModelEntity? {
+        let drivable: Set<String> = ["primary", "secondary", "tertiary", "residential",
+                                     "trunk", "motorway", "service", "unclassified", "_default"]
+        let walkable: Set<String> = ["footway", "pedestrian", "path", "steps", "living_street", "crossing"]
+
+        // Build a flat list of drivable road points for proximity search
+        var drivablePts: [LocalPoint] = []
+        for r in district.roads {
+            guard drivable.contains(r.kind ?? "_default") else { continue }
+            drivablePts.append(contentsOf: r.points)
+        }
+        guard !drivablePts.isEmpty else { return nil }
+
+        let stripeW:    Float = 3.0    // metres across the road
+        let stripeD:    Float = 0.55   // depth of each stripe
+        let stripeGap:  Float = 0.45   // gap between stripes
+        let stripeH:    Float = 0.025  // flush with road markings
+        let nStripes    = 7
+        let junctionR:  Float = 7.0    // search radius — footway endpoint near drivable road
+
+        var pos:  [SIMD3<Float>] = []
+        var norm: [SIMD3<Float>] = []
+        var idx:  [UInt32]       = []
+        let up = SIMD3<Float>(0, 1, 0)
+
+        for road in district.roads {
+            guard walkable.contains(road.kind ?? "") else { continue }
+            let pts = road.points
+            guard pts.count >= 2 else { continue }
+
+            // Check both endpoints of the footway segment
+            for (isFirstPt, endPt) in [(true, pts.first!), (false, pts.last!)] {
+                // Nearest drivable point
+                var minDSq = junctionR * junctionR
+                for dp in drivablePts {
+                    let ddx = endPt.x - dp.x, ddz = endPt.z - dp.z
+                    let dsq = ddx*ddx + ddz*ddz
+                    if dsq < minDSq { minDSq = dsq }
+                }
+                guard minDSq < junctionR * junctionR else { continue }
+
+                // Footway direction at this endpoint (index-based, LocalPoint is a struct)
+                let other = isFirstPt ? pts[1] : pts[pts.count - 2]
+                let fdx = endPt.x - other.x, fdz = endPt.z - other.z
+                let fLen = sqrt(fdx*fdx + fdz*fdz)
+                guard fLen > 0.01 else { continue }
+                let fu = SIMD3<Float>(fdx / fLen, 0, fdz / fLen)  // along footway
+                let pu = SIMD3<Float>(-fu.z, 0, fu.x)              // perpendicular (across road)
+
+                // Emit nStripes zebra stripes starting at the endpoint
+                for s in 0..<nStripes {
+                    let offset = Float(s) * (stripeD + stripeGap)
+                    let cx = endPt.x + fu.x * offset
+                    let cz = endPt.z + fu.z * offset
+                    // 4 corners of one stripe quad
+                    let hw = stripeW * 0.5
+                    let hd = stripeD * 0.5
+                    let base = UInt32(pos.count)
+                    pos += [
+                        SIMD3(cx + pu.x * hw - fu.x * hd, stripeH, cz + pu.z * hw - fu.z * hd),
+                        SIMD3(cx + pu.x * hw + fu.x * hd, stripeH, cz + pu.z * hw + fu.z * hd),
+                        SIMD3(cx - pu.x * hw + fu.x * hd, stripeH, cz - pu.z * hw + fu.z * hd),
+                        SIMD3(cx - pu.x * hw - fu.x * hd, stripeH, cz - pu.z * hw - fu.z * hd),
+                    ]
+                    norm += [up, up, up, up]
+                    idx  += [base, base+1, base+2,  base, base+2, base+3]
+                }
+            }
+        }
+
+        guard !pos.isEmpty else { return nil }
+        var desc = MeshDescriptor(name: "crosswalks")
+        desc.positions  = MeshBuffer(pos)
+        desc.normals    = MeshBuffer(norm)
+        desc.primitives = .triangles(idx)
+        let mesh = try MeshResource.generate(from: [desc])
+        var mat = UnlitMaterial()
+        mat.color = .init(tint: UIColor(white: 0.88, alpha: 1.0))
+        let entity = ModelEntity(mesh: mesh, materials: [mat])
+        entity.name = "crosswalks"
         return entity
     }
 
@@ -4942,6 +5038,70 @@ enum DistrictRealityKit {
         return area * 0.5
     }
 
+    // MARK: - Neon signage (Tokyo dense commercial districts)
+
+    /// Districts that get procedural neon billboard overlays on commercial facades.
+    private static let neonSignageDistricts: Set<String> = [
+        "Shibuya", "Akihabara", "Shinjuku", "Roppongi", "Ikebukuro", "Harajuku", "Ginza"
+    ]
+
+    /// Places neon billboard panels on commercial buildings in Tokyo-density districts.
+    /// Uses a deterministic hash on `building.osmID` so the same buildings always get the same
+    /// billboard colors across reloads — no random flickering between sessions.
+    /// Returns [] for non-neon districts (no per-district check needed at call site).
+    @MainActor
+    private static func makeNeonSignageEntities(
+        buildings: [BuildingFootprint],
+        districtName: String,
+        quadrantIndex: Int
+    ) -> [ModelEntity] {
+        guard neonSignageDistricts.contains(districtName) else { return [] }
+
+        var results: [ModelEntity] = []
+
+        for (i, b) in buildings.enumerated() {
+            guard !b.polygon.isEmpty else { continue }
+            // Only commercial height range (6–45m)
+            guard b.heightMeters >= 6.0 && b.heightMeters <= 45.0 else { continue }
+            // Thin out to ~1 in 3 buildings to avoid saturation
+            guard (i + quadrantIndex * 17) % 3 == 0 else { continue }
+
+            let n  = Float(b.polygon.count)
+            let cx = b.polygon.map(\.x).reduce(0, +) / n
+            let cz = b.polygon.map(\.z).reduce(0, +) / n
+
+            // 2–3 billboard panels per qualifying building, stacked at different heights
+            let panelCount = b.heightMeters > 20 ? 3 : 2
+            let seed = Int(b.osmID) ?? i
+            for p in 0..<panelCount {
+                let colorIdx = (seed + p * 7 + i * 3 + quadrantIndex) % neonBillboardColors.count
+                var mat = UnlitMaterial()
+                mat.color = .init(tint: neonBillboardColors[colorIdx])
+
+                // Width proportional to building footprint but capped
+                let minX = b.polygon.map(\.x).min()!, maxX = b.polygon.map(\.x).max()!
+                let minZ = b.polygon.map(\.z).min()!, maxZ = b.polygon.map(\.z).max()!
+                let footW = max(maxX - minX, maxZ - minZ)
+                let panelW = min(max(footW * 0.55, 2.5), 7.0)
+                let panelH = Float.random(in: 1.5...2.8)  // not truly random per load but acceptable
+
+                let yHeights: [Float] = [5.0, 11.5, 19.0]
+                let y = yHeights[p % yHeights.count]
+
+                let panel = ModelEntity(
+                    mesh: .generateBox(size: SIMD3<Float>(panelW, panelH, 0.30)),
+                    materials: [mat]
+                )
+                // Offset slightly from centroid toward building face (south z-face by default)
+                let halfZ = (maxZ - minZ) * 0.5
+                panel.position = SIMD3<Float>(cx, y, cz + halfZ + 0.20)
+                panel.name = "_neon_\(quadrantIndex)_\(i)_\(p)"
+                results.append(panel)
+            }
+        }
+        return results
+    }
+
     // MARK: - Holographic scanner rings
 
     /// Amber holographic scanner shown beneath the tapped building: two concentric arc-segment rings
@@ -5081,9 +5241,18 @@ enum DistrictRealityKit {
         UIColor(red: 0.14, green: 0.38, blue: 0.20, alpha: 1), // forest
     ]
 
-    /// Creates up to `maxCars` car-shaped boxes, one per drivable road segment.
+    /// Neon billboard colors for Tokyo districts — vivid emissive UnlitMaterial palette.
+    private static let neonBillboardColors: [UIColor] = [
+        UIColor(red: 1.00, green: 0.08, blue: 0.22, alpha: 1),  // neon red
+        UIColor(red: 0.05, green: 0.50, blue: 1.00, alpha: 1),  // neon blue
+        UIColor(red: 0.08, green: 1.00, blue: 0.30, alpha: 1),  // neon green
+        UIColor(red: 1.00, green: 0.90, blue: 0.00, alpha: 1),  // neon yellow
+        UIColor(red: 1.00, green: 0.08, blue: 0.80, alpha: 1),  // neon magenta
+        UIColor(red: 0.00, green: 0.95, blue: 1.00, alpha: 1),  // neon cyan
+    ]
+
+    /// Creates up to `maxCars` vehicles with realistic variety: sedans, SUVs, vans, trucks, scooters.
     /// Entities are placed at the segment start; the Coordinator animates them along their path.
-    /// Returns `(entity, path, speed, phase)` — path is world-local [SIMD3<Float>] along the road.
     @MainActor
     static func makeTrafficCarData(
         from district: District, maxCars: Int = 48
@@ -5097,21 +5266,53 @@ enum DistrictRealityKit {
         }
         guard !segs.isEmpty else { return [] }
 
+        // Scooter accent color — vivid orange, common in Tokyo/SE Asia
+        let scooterColors: [UIColor] = [
+            UIColor(red: 1.00, green: 0.42, blue: 0.05, alpha: 1),
+            UIColor(red: 0.12, green: 0.12, blue: 0.14, alpha: 1),
+            UIColor(red: 0.92, green: 0.86, blue: 0.64, alpha: 1),
+        ]
+
         var results: [(entity: ModelEntity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
         var idx = 0
 
         for seg in segs {
             if results.count >= maxCars { break }
             guard seg.points.count >= 2 else { continue }
-            let path = seg.points.map { SIMD3<Float>($0.x, 0.55, $0.z) }
+            let yRide: Float
+            let mesh: MeshResource
+            let color: UIColor
+            let speed: Float
 
-            let color = carPalette[idx % carPalette.count]
-            let carMesh = MeshResource.generateBox(size: SIMD3<Float>(1.8, 0.6, 3.8))
-            let car = ModelEntity(mesh: carMesh, materials: [UnlitMaterial(color: color)])
+            // Vehicle archetype: 0=sedan 1=SUV 2=van 3=truck 4=scooter
+            switch idx % 5 {
+            case 1:   // SUV — taller, wider
+                mesh = MeshResource.generateBox(size: SIMD3<Float>(2.0, 0.85, 4.2))
+                color = carPalette[idx % carPalette.count]
+                yRide = 0.60; speed = Float.random(in: 6...12)
+            case 2:   // Van / Kei truck
+                mesh = MeshResource.generateBox(size: SIMD3<Float>(2.0, 1.05, 5.0))
+                color = carPalette[(idx + 2) % carPalette.count]
+                yRide = 0.70; speed = Float.random(in: 5...10)
+            case 3:   // Heavy truck + trailer approximation (single long box)
+                mesh = MeshResource.generateBox(size: SIMD3<Float>(2.4, 1.25, 8.5))
+                color = carPalette[(idx + 4) % carPalette.count]
+                yRide = 0.80; speed = Float.random(in: 4...8)
+            case 4:   // Scooter / motorbike — narrow and nimble
+                mesh = MeshResource.generateBox(size: SIMD3<Float>(0.65, 0.90, 1.6))
+                color = scooterColors[idx % scooterColors.count]
+                yRide = 0.55; speed = Float.random(in: 8...18)
+            default:  // Sedan (original shape)
+                mesh = MeshResource.generateBox(size: SIMD3<Float>(1.8, 0.60, 3.8))
+                color = carPalette[idx % carPalette.count]
+                yRide = 0.55; speed = Float.random(in: 6...14)
+            }
+
+            let path = seg.points.map { SIMD3<Float>($0.x, yRide, $0.z) }
+            let car = ModelEntity(mesh: mesh, materials: [UnlitMaterial(color: color)])
             car.name = "_traffic_\(idx)"
             car.position = path[0]
 
-            let speed = Float.random(in: 6...14)
             let phase = Float.random(in: 0...1)
             results.append((entity: car, path: path, speed: speed, phase: phase))
             idx += 1
