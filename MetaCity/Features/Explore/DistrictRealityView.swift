@@ -269,6 +269,7 @@ struct DistrictRealityView: UIViewRepresentable {
         }
         private var trafficCars: [TrafficCar] = []
         private var pedestrians: [PedestrianWalker] = []
+        private var scramblePedestrians: [PedestrianWalker] = []
         private var stratBirds: [StratBird] = []
         private var petAnimals: [StratPet] = []
         private var ecosystemStartTime: Double = 0
@@ -555,7 +556,8 @@ struct DistrictRealityView: UIViewRepresentable {
             if currentViewPreset == .human {
                 let delta = gesture.translation(in: arView)
                 gesture.setTranslation(.zero, in: arView)
-                humanCharacterAzimuth += Float(delta.x) * 0.008
+                let viewW = max(Float(arView.bounds.width), 1)
+                humanCharacterAzimuth += Float(delta.x) / viewW * 0.90
                 let fwd = SIMD3<Float>(-sin(humanCharacterAzimuth), 0, -cos(humanCharacterAzimuth))
                 humanCharacterPos += fwd * Float(-delta.y) * 0.12
                 characterEntity?.position = SIMD3<Float>(humanCharacterPos.x, 0.94, humanCharacterPos.z)
@@ -574,8 +576,7 @@ struct DistrictRealityView: UIViewRepresentable {
                 flySubscription = nil
                 cinematicSubscription?.cancel()
                 cinematicSubscription = nil
-                // Capture initial velocity for momentum/inertia
-                panVelocity = gesture.velocity(in: arView)
+                panVelocity = .zero
             }
 
             let delta = gesture.translation(in: arView)
@@ -1341,7 +1342,8 @@ struct DistrictRealityView: UIViewRepresentable {
         /// Spawns traffic, pedestrians, strategic birds, and ground animals, then drives them each frame.
         private func setupEcosystem(district: District, anchor: AnchorEntity, scene: RealityKit.Scene) {
             ecosystemSubscription?.cancel(); ecosystemSubscription = nil
-            trafficCars.removeAll(); pedestrians.removeAll(); stratBirds.removeAll(); petAnimals.removeAll()
+            trafficCars.removeAll(); pedestrians.removeAll(); scramblePedestrians.removeAll()
+            stratBirds.removeAll(); petAnimals.removeAll()
             ecosystemStartTime = Date().timeIntervalSince1970
 
             // --- Traffic cars ---
@@ -1358,7 +1360,8 @@ struct DistrictRealityView: UIViewRepresentable {
             }
 
             // --- Pedestrians ---
-            let rawPeds = DistrictRealityKit.makeStreetPedestrianData(from: district, maxPeds: 24)
+            let maxPeds = districtName == "Shibuya" ? 64 : 24
+            let rawPeds = DistrictRealityKit.makeStreetPedestrianData(from: district, maxPeds: maxPeds)
             for d in rawPeds {
                 anchor.addChild(d.entity)
                 let la = d.entity.findEntity(named: "_lArm")
@@ -1374,6 +1377,32 @@ struct DistrictRealityView: UIViewRepresentable {
                     lArm: la, rArm: ra, lLeg: ll, rLeg: rl
                 ))
             }
+
+            // --- Shibuya Scramble Crossing crowd ---
+            if districtName == "Shibuya" {
+                let scrambleData = DistrictRealityKit.makeShibuyaScrambleCrowd(
+                    count: 60,
+                    center: SIMD3<Float>(district.buildingCentroid.x, 0, district.buildingCentroid.z)
+                )
+                for d in scrambleData {
+                    anchor.addChild(d.entity)
+                    scramblePedestrians.append(PedestrianWalker(
+                        entity: d.entity,
+                        path: d.path,
+                        pathLength: pathLength(d.path),
+                        speed: d.speed,
+                        phase: d.phase,
+                        lArm: d.entity.findEntity(named: "_lArm"),
+                        rArm: d.entity.findEntity(named: "_rArm"),
+                        lLeg: d.entity.findEntity(named: "_lLeg"),
+                        rLeg: d.entity.findEntity(named: "_rLeg")
+                    ))
+                }
+            }
+
+            // --- Metro entrances (Tokyo districts) ---
+            let metroEntrances = DistrictRealityKit.makeMetroEntranceEntities(districtName: districtName)
+            for e in metroEntrances { anchor.addChild(e) }
 
             // --- Birds ---
             let birdData = DistrictRealityKit.makeBirdEntityData(
@@ -1418,15 +1447,11 @@ struct DistrictRealityView: UIViewRepresentable {
 
         private func tickTrafficCars(t: Float) {
             for car in trafficCars {
-                let cycleLen = car.pathLength * 2
-                let raw = fmodf(t * car.speed + car.phase * car.pathLength, cycleLen)
-                let forward = raw < car.pathLength
-                let dist = forward ? raw : cycleLen - raw
-                let (pos, dir) = interpolateAlongPath(car.path, t: dist)
+                let raw = fmodf(t * car.speed + car.phase * car.pathLength, car.pathLength)
+                let (pos, dir) = interpolateAlongPath(car.path, t: raw)
                 car.entity.position = pos
-                let fwd: SIMD3<Float> = forward ? dir : -dir
-                if simd_length(fwd) > 0.01 {
-                    car.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: fwd)
+                if simd_length(dir) > 0.01 {
+                    car.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: dir)
                 }
             }
         }
@@ -1467,6 +1492,21 @@ struct DistrictRealityView: UIViewRepresentable {
                     ped.lLeg?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
                     ped.rLeg?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
                 }
+            }
+
+            // Scramble Crossing crowd: one-way radial walks, no interaction logic needed
+            for ped in scramblePedestrians {
+                let raw = fmodf(t * ped.speed + ped.phase * ped.pathLength, ped.pathLength)
+                let (pos, dir) = interpolateAlongPath(ped.path, t: raw)
+                ped.entity.position = SIMD3<Float>(pos.x, 0.60, pos.z)
+                if simd_length(dir) > 0.01 {
+                    ped.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: dir)
+                }
+                let swing = sin(t * walkFreq * .pi * 2 + ped.phase * .pi * 2) * walkAmp
+                ped.lArm?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
+                ped.rArm?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                ped.lLeg?.orientation = simd_quatf(angle: -swing, axis: SIMD3(1, 0, 0))
+                ped.rLeg?.orientation = simd_quatf(angle:  swing, axis: SIMD3(1, 0, 0))
             }
         }
 

@@ -5098,6 +5098,24 @@ enum DistrictRealityKit {
                 panel.name = "_neon_\(quadrantIndex)_\(i)_\(p)"
                 results.append(panel)
             }
+            // Vertical kanji-style sign — Shibuya only, on every other eligible building
+            if districtName == "Shibuya" && (i + quadrantIndex) % 2 == 0 {
+                let vColorIdx = (seed + 11 + i * 5 + quadrantIndex * 3) % neonBillboardColors.count
+                var vMat = UnlitMaterial()
+                vMat.color = .init(tint: neonBillboardColors[vColorIdx])
+                let bMinX = b.polygon.map(\.x).min()!
+                let bMaxX = b.polygon.map(\.x).max()!
+                let bHalfX = (bMaxX - bMinX) * 0.5
+                let vHeights: [Float] = [8.0, 14.0, 21.0]
+                let vY = vHeights[i % vHeights.count]
+                let vPanel = ModelEntity(
+                    mesh: .generateBox(size: SIMD3<Float>(0.42, 2.8, 0.22)),
+                    materials: [vMat]
+                )
+                vPanel.position = SIMD3<Float>(cx + bHalfX + 0.25, vY, cz)
+                vPanel.name = "_neon_v_\(quadrantIndex)_\(i)"
+                results.append(vPanel)
+            }
         }
         return results
     }
@@ -5509,6 +5527,121 @@ enum DistrictRealityKit {
             let speed: Float = isDog ? Float.random(in: 0.8...1.6) : Float.random(in: 0.4...1.0)
             let phase = Float.random(in: 0...1)
             results.append((entity: root, path: path, speed: speed, phase: phase))
+        }
+        return results
+    }
+
+    // MARK: - Shibuya Scramble Crossing crowd
+
+    /// 60 pedestrians spread across 8 radial arms emanating from the Scramble Crossing centre.
+    /// Each pedestrian walks from one edge of the crossing to the opposite edge (one-way, no bounce).
+    /// `center` should be `(district.buildingCentroid.x, 0, district.buildingCentroid.z)`.
+    @MainActor
+    static func makeShibuyaScrambleCrowd(
+        count: Int = 60,
+        center: SIMD3<Float>
+    ) -> [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] {
+        var results: [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
+
+        let armAngles: [Float] = (0..<8).map { Float($0) * .pi / 4 }
+        let crossRadius: Float = 26.0
+
+        let outfitColors: [UIColor] = [
+            UIColor(red: 0.92, green: 0.74, blue: 0.58, alpha: 1),
+            UIColor(red: 0.12, green: 0.18, blue: 0.32, alpha: 1),
+            UIColor(red: 0.70, green: 0.12, blue: 0.12, alpha: 1),
+            UIColor(red: 0.24, green: 0.24, blue: 0.24, alpha: 1),
+            UIColor(red: 0.82, green: 0.78, blue: 0.72, alpha: 1),
+            UIColor(red: 0.10, green: 0.36, blue: 0.18, alpha: 1),
+        ]
+        let skinMat = [UnlitMaterial(color: UIColor(red: 0.88, green: 0.76, blue: 0.64, alpha: 1))]
+
+        let perArm = max(1, count / armAngles.count)
+
+        for (armIdx, angle) in armAngles.enumerated() {
+            let dx = cos(angle) * crossRadius
+            let dz = sin(angle) * crossRadius
+            let edgeA = SIMD3<Float>(center.x + dx, 0, center.z + dz)
+            let edgeB = SIMD3<Float>(center.x - dx, 0, center.z - dz)
+
+            for j in 0..<perArm {
+                let color = outfitColors[(armIdx * 3 + j * 7) % outfitColors.count]
+                let mat = [UnlitMaterial(color: color)]
+
+                let root = Entity()
+                root.name = "_scramble_\(armIdx)_\(j)"
+
+                let body = ModelEntity(mesh: .generateBox(size: SIMD3(0.26, 0.48, 0.14)), materials: mat)
+                let head = ModelEntity(mesh: .generateSphere(radius: 0.13), materials: skinMat)
+                head.position = SIMD3(0, 0.34, 0)
+
+                let lArm = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.36, 0.08)), materials: mat)
+                lArm.position = SIMD3(-0.18, 0.05, 0); lArm.name = "_lArm"
+                let rArm = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.36, 0.08)), materials: mat)
+                rArm.position = SIMD3(0.18, 0.05, 0); rArm.name = "_rArm"
+                let lLeg = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.40, 0.10)), materials: mat)
+                lLeg.position = SIMD3(-0.08, -0.44, 0); lLeg.name = "_lLeg"
+                let rLeg = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.40, 0.10)), materials: mat)
+                rLeg.position = SIMD3(0.08, -0.44, 0); rLeg.name = "_rLeg"
+
+                body.addChild(head); body.addChild(lArm); body.addChild(rArm)
+                body.addChild(lLeg); body.addChild(rLeg)
+                root.addChild(body)
+                root.position = edgeA
+
+                // Stagger phase so peds appear spread across the arm, not clumped at edges
+                let phase = (Float(j) / Float(perArm)) + Float(armIdx) * 0.04
+                let speed = Float(1.2 + Double(armIdx + j * 3 % 7) * 0.15)
+                results.append((entity: root, path: [edgeA, center, edgeB], speed: speed, phase: phase))
+            }
+        }
+        return results
+    }
+
+    // MARK: - Metro entrance signs
+
+    /// Green rectangular Tokyo Metro entrance signs (3 per district) for all Tokyo districts.
+    /// Returns [] for non-Tokyo cities.
+    @MainActor
+    static func makeMetroEntranceEntities(districtName: String) -> [ModelEntity] {
+        let tokyoDistricts: Set<String> = [
+            "Shibuya", "Shinjuku", "Ginza", "Asakusa", "Harajuku",
+            "Roppongi", "Ikebukuro", "Akihabara", "Ueno", "Hamacho"
+        ]
+        guard tokyoDistricts.contains(districtName) else { return [] }
+
+        let greenMat  = UnlitMaterial(color: UIColor(red: 0.04, green: 0.52, blue: 0.22, alpha: 1))
+        let whiteMat  = UnlitMaterial(color: UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1))
+
+        let offsets: [(Float, Float)] = [(-9, -14), (15, 7), (-4, 20)]
+        var results: [ModelEntity] = []
+
+        for (i, (ox, oz)) in offsets.enumerated() {
+            // Vertical post
+            let post = ModelEntity(
+                mesh: .generateBox(size: SIMD3<Float>(0.28, 3.6, 0.28)),
+                materials: [greenMat]
+            )
+            post.name = "_metro_\(districtName)_\(i)"
+            post.position = SIMD3<Float>(ox, 1.8, oz)
+
+            // Rectangular sign cap
+            let cap = ModelEntity(
+                mesh: .generateBox(size: SIMD3<Float>(1.5, 0.60, 0.20)),
+                materials: [greenMat]
+            )
+            cap.position = SIMD3<Float>(0, 1.9, 0)
+
+            // White 'M' strip
+            let mStrip = ModelEntity(
+                mesh: .generateBox(size: SIMD3<Float>(0.90, 0.30, 0.08)),
+                materials: [whiteMat]
+            )
+            mStrip.position = SIMD3<Float>(0, 0, 0.12)
+
+            cap.addChild(mStrip)
+            post.addChild(cap)
+            results.append(post)
         }
         return results
     }
