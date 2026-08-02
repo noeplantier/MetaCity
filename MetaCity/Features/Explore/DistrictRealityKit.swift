@@ -1748,6 +1748,8 @@ enum DistrictRealityKit {
             case .nycDusk:            fallback = UIColor(red: 0.12, green: 0.11, blue: 0.12, alpha: 1)  // near-black NYC asphalt at dusk
             case .shibuyaNeon:        fallback = UIColor(red: 0.10, green: 0.10, blue: 0.14, alpha: 1)  // near-black Tokyo wet asphalt with neon-indigo tint
             case .laSunset:           fallback = UIColor(red: 0.56, green: 0.48, blue: 0.36, alpha: 1)  // bleached LA concrete, warm amber cast
+            case .shinjukuNight:      fallback = UIColor(red: 0.11, green: 0.11, blue: 0.16, alpha: 1)  // dark Shinjuku asphalt — slightly bluer than Shibuya
+            case .uenoMorning:        fallback = UIColor(red: 0.30, green: 0.34, blue: 0.26, alpha: 1)  // Ueno park path — green-grey gravel/tarmac
             }
             umat.color = .init(tint: fallback)
         }
@@ -2130,8 +2132,6 @@ enum DistrictRealityKit {
 
                 case .laSunset:
                     // Los Angeles DTLA — bleached sun-baked concrete/asphalt, warm sandy cast.
-                    // LA streets are wider and lighter than NYC: heat-bleached California concrete,
-                    // faint warm amber cast from the Pacific golden-hour orange bounce.
                     if isJoint {
                         r = 82; g = 72; b = 56
                     } else {
@@ -2141,6 +2141,24 @@ enum DistrictRealityKit {
                         r = UInt8(clamping: br + noise / 3)
                         g = UInt8(clamping: bg + noise / 4)
                         b = UInt8(clamping: bb + noise / 5)
+                    }
+
+                case .shinjukuNight:
+                    // Shinjuku — dark blue-grey asphalt, slightly lighter than Shibuya with broader streets
+                    let base = blockParity ? 32 : 26
+                    r = UInt8(clamping: base + noise / 9)
+                    g = UInt8(clamping: base + noise / 9)
+                    b = UInt8(clamping: base + 10 + noise / 5)  // cool blue cast from glass towers
+
+                case .uenoMorning:
+                    // Ueno park — green-grey gravel paths and light concrete museum plazas
+                    if isJoint {
+                        r = 56; g = 62; b = 50
+                    } else {
+                        let base = blockParity ? 100 : 90
+                        r = UInt8(clamping: base + noise / 6)
+                        g = UInt8(clamping: base + 8 + noise / 5)  // slightly green (park)
+                        b = UInt8(clamping: base - 4 + noise / 7)
                     }
                 }
 
@@ -5042,7 +5060,7 @@ enum DistrictRealityKit {
 
     /// Districts that get procedural neon billboard overlays on commercial facades.
     private static let neonSignageDistricts: Set<String> = [
-        "Shibuya", "Akihabara", "Shinjuku", "Roppongi", "Ikebukuro", "Harajuku", "Ginza"
+        "Shibuya", "Akihabara", "Shinjuku", "Roppongi", "Ikebukuro", "Harajuku", "Ginza", "Ueno"
     ]
 
     /// Places neon billboard panels on commercial buildings in Tokyo-density districts.
@@ -5073,6 +5091,31 @@ enum DistrictRealityKit {
             // 2–3 billboard panels per qualifying building, stacked at different heights
             let panelCount = b.heightMeters > 20 ? 3 : 2
             let seed = Int(b.osmID) ?? i
+
+            // Ueno gets traditional red lantern panels instead of neon horizontal billboards
+            if districtName == "Ueno" {
+                let uenoPalette: [UIColor] = [
+                    UIColor(red: 0.88, green: 0.08, blue: 0.08, alpha: 1),  // classic Ueno red
+                    UIColor(red: 0.92, green: 0.52, blue: 0.06, alpha: 1),  // warm amber
+                ]
+                let lColorIdx = (seed + i * 3 + quadrantIndex) % uenoPalette.count
+                var lMat = UnlitMaterial()
+                lMat.color = .init(tint: uenoPalette[lColorIdx])
+                let bMinZ = b.polygon.map(\.z).min()!
+                let bMaxZ = b.polygon.map(\.z).max()!
+                let bHalfZ = (bMaxZ - bMinZ) * 0.5
+                let lHeights: [Float] = [4.5, 9.0, 14.0]
+                let lY = lHeights[i % lHeights.count]
+                let lantern = ModelEntity(
+                    mesh: .generateBox(size: SIMD3<Float>(0.28, 2.6, 0.14)),
+                    materials: [lMat]
+                )
+                lantern.position = SIMD3<Float>(cx, lY, cz + bHalfZ + 0.12)
+                lantern.name = "_neon_lantern_\(quadrantIndex)_\(i)"
+                results.append(lantern)
+                continue  // no horizontal neon for Ueno — lanterns are the visual language here
+            }
+
             for p in 0..<panelCount {
                 let colorIdx = (seed + p * 7 + i * 3 + quadrantIndex) % neonBillboardColors.count
                 var mat = UnlitMaterial()
@@ -5334,6 +5377,31 @@ enum DistrictRealityKit {
             let phase = Float.random(in: 0...1)
             results.append((entity: car, path: path, speed: speed, phase: phase))
             idx += 1
+
+            // Opposing lane: reverse path offset 2m perpendicular — creates bidirectional roads
+            if results.count < maxCars && seg.points.count >= 3 {
+                let p0 = seg.points[0], p1 = seg.points[1]
+                let dx = p1.x - p0.x, dz = p1.z - p0.z
+                let segLen = sqrt(dx*dx + dz*dz)
+                if segLen > 0.01 {
+                    let perpX = -dz / segLen * 2.0  // 2m left-lane offset perpendicular to travel
+                    let perpZ =  dx / segLen * 2.0
+                    let revPath = seg.points.reversed().map { pt in
+                        SIMD3<Float>(pt.x + perpX, yRide, pt.z + perpZ)
+                    }
+                    let revColor = carPalette[(idx + 1) % carPalette.count]
+                    let revCar = ModelEntity(
+                        mesh: MeshResource.generateBox(size: SIMD3<Float>(1.8, 0.60, 3.8)),
+                        materials: [UnlitMaterial(color: revColor)]
+                    )
+                    revCar.name = "_traffic_\(idx)"
+                    revCar.position = revPath[0]
+                    results.append((entity: revCar, path: revPath,
+                                    speed: Float.random(in: 5...13),
+                                    phase: Float.random(in: 0...1)))
+                    idx += 1
+                }
+            }
         }
         return results
     }

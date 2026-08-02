@@ -207,7 +207,7 @@ struct DistrictRealityView: UIViewRepresentable {
         private var droneSubscription: Cancellable?
         private var droneYaw: Float = 0          // heading in radians
         private var droneAltitude: Float = 30    // scene metres AGL
-        private let droneForwardSpeed: Float = 10 // m/s constant cruise
+        private var droneForwardSpeed: Float = 10 // m/s cruise — overridden per-district in enterDroneMode
         var onDroneTelemetry: ((Float, Float, Float) -> Void)? = nil  // (alt, hdg°, spd)
         var onDroneCollisionWarning: ((Bool) -> Void)? = nil
         /// Flat list of (cx, cz, maxHeight) for every building — pre-computed once after load.
@@ -1360,7 +1360,13 @@ struct DistrictRealityView: UIViewRepresentable {
             }
 
             // --- Pedestrians ---
-            let maxPeds = districtName == "Shibuya" ? 64 : 24
+            let maxPeds: Int
+            switch districtName {
+            case "Shibuya":  maxPeds = 64
+            case "Shinjuku": maxPeds = 48
+            case "Ueno":     maxPeds = 32
+            default:         maxPeds = 24
+            }
             let rawPeds = DistrictRealityKit.makeStreetPedestrianData(from: district, maxPeds: maxPeds)
             for d in rawPeds {
                 anchor.addChild(d.entity)
@@ -1433,15 +1439,19 @@ struct DistrictRealityView: UIViewRepresentable {
                 ))
             }
 
-            guard !trafficCars.isEmpty || !pedestrians.isEmpty || !stratBirds.isEmpty || !petAnimals.isEmpty else { return }
+            guard !trafficCars.isEmpty || !pedestrians.isEmpty || !stratBirds.isEmpty || !petAnimals.isEmpty || !scramblePedestrians.isEmpty else { return }
 
             ecosystemSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
                 guard let self else { return }
                 let t = Float(Date().timeIntervalSince1970 - self.ecosystemStartTime)
-                self.tickTrafficCars(t: t)
-                self.tickPedestrians(t: t)
-                self.tickBirds(t: t)
-                self.tickPets(t: t)
+                // Skip ground-level actors when camera is high (overview/aérien) — saves ~30% GPU at altitude
+                let highAlt = (self.cameraEntity?.position.y ?? 0) > self.districtExtent * 0.32
+                if !highAlt {
+                    self.tickTrafficCars(t: t)
+                    self.tickPedestrians(t: t)
+                    self.tickPets(t: t)
+                }
+                self.tickBirds(t: t)  // birds always visible — they orbit at 400–700m AGL
             }
         }
 
@@ -1661,6 +1671,10 @@ struct DistrictRealityView: UIViewRepresentable {
             droneForwardThrottle = 1.0
             droneCameraPitch    = 0
             droneInCollisionWarning = false
+            // Per-district cruise speed: tighter canyons → slower for controllability
+            droneForwardSpeed = districtName == "Shibuya"  ? 8.0  :
+                                 districtName == "Shinjuku" ? 12.0 :
+                                 districtName == "Ueno"     ? 9.0  : 10.0
             droneAltitude = max(20, districtExtent * 0.06)
             let startPos = SIMD3<Float>(
                 districtCenter.x,
@@ -1758,7 +1772,7 @@ struct DistrictRealityView: UIViewRepresentable {
                     telemetryAccum = 0
                     let hdg = (self.droneYaw * 180 / .pi).truncatingRemainder(dividingBy: 360)
                     let hdgPositive = hdg < 0 ? hdg + 360 : hdg
-                    self.onDroneTelemetry?(self.droneAltitude, hdgPositive, self.droneForwardSpeed)
+                    self.onDroneTelemetry?(self.droneAltitude, hdgPositive, effectiveSpeed)
                 }
             }
         }
@@ -1842,8 +1856,8 @@ struct DistrictRealityView: UIViewRepresentable {
             let fraction: Float = Self.tokyoDenseDistricts.contains(districtName) ? 0.35 : 0.50
             let threshold    = districtExtent * fraction
             let thresholdSq  = threshold * threshold
-            // Facade detail: auto-reveal at 18% extent; altitude-gated (higher cam → less detail)
-            let facadeBase   = districtExtent * 0.18
+            // Facade detail: Tokyo dense districts use 15% (Shibuya/Shinjuku), others 18%
+            let facadeBase   = districtExtent * (["Shibuya", "Shinjuku"].contains(districtName) ? 0.15 : 0.18)
             let facadeBaseSq = facadeBase * facadeBase
 
             lodSubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in

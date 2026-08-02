@@ -27,6 +27,8 @@ extension DistrictEntry {
         case "nycDusk":           return .nycDusk
         case "shibuyaNeon":       return .shibuyaNeon
         case "laSunset":          return .laSunset
+        case "shinjukuNight":     return .shinjukuNight
+        case "uenoMorning":       return .uenoMorning
         default:                  return .parkDaylight
         }
     }
@@ -62,6 +64,8 @@ enum DistrictRealityScene {
         case nycDusk             // New York (Midtown + Lower Manhattan) — late-afternoon canyon golden light
         case shibuyaNeon         // Tokyo (Shibuya) — dense commercial evening, neon-lit indigo sky
         case laSunset            // Los Angeles (DTLA, Hollywood) — Pacific golden-hour orange, bleached concrete
+        case shinjukuNight       // Tokyo (Shinjuku) — glass-tower canyon, deep indigo sky, corporate neon
+        case uenoMorning         // Tokyo (Ueno) — soft park morning, sakura haze, museum district
 
         var sunColor: UIColor {
             switch self {
@@ -84,6 +88,8 @@ enum DistrictRealityScene {
             case .nycDusk:         UIColor(red: 1.0,  green: 0.78, blue: 0.48, alpha: 1) // intense amber dusk — canyon light carving shadows between towers
             case .shibuyaNeon:     UIColor(red: 0.88, green: 0.82, blue: 0.70, alpha: 1) // warm amber Japanese afternoon — commercial commercial golden hour before neon kicks in
             case .laSunset:        UIColor(red: 1.0,  green: 0.68, blue: 0.34, alpha: 1) // intense Pacific golden-hour orange — sun just above the Hollywood Hills
+            case .shinjukuNight:   UIColor(red: 0.78, green: 0.82, blue: 0.98, alpha: 1) // cool blue-white corporate daylight — glass tower canyon fill
+            case .uenoMorning:     UIColor(red: 0.98, green: 0.91, blue: 0.72, alpha: 1) // warm sakura morning gold — park light through cherry blossom canopy
             }
         }
 
@@ -117,6 +123,8 @@ enum DistrictRealityScene {
             case .nycDusk:         36000  // intense low-angle dusk — strong enough to carve canyon shadows
             case .shibuyaNeon:     30000  // late-afternoon Tokyo — strong directional sun before neon takes over
             case .laSunset:        34000  // intense Pacific golden-hour — sharp long shadows across bleached LA concrete
+            case .shinjukuNight:   36000  // intense commercial corridor — deep canyons need strong sun for contrast
+            case .uenoMorning:     24000  // soft park morning — diffuse through cherry blossom canopy
             }
         }
 
@@ -143,6 +151,8 @@ enum DistrictRealityScene {
             case .nycDusk:         0.28   // very low — maximises tower shadow depth between canyon streets
             case .shibuyaNeon:     0.22   // lowest elevation in the app — long dramatic shadows across Shibuya commercial density
             case .laSunset:        0.20   // very low Pacific sunset — maximises orange ground-cast shadows on LA concrete
+            case .shinjukuNight:   0.21   // very low — similar to Shibuya, maximises Shinjuku glass tower canyon shadows
+            case .uenoMorning:     0.44   // moderate morning — gentle warm shadows across Ueno park paths
             }
         }
 
@@ -218,6 +228,12 @@ enum DistrictRealityScene {
                 // Pacific golden-hour — deep blue zenith (smog-filtered), blazing orange-amber horizon
                 // (sun just below the Hollywood Hills), warm bleached-asphalt ground.
                 (UIColor(red: 0.22, green: 0.28, blue: 0.62, alpha: 1), UIColor(red: 0.92, green: 0.50, blue: 0.20, alpha: 1), UIColor(red: 0.34, green: 0.28, blue: 0.20, alpha: 1))
+            case .shinjukuNight:
+                // Deep indigo-navy zenith, blue-grey commercial horizon (Kanto plain haze), dark asphalt-glass ground
+                (UIColor(red: 0.12, green: 0.16, blue: 0.44, alpha: 1), UIColor(red: 0.36, green: 0.48, blue: 0.70, alpha: 1), UIColor(red: 0.16, green: 0.16, blue: 0.20, alpha: 1))
+            case .uenoMorning:
+                // Soft azure morning zenith, warm peachy-peach horizon (sakura season Ueno), green-grey park ground
+                (UIColor(red: 0.48, green: 0.64, blue: 0.88, alpha: 1), UIColor(red: 0.96, green: 0.84, blue: 0.70, alpha: 1), UIColor(red: 0.26, green: 0.30, blue: 0.22, alpha: 1))
             }
         }
 
@@ -246,6 +262,8 @@ enum DistrictRealityScene {
             case .nycDusk:         0.18  // NYC Midtown/Lower Manhattan — slight extra breathing room for skyline silhouette
             case .shibuyaNeon:     0.16  // Shibuya — extremely dense commercial fabric, very tight framing
             case .laSunset:        0.18  // DTLA/Hollywood — LA sprawl needs more breathing room than Asian density
+            case .shinjukuNight:   0.16  // Shinjuku — same density as Shibuya, tight framing
+            case .uenoMorning:     0.22  // Ueno park — needs breathing room, lower density
             }
         }
 
@@ -270,13 +288,15 @@ enum DistrictRealityScene {
             case .nycDusk:         0.16  // elevated — reads the setback skyscraper silhouette from outside the street canyon
             case .shibuyaNeon:     0.18  // slightly elevated — reads layered commercial signage canopy across dense Shibuya block
             case .laSunset:        0.14  // moderate elevation — reads DTLA tower silhouette against orange sunset sky
+            case .shinjukuNight:   0.18  // elevated — reads Shinjuku glass tower tops and rooftop terraces
+            case .uenoMorning:     0.14  // moderate — park level, reads tree canopy and museum rooflines
             }
         }
 
         var fieldOfViewDegrees: Float {
             switch self {
             // Dense high-rise skylines: wider FOV maximises vertical tower impact
-            case .skyscraperCorridor, .nycDusk, .shibuyaNeon: 50
+            case .skyscraperCorridor, .nycDusk, .shibuyaNeon, .shinjukuNight: 50
             // LA sprawl: wide 48° captures the horizontal spread across the basin
             case .laSunset: 48
             // European dense fabric: 45° gives better depth perception of packed street canyons
@@ -292,7 +312,7 @@ enum DistrictRealityScene {
         var humanModeFOV: Float {
             switch self {
             case .shibuyaNeon:                              return 70
-            case .skyscraperCorridor, .nycDusk, .laSunset: return 68
+            case .skyscraperCorridor, .nycDusk, .laSunset, .shinjukuNight: return 68
             case .parisianCore, .bordeauxWaterfront, .londonSilver, .madridAfternoon, .romanGoldenHour: return 65
             default:                                        return 63
             }
@@ -317,6 +337,8 @@ enum DistrictRealityScene {
             case .madridAfternoon:     1.05  // Madrid terrace incandescent balcony glow
             case .romanGoldenHour:     1.06  // Rome aperitivo culture — warm amber restaurant glow
             case .sfMorning:           1.05  // SF SoMa tech offices + Mission bars stay lit late
+            case .shinjukuNight:       1.28  // Shinjuku entertainment canyon — dense neon, only slightly under Shibuya
+            case .uenoMorning:         1.02  // Ueno park museums, minimal commercial lighting
             default:                   1.0
             }
         }
@@ -341,6 +363,8 @@ enum DistrictRealityScene {
             case .rennesMedieval:     return -0.03  // cool Breton grey — slate and granite read cooler
             case .nycDusk:            return  0.02  // warm NYC dusk canyon light — brick richer
             case .laSunset:           return  0.04  // intense Pacific orange — stucco and concrete pushed to warm amber
+            case .shinjukuNight:      return -0.03  // Shinjuku steel+glass — cool blue-grey cast dominates
+            case .uenoMorning:        return  0.01  // mild warmth from sakura morning light
             default:                  return  0.0
             }
         }
@@ -461,7 +485,7 @@ enum DistrictRealityScene {
         let fillColor: UIColor
         if isNight {
             fillColor = UIColor(red: 0.1, green: 0.13, blue: 0.25, alpha: 1)
-        } else if mood == .skyscraperCorridor {
+        } else if mood == .skyscraperCorridor || mood == .shinjukuNight {
             // Warm city-glow bounce — creates orange-and-teal contrast (Blade Runner aesthetic)
             // instead of adding more blue-teal onto already-blue metallic glass surfaces.
             fillColor = UIColor(red: 0.85, green: 0.72, blue: 0.52, alpha: 1)
