@@ -1410,6 +1410,10 @@ struct DistrictRealityView: UIViewRepresentable {
                 crowdRaw = DistrictRealityKit.makeShinjukuCrowdData(count: 32, center: distCenter)
             } else if districtName == "Ueno" {
                 crowdRaw = DistrictRealityKit.makeUenoCrowdData(count: 24, center: distCenter)
+            } else if districtName == "Akihabara" {
+                crowdRaw = DistrictRealityKit.makeAkihabaraCrowdData(count: 40, center: distCenter)
+            } else if districtName == "Asakusa" {
+                crowdRaw = DistrictRealityKit.makeAsakusaCrowdData(count: 20, center: distCenter)
             } else {
                 crowdRaw = []
             }
@@ -1591,6 +1595,7 @@ struct DistrictRealityView: UIViewRepresentable {
                     e.name.hasPrefix("_traffic_") || e.name.hasPrefix("_ped_") || e.name.hasPrefix("_bird_")
                     || e.name.hasPrefix("_metro_") || e.name.hasPrefix("_neon_") || e.name.hasPrefix("_sq_")
                     || e.name.hasPrefix("_scramble_") || e.name.hasPrefix("_shinjuku_crowd_") || e.name.hasPrefix("_ueno_crowd_")
+                    || e.name.hasPrefix("_akihabara_crowd_") || e.name.hasPrefix("_asakusa_crowd_")
                 }.forEach { $0.removeFromParent() }
                 entity.name = "districtModel"
                 anchor.addChild(entity)
@@ -1707,9 +1712,11 @@ struct DistrictRealityView: UIViewRepresentable {
             droneCameraPitch    = 0
             droneInCollisionWarning = false
             // Per-district cruise speed: tighter canyons → slower for controllability
-            droneForwardSpeed = districtName == "Shibuya"  ? 8.0  :
-                                 districtName == "Shinjuku" ? 12.0 :
-                                 districtName == "Ueno"     ? 9.0  : 10.0
+            droneForwardSpeed = districtName == "Shibuya"   ? 8.0  :
+                                 districtName == "Shinjuku"  ? 12.0 :
+                                 districtName == "Ueno"      ? 9.0  :
+                                 districtName == "Akihabara" ? 8.0  :
+                                 districtName == "Asakusa"   ? 9.0  : 10.0
             droneAltitude = max(20, districtExtent * 0.06)
             let startPos = SIMD3<Float>(
                 districtCenter.x,

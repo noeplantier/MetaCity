@@ -3993,7 +3993,7 @@ enum DistrictRealityKit {
                 let cy = y % courseH
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 3
+                    var nx = 128 + noise / 3
                     var ny = 128 + noise / 3
                     var nz = 252 - abs(noise) / 8
                     if cy == 0 {        // joint center
@@ -4018,7 +4018,7 @@ enum DistrictRealityKit {
                 let cy = y % courseH
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 3
+                    var nx = 128 + noise / 3
                     var ny = 128 + noise / 4
                     var nz = 251 - abs(noise) / 8
                     if cy == 0 { nz = 236; ny = 128
@@ -4042,7 +4042,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let cx = (x + offset) % brickW
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 4
+                    var nx = 128 + noise / 4
                     var ny = 128 + noise / 4
                     var nz = 251 - abs(noise) / 9
                     // Horizontal mortar joint: top 2px of each brick row
@@ -4076,7 +4076,7 @@ enum DistrictRealityKit {
                 let sy = y % 32
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 6
+                    var nx = 128 + noise / 6
                     var ny = 128 + noise / 6
                     var nz = 253 - abs(noise) / 12
                     if sy == 0 { ny = 122; nz = 250 }
@@ -4097,7 +4097,7 @@ enum DistrictRealityKit {
                 let cy = y % varCourse
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 2   // heavier noise for rough plaster
+                    var nx = 128 + noise / 2   // heavier noise for rough plaster
                     var ny = 128 + noise / 2
                     var nz = 248 - abs(noise) / 6
                     if cy == 0 || cy == 1 { ny = 115; nz = 241; nx = 128 + noise / 4 }
@@ -4124,7 +4124,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let sx = x % 32  // formwork board period
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 5
+                    var nx = 128 + noise / 5
                     var ny = 128 + noise / 8
                     var nz = 252 - abs(noise) / 10
                     // Vertical board joints
@@ -4146,7 +4146,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let sx = x % 32
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 8
+                    var nx = 128 + noise / 8
                     var ny = 128 + noise / 8
                     var nz = 254 - abs(noise) / 14
                     if sy == 0 { ny = 124; nz = 252 }
@@ -4166,7 +4166,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let cx = (x + offset) % brickW
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 4
+                    var nx = 128 + noise / 4
                     var ny = 128 + noise / 4
                     var nz = 250 - abs(noise) / 9
                     if cy < 2 {
@@ -4189,7 +4189,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let n = pxHash(x, y)
                     let n2 = pxHash(x + 71, y + 43)
-                    let nx = 128 + n / 2
+                    var nx = 128 + n / 2
                     var ny = 128 + n2 / 2
                     var nz = 243 - abs(n) / 5
                     if crackLine { ny = 115 + n / 4; nz = 238 }
@@ -4203,7 +4203,7 @@ enum DistrictRealityKit {
                 let sy = y % 20
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    let nx = 128 + noise / 4
+                    var nx = 128 + noise / 4
                     var ny = 128 + noise / 4
                     var nz = 250 - abs(noise) / 8
                     if sy == 0 { ny = 120; nz = 247 }
@@ -5385,8 +5385,8 @@ enum DistrictRealityKit {
             let color: UIColor
             let speed: Float
 
-            // Vehicle archetype: 0=sedan 1=SUV 2=van 3=truck 4=scooter
-            switch idx % 5 {
+            // Vehicle archetype: 0=sedan 1=SUV 2=van 3=truck 4=scooter 5=Tokyo taxi
+            switch idx % 6 {
             case 1:   // SUV — taller, wider
                 mesh = MeshResource.generateBox(size: SIMD3<Float>(2.0, 0.85, 4.2))
                 color = carPalette[idx % carPalette.count]
@@ -5403,7 +5403,11 @@ enum DistrictRealityKit {
                 mesh = MeshResource.generateBox(size: SIMD3<Float>(0.65, 0.90, 1.6))
                 color = scooterColors[idx % scooterColors.count]
                 yRide = 0.55; speed = Float.random(in: 8...18)
-            default:  // Sedan (original shape)
+            case 5:   // Tokyo black taxi — Crown-class sedan
+                mesh = MeshResource.generateBox(size: SIMD3<Float>(1.75, 0.65, 4.2))
+                color = UIColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1)
+                yRide = 0.55; speed = Float.random(in: 5...10)
+            default:  // Sedan (case 0)
                 mesh = MeshResource.generateBox(size: SIMD3<Float>(1.8, 0.60, 3.8))
                 color = carPalette[idx % carPalette.count]
                 yRide = 0.55; speed = Float.random(in: 6...14)
@@ -5413,6 +5417,15 @@ enum DistrictRealityKit {
             let car = ModelEntity(mesh: mesh, materials: [UnlitMaterial(color: color)])
             car.name = "_traffic_\(idx)"
             car.position = path[0]
+
+            // Green roof lantern for Tokyo taxis — highly recognizable
+            if idx % 6 == 5 {
+                let signMat = UnlitMaterial(color: UIColor(red: 0.04, green: 0.62, blue: 0.28, alpha: 1))
+                let sign = ModelEntity(mesh: .generateBox(size: SIMD3<Float>(0.60, 0.22, 0.32)),
+                                       materials: [signMat])
+                sign.position = SIMD3<Float>(0, 0.44, -0.40)
+                car.addChild(sign)
+            }
 
             let phase = Float.random(in: 0...1)
             results.append((entity: car, path: path, speed: speed, phase: phase))
@@ -5833,6 +5846,128 @@ enum DistrictRealityKit {
                 // Leisurely pace: 0.85–1.1 m/s (strolling tourist speed)
                 let phase = Float(j) / Float(perPath) + Float(pathIdx) * 0.20
                 let speed = Float(0.88 + Double((pathIdx + j * 3) % 5) * 0.05)
+                results.append((entity: root, path: path, speed: speed, phase: phase))
+            }
+        }
+        return results
+    }
+
+    /// Creates `count` pedestrians along 3 Akihabara electronics/anime shopping paths.
+    /// Clothing is vivid streetwear; speed is browsing pace (1.1–1.7 m/s).
+    @MainActor
+    static func makeAkihabaraCrowdData(
+        count: Int = 40, center: SIMD3<Float>
+    ) -> [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] {
+        let paths: [[SIMD3<Float>]] = [
+            // Main Chuo-dori axis north→south
+            [center + SIMD3( 0, 0, -20), center + SIMD3( 0, 0,  -6),
+             center + SIMD3( 0, 0,   6), center + SIMD3( 0, 0,  20)],
+            // East side arcade
+            [center + SIMD3(-14, 0, -15), center + SIMD3(-14, 0,  -4),
+             center + SIMD3(-14, 0,   8), center + SIMD3(-14, 0,  18)],
+            // West electronics strip (reversed — opposing flow)
+            [center + SIMD3( 14, 0,  18), center + SIMD3( 14, 0,   5),
+             center + SIMD3( 14, 0,  -6), center + SIMD3( 14, 0, -17)],
+        ]
+        let clothingColors: [UIColor] = [
+            UIColor(red: 0.94, green: 0.12, blue: 0.36, alpha: 1), // hot pink
+            UIColor(red: 0.10, green: 0.22, blue: 0.80, alpha: 1), // royal blue
+            UIColor(red: 0.95, green: 0.82, blue: 0.08, alpha: 1), // bright yellow
+            UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1), // white
+            UIColor(red: 0.10, green: 0.10, blue: 0.12, alpha: 1), // black
+            UIColor(red: 0.04, green: 0.72, blue: 0.66, alpha: 1), // teal
+            UIColor(red: 0.92, green: 0.42, blue: 0.04, alpha: 1), // orange
+            UIColor(red: 0.56, green: 0.10, blue: 0.80, alpha: 1), // purple
+        ]
+        let skinMat = [UnlitMaterial(color: UIColor(red: 0.88, green: 0.74, blue: 0.62, alpha: 1))]
+        let darkLeg  = [UnlitMaterial(color: UIColor(red: 0.12, green: 0.12, blue: 0.14, alpha: 1))]
+        let perPath  = max(1, count / paths.count)
+        var results: [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
+
+        for (pathIdx, path) in paths.enumerated() {
+            for j in 0..<perPath {
+                let mat   = [UnlitMaterial(color: clothingColors[(pathIdx * perPath + j) % clothingColors.count])]
+                let root  = Entity()
+                root.name = "_akihabara_crowd_\(pathIdx)_\(j)"
+                let body  = ModelEntity(mesh: .generateBox(size: SIMD3(0.26, 0.48, 0.14)), materials: mat)
+                let head  = ModelEntity(mesh: .generateSphere(radius: 0.13), materials: skinMat)
+                head.position = SIMD3(0, 0.34, 0)
+                let lArm  = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.36, 0.08)), materials: mat)
+                lArm.position = SIMD3(-0.17, 0.06, 0); lArm.name = "_lArm"
+                let rArm  = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.36, 0.08)), materials: mat)
+                rArm.position = SIMD3( 0.17, 0.06, 0); rArm.name = "_rArm"
+                let lLeg  = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.40, 0.10)), materials: darkLeg)
+                lLeg.position = SIMD3(-0.07, -0.45, 0); lLeg.name = "_lLeg"
+                let rLeg  = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.40, 0.10)), materials: darkLeg)
+                rLeg.position = SIMD3( 0.07, -0.45, 0); rLeg.name = "_rLeg"
+                body.addChild(head); body.addChild(lArm); body.addChild(rArm)
+                body.addChild(lLeg); body.addChild(rLeg)
+                root.addChild(body)
+                root.position = path.first ?? center
+
+                let phase = Float(j) / Float(perPath) + Float(pathIdx) * 0.28
+                let speed = Float(1.15 + Double((pathIdx + j * 5) % 6) * 0.10)
+                results.append((entity: root, path: path, speed: speed, phase: phase))
+            }
+        }
+        return results
+    }
+
+    /// Creates `count` temple-visitor pedestrians along Nakamise-dori toward Senso-ji.
+    /// Tourist casual palette; leisurely pace (0.72–0.98 m/s).
+    @MainActor
+    static func makeAsakusaCrowdData(
+        count: Int = 20, center: SIMD3<Float>
+    ) -> [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] {
+        let paths: [[SIMD3<Float>]] = [
+            // Central Nakamise-dori: south gate → temple
+            [center + SIMD3( 0, 0, 22), center + SIMD3( 0, 0, 10),
+             center + SIMD3( 0, 0,  0), center + SIMD3( 0, 0, -14)],
+            // Left flank
+            [center + SIMD3(-7, 0, 20), center + SIMD3(-7, 0,  5),
+             center + SIMD3(-7, 0, -6), center + SIMD3(-7, 0, -16)],
+            // Right flank
+            [center + SIMD3( 7, 0, 21), center + SIMD3( 7, 0,  8),
+             center + SIMD3( 7, 0, -3), center + SIMD3( 7, 0, -15)],
+        ]
+        let clothingColors: [UIColor] = [
+            UIColor(red: 0.70, green: 0.62, blue: 0.50, alpha: 1), // khaki
+            UIColor(red: 0.50, green: 0.62, blue: 0.52, alpha: 1), // sage green
+            UIColor(red: 0.92, green: 0.88, blue: 0.80, alpha: 1), // cream
+            UIColor(red: 0.46, green: 0.66, blue: 0.82, alpha: 1), // light blue
+            UIColor(red: 0.78, green: 0.36, blue: 0.24, alpha: 1), // terracotta
+            UIColor(red: 0.84, green: 0.70, blue: 0.22, alpha: 1), // mustard
+            UIColor(red: 0.54, green: 0.52, blue: 0.52, alpha: 1), // warm grey
+            UIColor(red: 0.60, green: 0.12, blue: 0.16, alpha: 1), // traditional crimson
+        ]
+        let skinMat = [UnlitMaterial(color: UIColor(red: 0.86, green: 0.72, blue: 0.60, alpha: 1))]
+        let legMat  = [UnlitMaterial(color: UIColor(red: 0.14, green: 0.12, blue: 0.10, alpha: 1))]
+        let perPath = max(1, count / paths.count)
+        var results: [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
+
+        for (pathIdx, path) in paths.enumerated() {
+            for j in 0..<perPath {
+                let mat   = [UnlitMaterial(color: clothingColors[(pathIdx * 7 + j) % clothingColors.count])]
+                let root  = Entity()
+                root.name = "_asakusa_crowd_\(pathIdx)_\(j)"
+                let body  = ModelEntity(mesh: .generateBox(size: SIMD3(0.26, 0.46, 0.14)), materials: mat)
+                let head  = ModelEntity(mesh: .generateSphere(radius: 0.13), materials: skinMat)
+                head.position = SIMD3(0, 0.33, 0)
+                let lArm  = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.34, 0.08)), materials: mat)
+                lArm.position = SIMD3(-0.17, 0.05, 0); lArm.name = "_lArm"
+                let rArm  = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.34, 0.08)), materials: mat)
+                rArm.position = SIMD3( 0.17, 0.05, 0); rArm.name = "_rArm"
+                let lLeg  = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.38, 0.10)), materials: legMat)
+                lLeg.position = SIMD3(-0.07, -0.43, 0); lLeg.name = "_lLeg"
+                let rLeg  = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.38, 0.10)), materials: legMat)
+                rLeg.position = SIMD3( 0.07, -0.43, 0); rLeg.name = "_rLeg"
+                body.addChild(head); body.addChild(lArm); body.addChild(rArm)
+                body.addChild(lLeg); body.addChild(rLeg)
+                root.addChild(body)
+                root.position = path.first ?? center
+
+                let phase = Float(j) / Float(perPath) + Float(pathIdx) * 0.33
+                let speed = Float(0.72 + Double((pathIdx + j * 4) % 7) * 0.04)
                 results.append((entity: root, path: path, speed: speed, phase: phase))
             }
         }
