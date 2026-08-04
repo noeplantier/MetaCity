@@ -1523,6 +1523,45 @@ enum DistrictRealityKit {
             default:
                 mat.baseColor = .init(tint: UIColor(red: 0.22, green: 0.21, blue: 0.22, alpha: 1))
             }
+        case .shibuyaNeon:
+            // Tokyo commercial districts — near-black wet asphalt with cool indigo cast from neon reflections.
+            // Pedestrian/footway: lighter polished concrete (Shibuya scramble, Ginza omotenashi).
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.30, green: 0.30, blue: 0.34, alpha: 1))
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.13, green: 0.13, blue: 0.18, alpha: 1))
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.16, green: 0.16, blue: 0.21, alpha: 1))
+            case "tertiary", "tertiary_link", "residential":
+                mat.baseColor = .init(tint: UIColor(red: 0.19, green: 0.19, blue: 0.23, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.17, green: 0.17, blue: 0.22, alpha: 1))
+            }
+        case .shinjukuNight:
+            // Shinjuku — broader streets, slightly lighter asphalt than Shibuya, strong blue-grey cast.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.28, green: 0.28, blue: 0.32, alpha: 1))
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.12, green: 0.12, blue: 0.17, alpha: 1))
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.15, green: 0.15, blue: 0.20, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.18, green: 0.18, blue: 0.23, alpha: 1))
+            }
+        case .uenoMorning:
+            // Ueno — park paths are warm gravel/compacted earth, streets are standard grey asphalt.
+            switch kind {
+            case "pedestrian", "footway", "path", "steps", "cycleway":
+                mat.baseColor = .init(tint: UIColor(red: 0.56, green: 0.52, blue: 0.42, alpha: 1))  // warm gravel
+            case "primary", "primary_link", "trunk", "trunk_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.22, green: 0.21, blue: 0.20, alpha: 1))  // medium grey
+            case "secondary", "secondary_link":
+                mat.baseColor = .init(tint: UIColor(red: 0.27, green: 0.26, blue: 0.24, alpha: 1))
+            default:
+                mat.baseColor = .init(tint: UIColor(red: 0.30, green: 0.28, blue: 0.25, alpha: 1))
+            }
         default:
             // Jakarta / Bandung / Yogya: dark asphalt, graded by road class.
             switch kind {
@@ -3954,7 +3993,7 @@ enum DistrictRealityKit {
                 let cy = y % courseH
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 3
+                    let nx = 128 + noise / 3
                     var ny = 128 + noise / 3
                     var nz = 252 - abs(noise) / 8
                     if cy == 0 {        // joint center
@@ -3979,7 +4018,7 @@ enum DistrictRealityKit {
                 let cy = y % courseH
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 3
+                    let nx = 128 + noise / 3
                     var ny = 128 + noise / 4
                     var nz = 251 - abs(noise) / 8
                     if cy == 0 { nz = 236; ny = 128
@@ -4003,7 +4042,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let cx = (x + offset) % brickW
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 4
+                    let nx = 128 + noise / 4
                     var ny = 128 + noise / 4
                     var nz = 251 - abs(noise) / 9
                     // Horizontal mortar joint: top 2px of each brick row
@@ -4037,7 +4076,7 @@ enum DistrictRealityKit {
                 let sy = y % 32
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 6
+                    let nx = 128 + noise / 6
                     var ny = 128 + noise / 6
                     var nz = 253 - abs(noise) / 12
                     if sy == 0 { ny = 122; nz = 250 }
@@ -4058,7 +4097,7 @@ enum DistrictRealityKit {
                 let cy = y % varCourse
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 2   // heavier noise for rough plaster
+                    let nx = 128 + noise / 2   // heavier noise for rough plaster
                     var ny = 128 + noise / 2
                     var nz = 248 - abs(noise) / 6
                     if cy == 0 || cy == 1 { ny = 115; nz = 241; nx = 128 + noise / 4 }
@@ -4085,7 +4124,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let sx = x % 32  // formwork board period
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 5
+                    let nx = 128 + noise / 5
                     var ny = 128 + noise / 8
                     var nz = 252 - abs(noise) / 10
                     // Vertical board joints
@@ -4107,7 +4146,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let sx = x % 32
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 8
+                    let nx = 128 + noise / 8
                     var ny = 128 + noise / 8
                     var nz = 254 - abs(noise) / 14
                     if sy == 0 { ny = 124; nz = 252 }
@@ -4127,7 +4166,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let cx = (x + offset) % brickW
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 4
+                    let nx = 128 + noise / 4
                     var ny = 128 + noise / 4
                     var nz = 250 - abs(noise) / 9
                     if cy < 2 {
@@ -4150,7 +4189,7 @@ enum DistrictRealityKit {
                 for x in 0..<size {
                     let n = pxHash(x, y)
                     let n2 = pxHash(x + 71, y + 43)
-                    var nx = 128 + n / 2
+                    let nx = 128 + n / 2
                     var ny = 128 + n2 / 2
                     var nz = 243 - abs(n) / 5
                     if crackLine { ny = 115 + n / 4; nz = 238 }
@@ -4164,7 +4203,7 @@ enum DistrictRealityKit {
                 let sy = y % 20
                 for x in 0..<size {
                     let noise = pxHash(x, y)
-                    var nx = 128 + noise / 4
+                    let nx = 128 + noise / 4
                     var ny = 128 + noise / 4
                     var nz = 250 - abs(noise) / 8
                     if sy == 0 { ny = 120; nz = 247 }
@@ -5081,8 +5120,9 @@ enum DistrictRealityKit {
             guard !b.polygon.isEmpty else { continue }
             // Only commercial height range (6–45m)
             guard b.heightMeters >= 6.0 && b.heightMeters <= 45.0 else { continue }
-            // Thin out to ~1 in 3 buildings to avoid saturation
-            guard (i + quadrantIndex * 17) % 3 == 0 else { continue }
+            // Thin out by district — commercial density varies: Shibuya/Akihabara ~50%, others ~33%
+            let denseMod = (districtName == "Shibuya" || districtName == "Akihabara") ? 2 : 3
+            guard (i + quadrantIndex * 17) % denseMod == 0 else { continue }
 
             let n  = Float(b.polygon.count)
             let cx = b.polygon.map(\.x).reduce(0, +) / n
@@ -5126,7 +5166,7 @@ enum DistrictRealityKit {
                 let minZ = b.polygon.map(\.z).min()!, maxZ = b.polygon.map(\.z).max()!
                 let footW = max(maxX - minX, maxZ - minZ)
                 let panelW = min(max(footW * 0.55, 2.5), 7.0)
-                let panelH = Float.random(in: 1.5...2.8)  // not truly random per load but acceptable
+                let panelH = 1.5 + deterministicVariation(seed: b.osmID + "_nh\(p)") * 1.3
 
                 let yHeights: [Float] = [5.0, 11.5, 19.0]
                 let y = yHeights[p % yHeights.count]
@@ -5141,8 +5181,8 @@ enum DistrictRealityKit {
                 panel.name = "_neon_\(quadrantIndex)_\(i)_\(p)"
                 results.append(panel)
             }
-            // Vertical kanji-style sign — Shibuya only, on every other eligible building
-            if districtName == "Shibuya" && (i + quadrantIndex) % 2 == 0 {
+            // Vertical kanji-style sign — Shibuya + Shinjuku (densest vertical neon districts in Tokyo)
+            if (districtName == "Shibuya" || districtName == "Shinjuku") && (i + quadrantIndex) % 2 == 0 {
                 let vColorIdx = (seed + 11 + i * 5 + quadrantIndex * 3) % neonBillboardColors.count
                 var vMat = UnlitMaterial()
                 vMat.color = .init(tint: neonBillboardColors[vColorIdx])
