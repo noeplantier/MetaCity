@@ -5666,6 +5666,139 @@ enum DistrictRealityKit {
         return results
     }
 
+    // MARK: - Shinjuku west exit plaza crowd
+
+    /// 32 salaryman/commuter peds fanning out from Shinjuku west exit toward Omoide Yokocho.
+    /// Uses 4 converging lanes (NW, W, SW, S) typical of Tokyo station exit crush-flow.
+    @MainActor
+    static func makeShinjukuCrowdData(
+        count: Int = 32,
+        center: SIMD3<Float>
+    ) -> [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] {
+        var results: [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
+
+        // Shinjuku west exit is approx (-22, 0, -8) from district centroid — station mouth
+        let exitOrigin = SIMD3<Float>(center.x - 22, 0, center.z - 8)
+        // 4 radial exit lanes toward west plazas / Omoide Yokocho / Takashimaya
+        let laneAngles: [Float] = [-.pi * 0.62, -.pi * 0.78, -.pi * 0.92, -.pi * 1.10]
+        let laneLength: Float = 38.0
+
+        let outfitColors: [UIColor] = [
+            UIColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1),   // black suit
+            UIColor(red: 0.22, green: 0.22, blue: 0.26, alpha: 1),   // charcoal
+            UIColor(red: 0.16, green: 0.24, blue: 0.42, alpha: 1),   // navy
+            UIColor(red: 0.80, green: 0.76, blue: 0.68, alpha: 1),   // beige
+            UIColor(red: 0.58, green: 0.12, blue: 0.14, alpha: 1),   // burgundy
+        ]
+        let skinMat = [UnlitMaterial(color: UIColor(red: 0.88, green: 0.76, blue: 0.64, alpha: 1))]
+        let perLane = max(1, count / laneAngles.count)
+
+        for (laneIdx, angle) in laneAngles.enumerated() {
+            let endX = exitOrigin.x + cos(angle) * laneLength
+            let endZ = exitOrigin.z + sin(angle) * laneLength
+            let endPt = SIMD3<Float>(endX, 0, endZ)
+
+            for j in 0..<perLane {
+                let color = outfitColors[(laneIdx * 2 + j * 5) % outfitColors.count]
+                let mat = [UnlitMaterial(color: color)]
+
+                let root = Entity()
+                root.name = "_shinjuku_crowd_\(laneIdx)_\(j)"
+
+                let body = ModelEntity(mesh: .generateBox(size: SIMD3(0.24, 0.46, 0.14)), materials: mat)
+                let head = ModelEntity(mesh: .generateSphere(radius: 0.13), materials: skinMat)
+                head.position = SIMD3(0, 0.33, 0)
+                let lArm = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.34, 0.08)), materials: mat)
+                lArm.position = SIMD3(-0.17, 0.05, 0); lArm.name = "_lArm"
+                let rArm = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.34, 0.08)), materials: mat)
+                rArm.position = SIMD3(0.17, 0.05, 0); rArm.name = "_rArm"
+                let lLeg = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.38, 0.10)), materials: mat)
+                lLeg.position = SIMD3(-0.07, -0.43, 0); lLeg.name = "_lLeg"
+                let rLeg = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.38, 0.10)), materials: mat)
+                rLeg.position = SIMD3(0.07, -0.43, 0); rLeg.name = "_rLeg"
+                body.addChild(head); body.addChild(lArm); body.addChild(rArm)
+                body.addChild(lLeg); body.addChild(rLeg)
+                root.addChild(body)
+                root.position = exitOrigin
+
+                // Phase spread: salarymen march at a brisk 1.5–2.0 m/s pace
+                let phase = Float(j) / Float(perLane) + Float(laneIdx) * 0.12
+                let speed = Float(1.55 + Double((laneIdx + j * 4) % 6) * 0.09)
+                results.append((entity: root, path: [exitOrigin, endPt], speed: speed, phase: phase))
+            }
+        }
+        return results
+    }
+
+    // MARK: - Ueno museum plaza crowd
+
+    /// 24 leisurely peds (tourists, students, families) on the Ueno museum approach path.
+    /// Slow-moving, scattered in loose clusters — contrasts with Shibuya/Shinjuku density.
+    @MainActor
+    static func makeUenoCrowdData(
+        count: Int = 24,
+        center: SIMD3<Float>
+    ) -> [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] {
+        var results: [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)] = []
+
+        // Ueno museum path: from park south entrance toward Tokyo National Museum (north)
+        let pathStart = SIMD3<Float>(center.x + 4, 0, center.z + 28)
+        let pathMid   = SIMD3<Float>(center.x + 2, 0, center.z + 8)
+        let pathEnd   = SIMD3<Float>(center.x - 2, 0, center.z - 20)
+
+        // Side paths toward the zoo / fountain
+        let sidePaths: [[SIMD3<Float>]] = [
+            [SIMD3(center.x + 22, 0, center.z + 10), SIMD3(center.x + 8, 0, center.z + 0)],
+            [SIMD3(center.x - 18, 0, center.z + 14), SIMD3(center.x - 6, 0, center.z + 2)],
+        ]
+
+        let outfitColors: [UIColor] = [
+            UIColor(red: 0.72, green: 0.82, blue: 0.64, alpha: 1),   // sage green — casual
+            UIColor(red: 0.94, green: 0.88, blue: 0.76, alpha: 1),   // cream — tourist
+            UIColor(red: 0.30, green: 0.52, blue: 0.78, alpha: 1),   // sky blue
+            UIColor(red: 0.88, green: 0.42, blue: 0.22, alpha: 1),   // orange jacket
+            UIColor(red: 0.18, green: 0.18, blue: 0.22, alpha: 1),   // dark — student
+        ]
+        let skinMat = [UnlitMaterial(color: UIColor(red: 0.88, green: 0.76, blue: 0.64, alpha: 1))]
+
+        let mainPath = [pathStart, pathMid, pathEnd]
+        let allPaths = [mainPath] + sidePaths
+        let perPath  = max(1, count / allPaths.count)
+
+        for (pathIdx, path) in allPaths.enumerated() {
+            let startPt = path.first!
+            for j in 0..<perPath {
+                let color = outfitColors[(pathIdx * 3 + j * 7) % outfitColors.count]
+                let mat = [UnlitMaterial(color: color)]
+
+                let root = Entity()
+                root.name = "_ueno_crowd_\(pathIdx)_\(j)"
+
+                let body = ModelEntity(mesh: .generateBox(size: SIMD3(0.26, 0.46, 0.14)), materials: mat)
+                let head = ModelEntity(mesh: .generateSphere(radius: 0.135), materials: skinMat)
+                head.position = SIMD3(0, 0.33, 0)
+                let lArm = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.34, 0.08)), materials: mat)
+                lArm.position = SIMD3(-0.17, 0.05, 0); lArm.name = "_lArm"
+                let rArm = ModelEntity(mesh: .generateBox(size: SIMD3(0.08, 0.34, 0.08)), materials: mat)
+                rArm.position = SIMD3(0.17, 0.05, 0); rArm.name = "_rArm"
+                let lLeg = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.38, 0.10)), materials: mat)
+                lLeg.position = SIMD3(-0.07, -0.43, 0); lLeg.name = "_lLeg"
+                let rLeg = ModelEntity(mesh: .generateBox(size: SIMD3(0.10, 0.38, 0.10)), materials: mat)
+                rLeg.position = SIMD3(0.07, -0.43, 0); rLeg.name = "_rLeg"
+                body.addChild(head); body.addChild(lArm); body.addChild(rArm)
+                body.addChild(lLeg); body.addChild(rLeg)
+                root.addChild(body)
+                root.position = startPt
+
+                // Leisurely pace: 0.85–1.1 m/s (strolling tourist speed)
+                let phase = Float(j) / Float(perPath) + Float(pathIdx) * 0.20
+                let speed = Float(0.88 + Double((pathIdx + j * 3) % 5) * 0.05)
+                results.append((entity: root, path: path, speed: speed, phase: phase))
+            }
+        }
+        return results
+    }
+
     // MARK: - Metro entrance signs
 
     /// Green rectangular Tokyo Metro entrance signs (3 per district) for all Tokyo districts.

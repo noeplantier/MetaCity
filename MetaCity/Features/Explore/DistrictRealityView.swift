@@ -218,6 +218,7 @@ struct DistrictRealityView: UIViewRepresentable {
         private var droneVerticalSpeed: Float = 0       // vertical velocity m/s (+up, decays with drag)
         private var droneForwardThrottle: Float = 1.0   // speed multiplier 0.3–2.5 (pinch to control)
         private var droneCameraPitch: Float = 0          // camera pitch radians, smoothed per-frame
+        private var displayAltitude: Float = 0           // lerped altitude for smooth telemetry display
 
         // MARK: - HUMAN mode state (3rd-person)
         private var humanNearbySubscription: Cancellable?
@@ -235,6 +236,8 @@ struct DistrictRealityView: UIViewRepresentable {
         private var nearestPedestrianIdx: Int? = nil     // index in pedestrians array within 8m
         private var pedestrianReactionEntity: Entity? = nil  // speech-bubble sphere above ped
         private var humanArmRaiseTimer: Float = 0        // countdown for greeting arm-raise anim (1.2s)
+        /// Pre-computed per-building XZ exclusion circles for HUMAN mode wall-clamping.
+        private var humanBuildingExclusions: [(cx: Float, cz: Float, r: Float)] = []
 
         // MARK: - Living ecosystem state
         private var ecosystemSubscription: Cancellable?
@@ -560,6 +563,17 @@ struct DistrictRealityView: UIViewRepresentable {
                 humanCharacterAzimuth += Float(delta.x) / viewW * 0.90
                 let fwd = SIMD3<Float>(-sin(humanCharacterAzimuth), 0, -cos(humanCharacterAzimuth))
                 humanCharacterPos += fwd * Float(-delta.y) * 0.12
+                // Boundary clamp: push character out of building footprints.
+                for excl in humanBuildingExclusions {
+                    let dx = humanCharacterPos.x - excl.cx
+                    let dz = humanCharacterPos.z - excl.cz
+                    let distSq = dx * dx + dz * dz
+                    if distSq < excl.r * excl.r, distSq > 0.0001 {
+                        let d = sqrt(distSq)
+                        humanCharacterPos.x = excl.cx + dx / d * excl.r
+                        humanCharacterPos.z = excl.cz + dz / d * excl.r
+                    }
+                }
                 characterEntity?.position = SIMD3<Float>(humanCharacterPos.x, 0.94, humanCharacterPos.z)
                 characterEntity?.orientation = simd_quatf(angle: humanCharacterAzimuth, axis: SIMD3(0, 1, 0))
                 return
@@ -1137,8 +1151,11 @@ struct DistrictRealityView: UIViewRepresentable {
         /// Per-frame proximity check — POI zones + nearest pedestrian interaction.
         private func startHumanNearbyCheck(scene: RealityKit.Scene) {
             humanNearbySubscription?.cancel()
+            var pfCount = 0
             humanNearbySubscription = scene.subscribe(to: SceneEvents.Update.self) { [weak self] _ in
                 guard let self else { return }
+                pfCount += 1
+                guard pfCount & 3 == 0 else { return }  // 15fps: skip 3 of 4 frames
                 let charPos = self.humanCharacterPos
 
                 // --- POI proximity ---
@@ -1384,26 +1401,31 @@ struct DistrictRealityView: UIViewRepresentable {
                 ))
             }
 
-            // --- Shibuya Scramble Crossing crowd ---
+            // --- District crowd overlays: Shibuya scramble, Shinjuku west plaza, Ueno museum ---
+            let distCenter = SIMD3<Float>(district.buildingCentroid.x, 0, district.buildingCentroid.z)
+            let crowdRaw: [(entity: Entity, path: [SIMD3<Float>], speed: Float, phase: Float)]
             if districtName == "Shibuya" {
-                let scrambleData = DistrictRealityKit.makeShibuyaScrambleCrowd(
-                    count: 60,
-                    center: SIMD3<Float>(district.buildingCentroid.x, 0, district.buildingCentroid.z)
-                )
-                for d in scrambleData {
-                    anchor.addChild(d.entity)
-                    scramblePedestrians.append(PedestrianWalker(
-                        entity: d.entity,
-                        path: d.path,
-                        pathLength: pathLength(d.path),
-                        speed: d.speed,
-                        phase: d.phase,
-                        lArm: d.entity.findEntity(named: "_lArm"),
-                        rArm: d.entity.findEntity(named: "_rArm"),
-                        lLeg: d.entity.findEntity(named: "_lLeg"),
-                        rLeg: d.entity.findEntity(named: "_rLeg")
-                    ))
-                }
+                crowdRaw = DistrictRealityKit.makeShibuyaScrambleCrowd(count: 60, center: distCenter)
+            } else if districtName == "Shinjuku" {
+                crowdRaw = DistrictRealityKit.makeShinjukuCrowdData(count: 32, center: distCenter)
+            } else if districtName == "Ueno" {
+                crowdRaw = DistrictRealityKit.makeUenoCrowdData(count: 24, center: distCenter)
+            } else {
+                crowdRaw = []
+            }
+            for d in crowdRaw {
+                anchor.addChild(d.entity)
+                scramblePedestrians.append(PedestrianWalker(
+                    entity: d.entity,
+                    path: d.path,
+                    pathLength: pathLength(d.path),
+                    speed: d.speed,
+                    phase: d.phase,
+                    lArm: d.entity.findEntity(named: "_lArm"),
+                    rArm: d.entity.findEntity(named: "_rArm"),
+                    lLeg: d.entity.findEntity(named: "_lLeg"),
+                    rLeg: d.entity.findEntity(named: "_rLeg")
+                ))
             }
 
             // --- Metro entrances (Tokyo districts) ---
@@ -1459,7 +1481,7 @@ struct DistrictRealityView: UIViewRepresentable {
             for car in trafficCars {
                 let raw = fmodf(t * car.speed + car.phase * car.pathLength, car.pathLength)
                 let (pos, dir) = interpolateAlongPath(car.path, t: raw)
-                car.entity.position = pos
+                car.entity.position = SIMD3<Float>(pos.x, 0, pos.z)
                 if simd_length(dir) > 0.01 {
                     car.entity.orientation = simd_quatf(from: SIMD3(0, 0, 1), to: dir)
                 }
@@ -1567,6 +1589,8 @@ struct DistrictRealityView: UIViewRepresentable {
                 self.ecosystemSubscription?.cancel(); self.ecosystemSubscription = nil
                 anchor.children.filter { e in
                     e.name.hasPrefix("_traffic_") || e.name.hasPrefix("_ped_") || e.name.hasPrefix("_bird_")
+                    || e.name.hasPrefix("_metro_") || e.name.hasPrefix("_neon_") || e.name.hasPrefix("_sq_")
+                    || e.name.hasPrefix("_scramble_") || e.name.hasPrefix("_shinjuku_crowd_") || e.name.hasPrefix("_ueno_crowd_")
                 }.forEach { $0.removeFromParent() }
                 entity.name = "districtModel"
                 anchor.addChild(entity)
@@ -1589,6 +1613,17 @@ struct DistrictRealityView: UIViewRepresentable {
                         let cx = b.polygon.map(\.x).reduce(0, +) / n
                         let cz = b.polygon.map(\.z).reduce(0, +) / n
                         return (cx, cz, b.heightMeters)
+                    }
+                    // Pre-compute building exclusion zones for HUMAN mode wall-clamping.
+                    self.humanBuildingExclusions = dist.buildings.compactMap { b -> (Float, Float, Float)? in
+                        guard !b.polygon.isEmpty else { return nil }
+                        let n = Float(b.polygon.count)
+                        let cx = b.polygon.map(\.x).reduce(0, +) / n
+                        let cz = b.polygon.map(\.z).reduce(0, +) / n
+                        let minX = b.polygon.map(\.x).min()!, maxX = b.polygon.map(\.x).max()!
+                        let minZ = b.polygon.map(\.z).min()!, maxZ = b.polygon.map(\.z).max()!
+                        let r = max((maxX - minX) * 0.5, (maxZ - minZ) * 0.5) + 0.8
+                        return (cx, cz, r)
                     }
                 }
                 // Spawn living ecosystem (traffic, pedestrians, birds, dogs/cats).
@@ -1727,6 +1762,8 @@ struct DistrictRealityView: UIViewRepresentable {
                 self.droneAltitude = max(5, min(self.districtExtent * 0.40,
                                                self.droneAltitude + self.droneVerticalSpeed * dt))
                 cam.position.y = self.droneAltitude
+                // Smooth display altitude — eliminates telemetry jumps on rapid vertical changes
+                self.displayAltitude += (self.droneAltitude - self.displayAltitude) * min(0.15, 1.0)
 
                 // --- Collision avoidance (O(n) over pre-computed centroids) ---
                 let px = cam.position.x, pz = cam.position.z
@@ -1743,7 +1780,7 @@ struct DistrictRealityView: UIViewRepresentable {
 
                 if hitWall {
                     // Evasion: hard yaw 90° to the right + climb
-                    self.droneYaw += (.pi * 0.5) * dt * 3.0
+                    self.droneYaw += (.pi * 0.5) * dt * 6.0
                     self.droneAltitude = min(self.districtExtent * 0.35,
                                             self.droneAltitude + 22.0 * dt)
                     if !self.droneInCollisionWarning {
@@ -1772,7 +1809,7 @@ struct DistrictRealityView: UIViewRepresentable {
                     telemetryAccum = 0
                     let hdg = (self.droneYaw * 180 / .pi).truncatingRemainder(dividingBy: 360)
                     let hdgPositive = hdg < 0 ? hdg + 360 : hdg
-                    self.onDroneTelemetry?(self.droneAltitude, hdgPositive, effectiveSpeed)
+                    self.onDroneTelemetry?(self.displayAltitude, hdgPositive, effectiveSpeed)
                 }
             }
         }
